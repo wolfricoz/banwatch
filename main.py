@@ -11,7 +11,6 @@ from discord.ext import commands
 # IMPORT LOAD_DOTENV FUNCTION FROM DOTENV MODULE.
 from dotenv import load_dotenv
 from sqlalchemy.orm import sessionmaker
-import adefs
 import db
 from configer import Configer
 logger = logging.getLogger('discord')
@@ -153,7 +152,7 @@ async def setup_hook():
 
 
 @bot.command(aliases=["cr", "reload"])
-@adefs.check_admin_roles()
+@commands.is_owner()
 async def cogreload(ctx):
     filesloaded = []
     for filename in os.listdir("modules"):

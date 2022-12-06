@@ -4,7 +4,6 @@ import discord
 from discord.ext import commands
 from abc import ABC, abstractmethod
 import db
-import adefs
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select, column
 from datetime import datetime, timedelta
@@ -35,26 +34,26 @@ class Events(commands.Cog):
                 reasons.append(f"\n {guild}: {ban.reason}")
                 count += 1
             except discord.NotFound:
-                print(f'{guild}: not found')
+                pass
             except Exception as e:
                 print(e)
         sr = "".join(reasons)
 
         if count >= 1:
-            if configid is not None:
+
+            if configid == 0:
+                channel = member.guild.system_channel
+                await channel.send("Moderation channel is not set, use **/config change**")
+            else:
                 channel = bot.get_channel(configid)
                 if len(sr) < 1800:
                     await channel.send(f"{member.mention} is banned in: {sr}")
                 else:
                     with open(f"{random.randint(1, 1000)}.txt", 'w', encoding='utf-8') as f:
-                        print(sr)
                         f.write(sr)
                     await channel.send(f"{member.mention} is banned in:", file=discord.File(f.name, "banned.txt"))
 
                     os.remove(f.name)
-            else:
-                channel = member.guild.system_channel
-                await channel.send("Moderation channel is not set, use **/config change**")
         else:
             print("user not banned, skipping")
 
