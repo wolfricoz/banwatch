@@ -105,10 +105,26 @@ async def on_app_command_error(
 
 # EVENT LISTENER FOR WHEN THE BOT HAS SWITCHED FROM OFFLINE TO ONLINE.
 
-
+bot.bans = {}
 @bot.event
 async def on_ready():
     devroom = bot.get_channel(1047703677340749834)
+    # Fills banlist
+    bot.bans
+    for guild in bot.guilds:
+        async for entry in guild.bans():
+            if str(entry.user.id) in bot.bans:
+                bot.bans[f"{entry.user.id}"][f"{guild.id}"] = {}
+                bot.bans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
+            else:
+                bot.bans[f"{entry.user.id}"] = {}
+                bot.bans[f"{entry.user.id}"][f"{guild.id}"] = {}
+                bot.bans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
+    import json
+    with open('test.json', 'w') as f:
+        json.dump(bot.bans, f, indent=4)
+        print("done!")
+
     # CREATES A COUNTER TO KEEP TRACK OF HOW MANY GUILDS / SERVERS THE BOT IS CONNECTED TO.
     guild_count = 0
     guilds = []
@@ -122,11 +138,46 @@ async def on_ready():
         guild_count += 1
     # PRINTS HOW MANY GUILDS / SERVERS THE BOT IS IN.
     formguilds = "\n".join(guilds)
+
     await bot.tree.sync()
     await devroom.send(f"Banwatch is in {guild_count} guilds. Version 1.0.")
-
     session.close()
     return guilds
+
+@bot.event
+async def on_member_ban(guild, user):
+    """Updates banlist when user is banned"""
+    print(f"{guild}: banned {user}, refreshing banlist")
+    newbans = {}
+    for guild in bot.guilds:
+        async for entry in guild.bans():
+            if str(entry.user.id) in newbans:
+                newbans[f"{entry.user.id}"][f"{guild.id}"] = {}
+                newbans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
+            else:
+                newbans[f"{entry.user.id}"] = {}
+                newbans[f"{entry.user.id}"][f"{guild.id}"] = {}
+                newbans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
+    bot.bans = newbans
+    print("List updated")
+
+@bot.event
+async def on_member_unban(guild, user):
+    """Updates banlist when user is unbanned"""
+    print(f"{guild}: unbanned {user}, refreshing banlist")
+    newbans = {}
+    for guild in bot.guilds:
+        async for entry in guild.bans():
+            if str(entry.user.id) in newbans:
+                newbans[f"{entry.user.id}"][f"{guild.id}"] = {}
+                newbans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
+            else:
+                newbans[f"{entry.user.id}"] = {}
+                newbans[f"{entry.user.id}"][f"{guild.id}"] = {}
+                newbans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
+    bot.bans = newbans
+    print("List updated")
+
 
 @bot.event
 async def on_guild_join(guild):
@@ -138,6 +189,21 @@ async def on_guild_join(guild):
     await log.send(f"Joined {guild}({guild.id})")
     #SYNCS COMMANDS
     await bot.tree.sync()
+    # Updates ban list
+    print(f"{guild} joined, refreshing ban list")
+    newbans = {}
+    for guild in bot.guilds:
+        async for entry in guild.bans():
+            if str(entry.user.id) in newbans:
+                newbans[f"{entry.user.id}"][f"{guild.id}"] = {}
+                newbans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
+            else:
+                newbans[f"{entry.user.id}"] = {}
+                newbans[f"{entry.user.id}"][f"{guild.id}"] = {}
+                newbans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
+    bot.bans = newbans
+    print("List updated")
+
 # cogloader
 
 
