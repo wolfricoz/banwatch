@@ -7,7 +7,7 @@ import traceback
 import discord
 from discord import Interaction, app_commands
 from discord.app_commands import AppCommandError
-from discord.ext import commands
+from discord.ext import commands, tasks
 # IMPORT LOAD_DOTENV FUNCTION FROM DOTENV MODULE.
 from dotenv import load_dotenv
 from sqlalchemy.orm import sessionmaker
@@ -140,7 +140,7 @@ async def on_ready():
     formguilds = "\n".join(guilds)
 
     await bot.tree.sync()
-    await devroom.send(f"Banwatch is in {guild_count} guilds. Version 1.0.")
+    await devroom.send(f"Banwatch is in {guild_count} guilds. Version 1.2")
     session.close()
     return guilds
 
@@ -160,6 +160,19 @@ async def on_member_ban(guild, user):
                 newbans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
     bot.bans = newbans
     print("List updated")
+
+@bot.listen()
+async def on_member_ban(guild, user):
+    """informs other servers an user is banned"""
+    ban = await guild.fetch_ban(user)
+    for guilds in bot.guilds:
+        if user in guilds.members:
+            config = await Configer.get(None, guilds.id, "modchannel")
+            modchannel = bot.get_channel(int(config))
+            await modchannel.send(f"{user} ({user.id}) was banned in {guild} for {ban.reason}")
+
+
+
 
 @bot.event
 async def on_member_unban(guild, user):
@@ -186,7 +199,7 @@ async def on_guild_join(guild):
     print("sending DM now")
     await guild.owner.send("Thank you for inviting **ban watch**, please read https://docs.google.com/document/d/1bMtdsvr8D_8LEQha9d7BJhoqwXjLIfxRDsNWA4oORyI/edit?usp=sharing to set up the bot")
     log = bot.get_channel(1047703677340749834)
-    await log.send(f"Joined {guild}({guild.id})")
+    await log.send(f"Joined {guild}({guild.id}). Ban watch is now in {len(bot.guilds)}")
     #SYNCS COMMANDS
     await bot.tree.sync()
     # Updates ban list
@@ -230,6 +243,8 @@ async def cogreload(ctx):
     session.rollback()
     session.close()
     await bot.tree.sync()
+
+
 
 # EXECUTES THE BOT WITH THE SPECIFIED TOKEN.
 bot.run(DISCORD_TOKEN)

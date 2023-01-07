@@ -99,6 +99,20 @@ class dev(commands.Cog, name="dev"):
             json.dump(newbans, f, indent=4)
             print("done!")
 
+    @commands.command(name="announce", aliases=['a'])
+    @commands.is_owner()
+    async def announce(self, interaction: discord.Interaction, *, message: str):
+        if interaction.author.id == 188647277181665280:
+            for guild in self.bot.guilds:
+                print(f"{guild}: owner {guild.owner} ")
+                try:
+                    await guild.owner.send(f"__**BAN WATCH ANNOUNCEMENT**__\n"
+                                           f"{message}")
+                except discord.Forbidden:
+                    print(f"couldn't dm {guild.owner}")
+                except Exception as e:
+                    print(f"couldn't dm {guild.owner}, error reason: \n {e}")
+
 
     # @app_commands.command(name="checkall", description="checks ALL users, this command may take a while.")
     # @app_commands.checks.has_permissions(ban_members=True)
