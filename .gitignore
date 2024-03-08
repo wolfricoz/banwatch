@@ -1,0 +1,9 @@
+/logs/
+/configs/
+/.venv/
+/database.log
+/discord.log
+/main.env
+/plans.text
+/test.json
+/test.text
