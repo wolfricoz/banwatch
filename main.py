@@ -55,7 +55,7 @@ async def on_ready():
     formguilds = "\n".join(guilds)
 
     await bot.tree.sync()
-    # await devroom.send(f"Banwatch is in {guild_count} guilds. Version 1.4")
+    await devroom.send(f"Banwatch is in {guild_count} guilds. Version 2.0")
     session.close()
     return guilds
 
