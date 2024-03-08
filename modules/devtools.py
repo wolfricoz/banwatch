@@ -96,8 +96,12 @@ class dev(commands.Cog, name="dev"):
     @commands.is_owner()
     async def announce(self, ctx, *, message: str):
         if ctx.author.id == 188647277181665280:
+            dmed = []
             for guild in self.bot.guilds:
                 print(f"{guild}: owner {guild.owner} ")
+                if guild.owner.id in dmed:
+                    continue
+                dmed.append(guild.owner.id)
                 try:
                     await guild.owner.send(f"__**BAN WATCH ANNOUNCEMENT**__\n"
                                            f"{message}")
