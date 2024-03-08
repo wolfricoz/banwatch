@@ -64,7 +64,13 @@ async def on_ready():
 async def on_member_ban(guild, user):
     """Updates banlist when user is banned"""
     logging.info(f"{guild}: banned {user}, refreshing banlist")
-    await Bans().update(bot)
+    try:
+        await Bans().update(bot)
+    except discord.Forbidden:
+        try:
+            await guild.owner.send("[Permission ERROR] I need the ban permission to view the server's ban list. Please give me the ban permission.")
+        except discord.Forbidden:
+            logging.error(f"Unable to send message to {guild.owner} after trying to inform about missing permissions")
     logging.info("List updated")
 
 
