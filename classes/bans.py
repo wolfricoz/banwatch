@@ -1,4 +1,5 @@
 "This class generates the ban list, with functions to update it, and to check for similar names"
+import logging
 
 import discord
 from discord.ext import commands
@@ -7,25 +8,31 @@ from discord.ext import commands
 class Bans:
     bans = {}
     guildinvites = {}
+
     def __init__(self):
         pass
 
     async def update(self, bot):
         """Updates the ban list"""
-        print("(Bans Class)refreshing banlist")
         for guild in bot.guilds:
-            async for entry in guild.bans():
-                if entry.reason is None or entry.reason == "" or entry.reason.lower == "none":
-                    continue
-                if str(entry.user.id) in self.bans:
-                    self.bans[f"{entry.user.id}"][f"{guild.id}"] = {}
-                    self.bans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
-                    self.bans[f"{entry.user.id}"]['name'] = entry.user.name
-                else:
-                    self.bans[f"{entry.user.id}"] = {}
-                    self.bans[f"{entry.user.id}"][f"{guild.id}"] = {}
-                    self.bans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
-                    self.bans[f"{entry.user.id}"]['name'] = entry.user.name
+            try:
+                async for entry in guild.bans():
+                    if entry.reason is None or entry.reason == "" or entry.reason.lower == "none":
+                        continue
+                    if str(entry.user.id) in self.bans:
+                        self.bans[f"{entry.user.id}"][f"{guild.id}"] = {}
+                        self.bans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
+                        self.bans[f"{entry.user.id}"]['name'] = entry.user.name
+                    else:
+                        self.bans[f"{entry.user.id}"] = {}
+                        self.bans[f"{entry.user.id}"][f"{guild.id}"] = {}
+                        self.bans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
+                        self.bans[f"{entry.user.id}"]['name'] = entry.user.name
+            except discord.Forbidden:
+                try:
+                    await guild.owner.send("[Permission ERROR] I need the ban permission to view the server's ban list. Please give me the ban permission.")
+                except discord.Forbidden:
+                    logging.error(f"Unable to send message to {guild.owner} after trying to inform about missing permissions")
             try:
                 invites = await guild.invites()
             except discord.Forbidden:
