@@ -39,6 +39,7 @@ class Bans:
                 invites = ['No permission']
             if len(invites) < 1:
                 invite = guild.text_channels[0].create_invite()
+                invites = [invite]
             self.guildinvites[f"{guild.id}"] = invites[0]
         print("List updated")
 
