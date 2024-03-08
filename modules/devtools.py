@@ -113,6 +113,14 @@ class dev(commands.Cog, name="dev"):
                 except Exception as e:
                     print(f"couldn't dm {guild.owner}, error reason: \n {e}")
 
+    @commands.command()
+    @commands.is_owner()
+    async def leave_server(self, ctx, guildid: int):
+        if ctx.author.id != 188647277181665280:
+            return await ctx.send("You are not allowed to use this command.")
+        guild = self.bot.get_guild(guildid)
+        await guild.leave()
+        await ctx.send(f"Left {guild}")
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(dev(bot))
