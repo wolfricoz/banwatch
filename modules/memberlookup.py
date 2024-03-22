@@ -76,7 +76,11 @@ class User(commands.GroupCog, name="user"):
     @app_commands.command(name="lookupid", description="Looks up user's bans with user id and displays them in the channel")
     @app_commands.checks.has_permissions(ban_members=True)
     async def lookupid(self, interaction: discord.Interaction, memberid: str):
-        memberid = str(memberid)
+        try:
+            memberid = int(memberid)
+        except ValueError:
+            await interaction.channel.send("Please provide a valid user id")
+            return
         await interaction.response.defer(ephemeral=True)
         sr = await Bans().check(self.bot, int(memberid))
 
