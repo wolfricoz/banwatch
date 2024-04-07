@@ -66,6 +66,6 @@ class Bans:
     async def send_to_channel(self, channel: discord.TextChannel, sr, memberid: int):
         characters = 0
         while characters < len(sr):
-            message = f"{Bans().bans[f'{memberid}']['name']} is banned in: {sr}"
+            message = f"{Bans().bans[f'{memberid}']['name']}({memberid}) is banned in: {sr}"
             await channel.send(message[characters:characters + 1800])
             characters += 1800
