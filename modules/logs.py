@@ -41,6 +41,8 @@ handler2.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(m
 logging.basicConfig(filename=f.name, encoding='utf-8', level=logging.DEBUG, filemode='a')
 
 alogger.addHandler(handler2)
+
+
 class Logging(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -55,6 +57,17 @@ class Logging(commands.Cog):
             await ctx.send("You do not have permission")
         elif isinstance(error, commands.MemberNotFound):
             await ctx.send("User not found")
+        elif isinstance(error, discord.Forbidden):
+            try:
+                await ctx.send(
+                    "I do not have permission to do that, please ensure I have the required permissions: ban members, "
+                    "read messages, send messages, manage server and manage messages as well as the permissions to "
+                    "post in to the channel.")
+            except discord.Forbidden:
+                await ctx.author.send(
+                    "I do not have permission to do that, please ensure I have the required permissions: ban members, "
+                    "read messages, send messages, manage server and manage messages as well as the permissions to "
+                    "post in to the channel.")
         # elif isinstance(error, commands.CommandInvokeError):
         #     await ctx.send("Command failed: See log.")
         #     await ctx.send(error)
@@ -63,7 +76,7 @@ class Logging(commands.Cog):
         else:
             await ctx.send(error)
             logger.warning(f"\n{ctx.guild.name} {ctx.guild.id} {ctx.command.name}: {error}")
-            channel = self.bot.get_channel(1033787967929589831)
+            channel = self.bot.get_channel(103378796729589831)
             with open('error.txt', 'w', encoding='utf-8') as f:
                 f.write(str(error))
             await channel.send(
@@ -81,19 +94,23 @@ class Logging(commands.Cog):
         tree.on_error = self._old_tree_error
 
     async def on_app_command_error(
-        self,
-        interaction: Interaction,
-        error: AppCommandError
+            self,
+            interaction: Interaction,
+            error: AppCommandError
     ):
         if isinstance(error, commands.BotMissingPermissions) or isinstance(error, commands.BotMissingAnyRole):
-            await interaction.followup.send("The bot does not have the required permissions. Please ensure it has the ban permission to read the banlist and the permissions to see and send messages in the channel.")
+            await interaction.followup.send(
+                "The bot does not have the required permissions. Please ensure it has the ban permission to read the banlist and the permissions to see and send messages in the channel.")
             return
         await interaction.followup.send(f"Command failed: {error} \nreport this to Rico")
         channel = self.bot.get_channel(1033787967929589831)
         with open('error.txt', 'w', encoding='utf-8') as f:
             f.write(traceback.format_exc())
-        await channel.send(f"{interaction.guild.name} {interaction.guild.id}: {interaction.user}: {interaction.command.name}", file=discord.File(f.name, "error.txt"))
-        logger.warning(f"\n{interaction.guild.name} {interaction.guild.id} {interaction.command.name}: {traceback.format_exc()}")
+        await channel.send(
+            f"{interaction.guild.name} {interaction.guild.id}: {interaction.user}: {interaction.command.name}",
+            file=discord.File(f.name, "error.txt"))
+        logger.warning(
+            f"\n{interaction.guild.name} {interaction.guild.id} {interaction.command.name}: {traceback.format_exc()}")
         # raise error
 
     @commands.Cog.listener(name='on_command')
@@ -108,6 +125,7 @@ class Logging(commands.Cog):
         server = ctx.guild
         user = ctx.user
         logging.debug(f'\n{server.name}({server.id}): {user}({user.id}) issued appcommand: {command.name}')
+
 
 async def setup(bot):
     await bot.add_cog(Logging(bot))
