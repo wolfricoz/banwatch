@@ -1,5 +1,6 @@
 """This class generates the config file, with functions to change and get values from it"""
 import json
+import logging
 import os
 from abc import ABC, abstractmethod
 
@@ -17,13 +18,12 @@ class Configer(ABC):
         }
         json_object = json.dumps(dictionary, indent=4)
         if os.path.exists(f"configs/{guildid}.json"):
-            print(f"{guildid} already has a config")
             with open(f"configs/template.json", "w") as outfile:
                 outfile.write(json_object)
         else:
             with open(f"configs/{guildid}.json", "w") as outfile:
                 outfile.write(json_object)
-                print(f"config created for {guildid}")
+                logging.info(f"config created for {guildid}")
 
     @staticmethod
     @abstractmethod
