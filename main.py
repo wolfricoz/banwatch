@@ -1,13 +1,16 @@
 # IMPORT DISCORD.PY. ALLOWS ACCESS TO DISCORD'S API.
 # IMPORT THE OS MODULE.
+import asyncio
 import logging
 import os
+import random
 
 import discord
 from discord.ext import commands
 # IMPORT LOAD_DOTENV FUNCTION FROM DOTENV MODULE.
 from dotenv import load_dotenv
 from sqlalchemy.orm import sessionmaker
+from classes.bans import Bans
 
 import db
 from classes.bans import Bans
@@ -60,30 +63,29 @@ async def on_ready():
     return guilds
 
 
-@bot.event
-async def on_member_ban(guild, user):
-    """Updates banlist when user is banned"""
-    logging.info(f"{guild}: banned {user}, refreshing banlist")
-    try:
-        await Bans().update(bot)
-    except discord.Forbidden:
-        try:
-            await guild.owner.send("[Permission ERROR] I need the ban permission to view the server's ban list. Please give me the ban permission.")
-        except discord.Forbidden:
-            logging.error(f"Unable to send message to {guild.owner} after trying to inform about missing permissions")
-    logging.info("List updated")
+
+
 
 
 @bot.listen()
 async def on_member_ban(guild, user):
-    """informs other servers an user is banned"""
+    """informs other servers an user is banned and updates banlist"""
+    sleep = random.randint(60, 600)
+    logging.info(f"{guild}: banned {user}, refreshing banlist in {sleep} seconds")
+    await asyncio.sleep(sleep)
+    logging.info("starting to update banlist and informing other servers")
     ban = await guild.fetch_ban(user)
+    await Bans().add_ban(bot, guild, user, ban.reason)
     for guilds in bot.guilds:
+        if guilds.id == guild.id:
+            continue
         if user in guilds.members:
+            await asyncio.sleep(sleep)
             config = await Configer.get(guilds.id, "modchannel")
             modchannel = bot.get_channel(int(config))
             try:
-                await modchannel.send(f"{user} ({user.id}) was banned in {guild}({guild.owner}) for {ban.reason}.")
+                await modchannel.send(f"{user} ({user.id}) was banned in {guild}({guild.owner}) for {ban.reason}. "
+                                      f"Invite: {guild.invites()[0]}")
             except AttributeError:
                 await guild.text_channels[0].send("You have not set a moderation channel")
 

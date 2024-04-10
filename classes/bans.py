@@ -43,6 +43,27 @@ class Bans:
             self.guildinvites[f"{guild.id}"] = invites[0]
         print("List updated")
 
+    async def add_ban(self, bot, guild, user, reason):
+        """Adds a ban to the ban list"""
+        if user.id in self.bans:
+            self.bans[f"{user.id}"][f"{guild.id}"] = {}
+            self.bans[f"{user.id}"][f"{guild.id}"]['reason'] = reason
+            self.bans[f"{user.id}"]['name'] = user.name
+        else:
+            self.bans[f"{user.id}"] = {}
+            self.bans[f"{user.id}"][f"{guild.id}"] = {}
+            self.bans[f"{user.id}"][f"{guild.id}"]['reason'] = reason
+            self.bans[f"{user.id}"]['name'] = user.name
+        try:
+            invites = await guild.invites()
+        except discord.Forbidden:
+            invites = ['No permission']
+        if len(invites) < 1:
+            invite = guild.text_channels[0].create_invite()
+            invites = [invite]
+        self.guildinvites[f"{guild.id}"] = invites[0]
+        print("List updated")
+
     async def check(self, bot: commands.Bot, memberid: int):
         """checks if user is in banlist"""
         if f"{memberid}" in self.bans:
