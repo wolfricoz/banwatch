@@ -71,7 +71,7 @@ async def on_ready():
 async def on_member_ban(guild, user):
     """informs other servers an user is banned and updates banlist"""
     sleep = random.randint(60, 600)
-    logging.info(f"{guild}: banned {user}, refreshing banlist in {sleep} seconds")
+    logging.info(f"{guild}: banned {user}, adding to banlist in {sleep} seconds")
     await asyncio.sleep(sleep)
     logging.info("starting to update banlist and informing other servers")
     ban = await guild.fetch_ban(user)
