@@ -7,9 +7,6 @@ from sqlalchemy.orm import sessionmaker
 from classes.bans import Bans
 from classes.configer import Configer
 
-Session = sessionmaker(bind=db.engine)
-session = Session()
-
 
 class Events(commands.Cog):
 
