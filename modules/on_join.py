@@ -3,7 +3,7 @@ import logging
 from discord.ext import commands
 from sqlalchemy.orm import sessionmaker
 
-import db
+
 from classes.bans import Bans
 from classes.configer import Configer
 

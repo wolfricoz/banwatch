@@ -1,14 +1,10 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from sqlalchemy.orm import sessionmaker
-
-import db
 from classes.configer import Configer
 from discord.app_commands import Choice
 
-Session = sessionmaker(bind=db.engine)
-session = Session()
+
 
 
 class config(commands.GroupCog, name="config"):
@@ -32,4 +28,3 @@ async def setup(bot: commands.Bot):
     await bot.add_cog(config(bot))
 
 
-session.commit()

@@ -1,10 +1,6 @@
 from discord.ext import tasks, commands
 from sqlalchemy.orm import sessionmaker
 
-import db
-
-Session = sessionmaker(bind=db.engine)
-session = Session()
 
 
 class refresher(commands.Cog):

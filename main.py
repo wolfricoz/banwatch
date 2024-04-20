@@ -9,10 +9,7 @@ import discord
 from discord.ext import commands
 # IMPORT LOAD_DOTENV FUNCTION FROM DOTENV MODULE.
 from dotenv import load_dotenv
-from sqlalchemy.orm import sessionmaker
-from classes.bans import Bans
 
-import db
 from classes.bans import Bans
 from classes.configer import Configer
 
@@ -27,12 +24,6 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 bot = commands.Bot(command_prefix=PREFIX, case_insensitive=False, intents=intents)
-
-exec(open("db.py").read())
-db.engine.echo = False
-# database sessionmaker
-Session = sessionmaker(bind=db.engine)
-session = Session()
 
 
 # EVENT LISTENER FOR WHEN THE BOT HAS SWITCHED FROM OFFLINE TO ONLINE.
@@ -55,16 +46,11 @@ async def on_ready():
         # INCREMENTS THE GUILD COUNTER.
         guild_count += 1
     # logging.infoS HOW MANY GUILDS / SERVERS THE BOT IS IN.
-    formguilds = "\n".join(guilds)
+    # formguilds = "\n".join(guilds)
 
     await bot.tree.sync()
     await devroom.send(f"Banwatch is in {guild_count} guilds. Version 2.0")
-    session.close()
     return guilds
-
-
-
-
 
 
 @bot.listen()
@@ -145,8 +131,6 @@ async def cogreload(ctx):
             filesloaded.append(filename[:-3])
     fp = ', '.join(filesloaded)
     await ctx.send(f"Modules loaded: {fp}")
-    session.rollback()
-    session.close()
     await bot.tree.sync()
 
 

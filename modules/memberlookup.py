@@ -7,11 +7,8 @@ from discord import app_commands
 from discord.ext import commands
 from sqlalchemy.orm import sessionmaker
 
-import db
 from classes.bans import Bans
 
-Session = sessionmaker(bind=db.engine)
-session = Session()
 
 
 class BanCheck(ABC):
@@ -105,5 +102,3 @@ class User(commands.GroupCog, name="user"):
 async def setup(bot: commands.Bot):
     await bot.add_cog(User(bot))
 
-
-session.commit()

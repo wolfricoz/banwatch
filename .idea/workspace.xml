@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Banwatch">
-      <change beforePath="$PROJECT_DIR$/modules/on_join.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/on_join.py" afterDir="false" />
+    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Fixing rate limits">
+      <change beforePath="$PROJECT_DIR$/.idea/copilot/chatSessions/00000000000.xd" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/copilot/chatSessions/00000000000.xd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,19 +36,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.main.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "C:/Users/ricoi/PycharmProjects/banbot/Modules",
-    "run.code.analysis.last.selected.profile": "aDefault",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/ricoi/PycharmProjects/banbot/modules&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\ricoi\PycharmProjects\banbot\modules" />
       <recent name="C:\Users\ricoi\PycharmProjects\banbot\Modules" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
@@ -110,7 +112,39 @@
       <option name="project" value="LOCAL" />
       <updated>1709938143940</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="added ID to message">
+      <option name="closed" value="true" />
+      <created>1712511518117</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1712511518117</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Fixing rate limits">
+      <option name="closed" value="true" />
+      <created>1712769048819</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1712769048819</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Fixing rate limits">
+      <option name="closed" value="true" />
+      <created>1712769075522</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1712769075522</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Fixing rate limits">
+      <option name="closed" value="true" />
+      <created>1712771413441</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1712771413441</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -126,7 +160,9 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Banwatch" />
-    <option name="LAST_COMMIT_MESSAGE" value="Banwatch" />
+    <MESSAGE value="added ID to message" />
+    <MESSAGE value="Fixing rate limits" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixing rate limits" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -138,7 +174,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/classes/bans.py</url>
-          <line>46</line>
+          <line>67</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>
