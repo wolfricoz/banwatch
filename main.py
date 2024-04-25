@@ -70,8 +70,9 @@ async def on_member_ban(guild, user):
             config = await Configer.get(guilds.id, "modchannel")
             modchannel = bot.get_channel(int(config))
             try:
+                invites = await guild.invites()
                 await modchannel.send(f"{user} ({user.id}) was banned in {guild}({guild.owner}) for {ban.reason}. "
-                                      f"Invite: {guild.invites()[0]}")
+                                      f"Invite: {invites[0]}")
             except AttributeError:
                 await guild.text_channels[0].send("You have not set a moderation channel")
 
