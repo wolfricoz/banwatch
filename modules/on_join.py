@@ -25,6 +25,8 @@ class Events(commands.Cog):
         if sr is None:
             logging.info(f"{member} has no ban record")
             return
+        if channel is None:
+            await member.guild.owner.send('No mod channel set, please set one to receive banwatch notifications')
         await Bans().send_to_channel(channel, sr, int(member.id))
 
 

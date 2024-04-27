@@ -75,6 +75,8 @@ async def on_member_ban(guild, user):
                                       f"Invite: {invites[0]}")
             except AttributeError:
                 await guild.text_channels[0].send("You have not set a moderation channel")
+            except discord.Forbidden:
+                await guilds.owner.send(f"No permission to send a message in {modchannel.mention}")
 
 
 @bot.event
