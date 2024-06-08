@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="More error handling">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/configer.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/configer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/devtools.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/devtools.py" afterDir="false" />
-    </list>
+    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Added a blacklist" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -190,7 +185,15 @@
       <option name="project" value="LOCAL" />
       <updated>1714216301288</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Added a blacklist">
+      <option name="closed" value="true" />
+      <created>1717857657817</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1717857657817</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -211,7 +214,8 @@
     <MESSAGE value="Removed the database requirements from banwatch; it does not need it as it checks based on permissions." />
     <MESSAGE value="Bug fix: failed to get the invite, causing errors" />
     <MESSAGE value="More error handling" />
-    <option name="LAST_COMMIT_MESSAGE" value="More error handling" />
+    <MESSAGE value="Added a blacklist" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added a blacklist" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -129,7 +129,7 @@ class dev(commands.Cog, name="dev"):
         guild = self.bot.get_guild(guildid)
         await Configer.add_to_blacklist(guildid)
         await guild.leave()
-        await ctx.send(f"blacklist {guild}")
+        await ctx.send(f"blacklisted {guild}")
 
     @commands.command()
     @commands.is_owner()
