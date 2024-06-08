@@ -121,6 +121,23 @@ class dev(commands.Cog, name="dev"):
         await guild.leave()
         await ctx.send(f"Left {guild}")
 
+    @commands.command()
+    @commands.is_owner()
+    async def blacklist_server(self, ctx, guildid: int):
+        if ctx.author.id != 188647277181665280:
+            return await ctx.send("You are not allowed to use this command.")
+        guild = self.bot.get_guild(guildid)
+        await Configer.add_to_blacklist(guildid)
+        await guild.leave()
+        await ctx.send(f"blacklist {guild}")
+
+    @commands.command()
+    @commands.is_owner()
+    async def unblacklist_server(self, ctx, guildid: int):
+        if ctx.author.id != 188647277181665280:
+            return await ctx.send("You are not allowed to use this command.")
+        await Configer.remove_from_blacklist(guildid)
+        await ctx.send(f"unblacklist {guildid}")
 async def setup(bot: commands.Bot):
     await bot.add_cog(dev(bot))
 

@@ -43,6 +43,11 @@ async def on_ready():
         # logging.info THE SERVER'S ID AND NAME.
         guilds.append(f"- {guild.id} (name: {guild.name})")
         await Configer.create(guild.id, guild.name)
+        await Configer.create_bot_config(guild.id)
+        if await Configer.is_blacklisted(guild.id):
+            logging.info(f"Leaving {guild.name} because it is blacklisted")
+            await guild.leave()
+            continue
         # INCREMENTS THE GUILD COUNTER.
         guild_count += 1
     # logging.infoS HOW MANY GUILDS / SERVERS THE BOT IS IN.
@@ -91,6 +96,10 @@ async def on_member_unban(guild, user):
 async def on_guild_join(guild):
     """When the bot it creates a config and sends a DM to the owner with instructions."""
     # adds user to database
+    if await Configer.is_blacklisted(guild.id):
+        logging.info(f"Leaving {guild.name} because it is blacklisted")
+        await guild.leave()
+        return
     await Configer.create(guild.id, guild.name)
     logging.info("sending DM now")
     await guild.owner.send("Thank you for inviting **ban watch**, please read https://docs.google.com/document/d/1bMtdsvr8D_8LEQha9d7BJhoqwXjLIfxRDsNWA4oORyI/edit?usp=sharing to set up the bot")
