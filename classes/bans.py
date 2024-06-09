@@ -37,7 +37,7 @@ class Bans:
                 invites = await guild.invites()
             except discord.Forbidden:
                 invites = ['No permission']
-            if len(invites) < 1 and not invites[0] == 'No permission':
+            if len(invites) < 1:
                 try:
                     invite = await guild.text_channels[0].create_invite()
                     invites = [invite]
