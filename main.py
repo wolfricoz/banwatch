@@ -19,6 +19,7 @@ load_dotenv('main.env')
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 PREFIX = os.getenv("PREFIX")
 DBTOKEN = os.getenv("DB")
+DEV = int(os.getenv("DEV"))
 # declares the bots intent
 intents = discord.Intents.default()
 intents.message_content = True

@@ -71,6 +71,8 @@ class Configer(ABC):
             with open(f"configs/config.json", 'w') as f:
                 json.dump(data, f, indent=4)
                 logging.info(f"{guildid} added to blacklist")
+        else:
+            logging.warning("No blacklist found")
 
     @staticmethod
     @abstractmethod
@@ -83,6 +85,8 @@ class Configer(ABC):
             with open(f"configs/config.json", 'w') as f:
                 json.dump(data, f, indent=4)
                 logging.info(f"{guildid} removed from blacklist")
+        else:
+            logging.warning("No blacklist found")
 
     @staticmethod
     @abstractmethod
@@ -93,3 +97,4 @@ class Configer(ABC):
                 data = json.load(f)
                 if guildid in data["blacklist"]:
                     return True
+        print("not blacklisted")
