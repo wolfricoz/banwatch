@@ -74,14 +74,18 @@ async def on_member_ban(guild, user):
             await asyncio.sleep(sleep)
             config = await Configer.get(guilds.id, "modchannel")
             modchannel = bot.get_channel(int(config))
+            invites = []
             try:
                 invites = await guild.invites()
-                await modchannel.send(f"{user} ({user.id}) was banned in {guild}({guild.owner}) for {ban.reason}. "
-                                      f"Invite: {invites[0]}")
+
             except AttributeError:
                 await guild.text_channels[0].send("You have not set a moderation channel")
             except discord.Forbidden:
                 await guilds.owner.send(f"No permission to send a message in {modchannel.mention}")
+            except Exception as e:
+                invites = ["No permission"]
+            await modchannel.send(f"{user} ({user.id}) was banned in {guild}({guild.owner}) for {ban.reason}. "
+                                  f"Invite: {invites[0]}")
 
 
 @bot.event
