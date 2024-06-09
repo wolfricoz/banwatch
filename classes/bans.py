@@ -37,9 +37,12 @@ class Bans:
                 invites = await guild.invites()
             except discord.Forbidden:
                 invites = ['No permission']
-            if len(invites) < 1:
-                invite = await guild.text_channels[0].create_invite()
-                invites = [invite]
+            if len(invites) < 1 and not invites[0] == 'No permission':
+                try:
+                    invite = await guild.text_channels[0].create_invite()
+                    invites = [invite]
+                except discord.Forbidden:
+                    invites = ['No permission']
             self.guildinvites[f"{guild.id}"] = invites[0]
         print("List updated")
 
