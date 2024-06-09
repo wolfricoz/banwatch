@@ -33,11 +33,11 @@ class Configer(ABC):
             "blacklist": [],
         }
         json_object = json.dumps(dictionary, indent=4)
-        if os.path.exists(f"configs/{guildid}.json"):
+        if os.path.exists(f"configs/config.json"):
             return
         with open(f"configs/config.json", "w") as outfile:
             outfile.write(json_object)
-            logging.info(f"config created for {guildid}")
+            logging.info(f"universal config created")
 
     @staticmethod
     @abstractmethod
