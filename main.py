@@ -26,6 +26,8 @@ intents.message_content = True
 intents.members = True
 bot = commands.Bot(command_prefix=PREFIX, case_insensitive=False, intents=intents)
 bot.BANCHANNEL = int(os.getenv('BANS'))
+bot.DENIALCHANNEL = int(os.getenv('DENIED'))
+bot.APPROVALCHANNEL = int(os.getenv('APPROVED'))
 
 # EVENT LISTENER FOR WHEN THE BOT HAS SWITCHED FROM OFFLINE TO ONLINE.
 

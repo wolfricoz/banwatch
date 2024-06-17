@@ -138,6 +138,18 @@ class dev(commands.Cog, name="dev"):
             return await ctx.send("You are not allowed to use this command.")
         await Configer.remove_from_blacklist(guildid)
         await ctx.send(f"unblacklist {guildid}")
+
+    @commands.command()
+    @commands.is_owner()
+    async def testban(self, ctx, userid: int):
+        user = self.bot.get_user(userid)
+        try:
+            await ctx.guild.unban(user, reason="Test unban")
+        except:
+            pass
+        await ctx.guild.ban(user, reason="Test ban")
+        await ctx.send(f"Banned {userid}")
+
 async def setup(bot: commands.Bot):
     await bot.add_cog(dev(bot))
 
