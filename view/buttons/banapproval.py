@@ -30,15 +30,18 @@ class BanApproval(View):
                 invites = []
                 try:
                     invites = await self.guild.invites()
-
+                # Maybe instead of making an array of invites, have banwatch generate a limited time invite.
                 except AttributeError:
                     await self.guild.text_channels[0].send("You have not set a moderation channel")
                 except discord.Forbidden:
                     await guilds.owner.send(f"No permission to send a message in {modchannel.mention}")
                 except Exception:
                     invites = ["No permission"]
-                await modchannel.send(f"{self.user} ({self.user.id}) was banned in {self.guild}({self.guild.owner}) for {self.ban.reason}. "
-                                      f"Invite: {invites[0]}")
+                banembed = discord.Embed(title=f"{self.user} ({self.user.id}) was banned in {self.guild}({self.guild.owner})",
+                                            description=f"{self.ban.reason}")
+                banembed.set_footer(text=f"{invites[0] if invites else 'No invite'}")
+
+                await modchannel.send(embed=banembed)
 
     @discord.ui.button(label="Deny", style=discord.ButtonStyle.danger)
     async def deny(self, button: discord.ui.Button, interaction: discord.Interaction):

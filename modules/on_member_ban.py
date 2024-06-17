@@ -1,12 +1,10 @@
-import asyncio
 import logging
-import random
+from datetime import datetime
 
 import discord
 from discord.ext import commands
 
 from classes.bans import Bans
-from classes.configer import Configer
 from view.buttons.banapproval import BanApproval
 
 
@@ -28,12 +26,10 @@ class BanEvents(commands.Cog):
         await Bans().add_ban(bot, guild, user, ban.reason)
         channel = bot.get_channel(bot.BANCHANNEL)
 
-        embed = discord.Embed(title="Ban Approval", description=f"{user} ({user.id}) was banned in {guild}({guild.owner}) for {ban.reason}. ")
-
-        await channel.send(f"{user} ({user.id}) was banned in {guild}({guild.owner}) for {ban.reason}. ")
-        await channel.send(view=BanApproval(bot, guild, user, ban, 5))
-
-
+        embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
+                              description=f"{ban.reason}")
+        embed.set_footer(text=f"{datetime.now()}")
+        await channel.send(embed=embed, view=BanApproval(bot, guild, user, ban, 5))
 
     @commands.Cog.listener()
     async def on_member_unban(self, guild, user):
