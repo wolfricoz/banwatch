@@ -19,11 +19,13 @@ class Bans:
                 async for entry in guild.bans():
                     if entry.reason is None or entry.reason == "" or entry.reason.lower == "none":
                         continue
-                    if str(entry.user.id) in self.bans:
+                    if str(entry.user.id) in self.bans and str(entry.reason).lower().startswith('[hidden]'):
                         self.bans[f"{entry.user.id}"][f"{guild.id}"] = {}
                         self.bans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
                         self.bans[f"{entry.user.id}"]['name'] = entry.user.name
                     else:
+                        if str(entry.reason).lower().startswith('[hidden]'):
+                            continue
                         self.bans[f"{entry.user.id}"] = {}
                         self.bans[f"{entry.user.id}"][f"{guild.id}"] = {}
                         self.bans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason

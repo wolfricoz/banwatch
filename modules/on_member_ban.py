@@ -18,14 +18,13 @@ class BanEvents(commands.Cog):
         """informs other servers an user is banned and updates banlist"""
         print('ban event')
         bot = self.bot
-        # sleep = random.randint(60, 600)
-        # logging.info(f"{guild}: banned {user}, adding to banlist in {sleep} seconds")
-        # await asyncio.sleep(sleep)
         logging.info("starting to update banlist and informing other servers")
         ban = await guild.fetch_ban(user)
         await Bans().add_ban(bot, guild, user, ban.reason)
+        if ban.reason is None or ban.reason == "" or ban.reason.lower == "none" or str(ban.reason).lower().startswith('[silent]') or str(ban.reason).lower().startswith('[hidden]'):
+            print("silent or hidden ban/no reason, not adding to list")
+            return
         channel = bot.get_channel(bot.BANCHANNEL)
-
         embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
                               description=f"{ban.reason}")
         embed.set_footer(text=f"{datetime.now()}")

@@ -5,6 +5,7 @@ import discord
 from discord.ui import View
 
 from classes.configer import Configer
+from classes.queue import queue
 
 
 class BanApproval(View):
@@ -17,6 +18,11 @@ class BanApproval(View):
         self.user = user
         self.ban = ban
         self.sleep = sleep
+
+    async def inform_server(self, guilds, banembed):
+        config = await Configer.get(guilds.id, "modchannel")
+        modchannel = self.bot.get_channel(int(config))
+        await modchannel.send(embed=banembed)
 
     @discord.ui.button(label="Approve", style=discord.ButtonStyle.success)
     async def approve(self, interaction: discord.Interaction, button: discord.ui.Button ):
@@ -42,10 +48,7 @@ class BanApproval(View):
             if guilds.id == self.guild.id:
                 continue
             if self.user in guilds.members:
-                await asyncio.sleep(self.sleep)
-                config = await Configer.get(guilds.id, "modchannel")
-                modchannel = self.bot.get_channel(int(config))
-                await modchannel.send(embed=banembed)
+                queue().add(self.inform_server(guilds, banembed))
 
         await interaction.message.delete()
         banembed.set_footer(text="Approved")
