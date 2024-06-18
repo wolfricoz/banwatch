@@ -20,7 +20,7 @@ class Utility(commands.Cog):
 
     @app_commands.command()
     async def support(self, interaction: discord.Interaction):
-        await interaction.response.send_message("https://discord.gg/8kZK9fD")
+        await interaction.response.send_message("If you are in need of support, please read our documentation at https://wolfricoz.github.io/banwatch/! You can find our discord link in the documentation. If you still need help, please join our discord server and ask in the support channel.")
 
 
 async def setup(bot: commands.Bot):

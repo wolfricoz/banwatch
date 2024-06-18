@@ -7,5 +7,7 @@
 /plans.text
 /test.json
 /test.text
-a
+/test/
+/.idea/vcs.xml
+/.git/
 /test/
