@@ -1,6 +1,6 @@
 from discord.ext import tasks, commands
-from sqlalchemy.orm import sessionmaker
 
+from classes.bans import Bans
 
 
 class refresher(commands.Cog):
@@ -17,22 +17,7 @@ class refresher(commands.Cog):
         """Updates banlist when user is unbanned"""
         print(f"[auto refresh]refreshing banlist")
         bot = self.bot
-        newbans = {}
-        for guild in bot.guilds:
-            async for entry in guild.bans():
-                if str(entry.user.id) in newbans:
-                    if entry.reason.lower() == 'none':
-                        print(f"{entry.user} has no reason, and will be removed from the list")
-                    newbans[f"{entry.user.id}"][f"{guild.id}"] = {}
-                    newbans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
-                    newbans[f"{entry.user.id}"]['name'] = entry.user.name
-                else:
-                    newbans[f"{entry.user.id}"] = {}
-                    newbans[f"{entry.user.id}"][f"{guild.id}"] = {}
-                    newbans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
-                    newbans[f"{entry.user.id}"]['name'] = entry.user.name
-        bot.bans = newbans
-        print("[auto refresh]List updated")
+        await Bans().update(bot)
 
 
 async def setup(bot):

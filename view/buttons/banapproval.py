@@ -51,7 +51,6 @@ class BanApproval(View):
                 queue().add(self.inform_server(guilds, banembed))
 
         await interaction.message.delete()
-        banembed.set_footer(text="Approved")
         await approved_channel.send(embed=banembed)
 
     @discord.ui.button(label="Deny", style=discord.ButtonStyle.danger)

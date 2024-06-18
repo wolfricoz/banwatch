@@ -17,57 +17,29 @@ class Bans:
         for guild in bot.guilds:
             try:
                 async for entry in guild.bans():
-                    if entry.reason is None or entry.reason == "" or entry.reason.lower == "none":
-                        continue
-                    if str(entry.user.id) in self.bans and str(entry.reason).lower().startswith('[hidden]'):
-                        self.bans[f"{entry.user.id}"][f"{guild.id}"] = {}
-                        self.bans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
-                        self.bans[f"{entry.user.id}"]['name'] = entry.user.name
-                    else:
-                        if str(entry.reason).lower().startswith('[hidden]'):
-                            continue
-                        self.bans[f"{entry.user.id}"] = {}
-                        self.bans[f"{entry.user.id}"][f"{guild.id}"] = {}
-                        self.bans[f"{entry.user.id}"][f"{guild.id}"]['reason'] = entry.reason
-                        self.bans[f"{entry.user.id}"]['name'] = entry.user.name
+                    await self.add_ban(bot, guild, entry.user, entry.reason)
             except discord.Forbidden:
                 try:
                     await guild.owner.send("[Permission ERROR] I need the ban permission to view the server's ban list. Please give me the ban permission.")
                 except discord.Forbidden:
                     logging.error(f"Unable to send message to {guild.owner} after trying to inform about missing permissions")
-            try:
-                invites = await guild.invites()
-            except discord.Forbidden:
-                invites = ['No permission']
-            if len(invites) < 1:
-                try:
-                    invite = await guild.text_channels[0].create_invite()
-                    invites = [invite]
-                except discord.Forbidden:
-                    invites = ['No permission']
-            self.guildinvites[f"{guild.id}"] = invites[0]
         print("List updated")
 
     async def add_ban(self, bot, guild, user, reason):
         """Adds a ban to the ban list"""
-        if user.id in self.bans:
+        if reason is None or reason == "" or reason.lower == "none" or str(reason).lower().startswith('[hidden]'):
+            return
+        if str(user.id) in self.bans:
             self.bans[f"{user.id}"][f"{guild.id}"] = {}
             self.bans[f"{user.id}"][f"{guild.id}"]['reason'] = reason
             self.bans[f"{user.id}"]['name'] = user.name
         else:
+
             self.bans[f"{user.id}"] = {}
             self.bans[f"{user.id}"][f"{guild.id}"] = {}
             self.bans[f"{user.id}"][f"{guild.id}"]['reason'] = reason
             self.bans[f"{user.id}"]['name'] = user.name
-        try:
-            invites = await guild.invites()
-        except discord.Forbidden:
-            invites = ['No permission']
-        if len(invites) < 1:
-            invite = guild.text_channels[0].create_invite()
-            invites = [invite]
-        self.guildinvites[f"{guild.id}"] = invites[0]
-        print("List updated")
+
 
     async def check(self, bot: commands.Bot, memberid: int):
         """checks if user is in banlist"""

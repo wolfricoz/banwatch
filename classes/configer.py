@@ -97,4 +97,3 @@ class Configer(ABC):
                 data = json.load(f)
                 if guildid in data["blacklist"]:
                     return True
-        print("not blacklisted")

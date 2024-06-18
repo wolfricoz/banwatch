@@ -1,9 +1,5 @@
-# IMPORT DISCORD.PY. ALLOWS ACCESS TO DISCORD'S API.
-# IMPORT THE OS MODULE.
-import asyncio
 import logging
 import os
-import random
 
 import discord
 from discord.ext import commands
@@ -29,6 +25,7 @@ bot.BANCHANNEL = int(os.getenv('BANS'))
 bot.DENIALCHANNEL = int(os.getenv('DENIED'))
 bot.APPROVALCHANNEL = int(os.getenv('APPROVED'))
 
+
 # EVENT LISTENER FOR WHEN THE BOT HAS SWITCHED FROM OFFLINE TO ONLINE.
 
 @bot.event
@@ -36,7 +33,6 @@ async def on_ready():
     devroom = bot.get_channel(DEV)
     # Fills banlist
     await Bans().update(bot)
-
     # CREATES A COUNTER TO KEEP TRACK OF HOW MANY GUILDS / SERVERS THE BOT IS CONNECTED TO.
     guild_count = 0
     guilds = []
@@ -59,44 +55,6 @@ async def on_ready():
     await bot.tree.sync()
     await devroom.send(f"Banwatch is in {guild_count} guilds. Version 2.0")
     return guilds
-
-
-# @bot.listen()
-# async def on_member_ban(guild, user):
-#     """informs other servers an user is banned and updates banlist"""
-#     sleep = random.randint(60, 600)
-#     logging.info(f"{guild}: banned {user}, adding to banlist in {sleep} seconds")
-#     await asyncio.sleep(sleep)
-#     logging.info("starting to update banlist and informing other servers")
-#     ban = await guild.fetch_ban(user)
-#     await Bans().add_ban(bot, guild, user, ban.reason)
-#     for guilds in bot.guilds:
-#         if guilds.id == guild.id:
-#             continue
-#         if user in guilds.members:
-#             await asyncio.sleep(sleep)
-#             config = await Configer.get(guilds.id, "modchannel")
-#             modchannel = bot.get_channel(int(config))
-#             invites = []
-#             try:
-#                 invites = await guild.invites()
-#
-#             except AttributeError:
-#                 await guild.text_channels[0].send("You have not set a moderation channel")
-#             except discord.Forbidden:
-#                 await guilds.owner.send(f"No permission to send a message in {modchannel.mention}")
-#             except Exception as e:
-#                 invites = ["No permission"]
-#             await modchannel.send(f"{user} ({user.id}) was banned in {guild}({guild.owner}) for {ban.reason}. "
-#                                   f"Invite: {invites[0]}")
-#
-#
-# @bot.event
-# async def on_member_unban(guild, user):
-#     """Updates banlist when user is unbanned"""
-#     logging.info(f"{guild}: unbanned {user}, refreshing banlist")
-#     await Bans().update(bot)
-#     logging.info("List updated")
 
 
 @bot.event
