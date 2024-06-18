@@ -67,8 +67,8 @@ async def on_guild_join(guild):
         return
     await Configer.create(guild.id, guild.name)
     logging.info("sending DM now")
-    await guild.owner.send("Thank you for inviting **ban watch**, please read https://docs.google.com/document/d/1bMtdsvr8D_8LEQha9d7BJhoqwXjLIfxRDsNWA4oORyI/edit?usp=sharing to set up the bot")
-    log = bot.get_channel(1047703677340749834)
+    await guild.owner.send("Thank you for inviting **ban watch**, please read https://wolfricoz.github.io/banwatch/ to set up the bot")
+    log = bot.get_channel(DEV)
     await log.send(f"Joined {guild}({guild.id}). Ban watch is now in {len(bot.guilds)}")
     # SYNCS COMMANDS
     await bot.tree.sync()
@@ -79,7 +79,7 @@ async def on_guild_join(guild):
 
 @bot.event
 async def on_guild_remove(guild):
-    log = bot.get_channel(1047703677340749834)
+    log = bot.get_channel(DEV)
     await log.send(f"left {guild}({guild.id}) :(. Ban watch is now in {len(bot.guilds)}")
     logging.info(f"{guild} left, refreshing ban list")
     await Bans().update(bot)
