@@ -7,6 +7,8 @@ from discord.ext import commands
 from sqlalchemy.orm import sessionmaker
 
 from classes.configer import Configer
+from classes.queue import queue
+
 
 class BanCheck(ABC):
 
@@ -138,6 +140,20 @@ class dev(commands.Cog, name="dev"):
             return await ctx.send("You are not allowed to use this command.")
         await Configer.remove_from_blacklist(guildid)
         await ctx.send(f"unblacklist {guildid}")
+
+    @commands.command()
+    @commands.is_owner()
+    async def testban(self, ctx, userid: int):
+        user = self.bot.get_user(userid)
+        if ctx.author.id != 188647277181665280:
+            return await ctx.send("You are not allowed to use this command.")
+        try:
+            await ctx.guild.unban(user, reason="[silent]Test unban")
+        except:
+            pass
+        await ctx.guild.ban(user, reason="[silent]Test ban")
+        await ctx.send(f"Banned {userid}")
+
 async def setup(bot: commands.Bot):
     await bot.add_cog(dev(bot))
 
