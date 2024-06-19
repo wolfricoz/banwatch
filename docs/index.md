@@ -32,8 +32,11 @@ Banwatch has a code of conduct that all users must follow. The code of conduct i
 - You must not use the bot to spread hate speech or any other form of discrimination.
 - You must not use the bot to spread any form of illegal content.
 - You must not use hate speech or any other form of discriminatory language in your ban reasons.
-- We reserve the right to request proof of the ban reason if we suspect it is false or if the ban reason has a serious impact on the user's reputation.
-- You must not pressure other users to ban an user if they do not want to. This includes threatening to ban them if they do not ban the user. __Banwatch is a tool to help you make informed decisions, not a tool to force others to ban users.__
+- We reserve the right to request proof of the ban reason if we suspect it is false or if the ban reason has a serious
+  impact on the user's reputation.
+- You must not pressure other users to ban an user if they do not want to. This includes threatening to ban them if they
+  do not ban the user. __Banwatch is a tool to help you make informed decisions, not a tool to force others to ban
+  users.__
 
 ## usage
 
@@ -60,11 +63,19 @@ Setting up the bot is straightforward and requires manage server permissions:
 
 To monitor bans, you need ban member privileges:
 
-- `/user lookup member:`: Use this command to check if a specific user has any bans.
+- `/user lookup member:<user>`: Use this command to check if a specific user has any bans.
 
-- `/user checkall:`: This command checks all users in the server for any bans. The bot requires the ability to post
+- `/user checkall`: This command checks all users in the server for any bans. The bot requires the ability to post
   files in the channel to use this command.
 - `/support`: This command gives you a link to the documentation.
+
+- `/update_ban user:<userid> reason:<text>`: This command will update a ban of an user by unbanning and banning them
+  again. This is useful if you
+  want to update the ban reason
+
+- `/appeal guild:<guildid>`: To appeal a ban, you can use this command. A modal will pop up where you can give your
+  reason to be unbanned and the bot will send it to the server the user was banned from. You are only allowed to appeal
+  once per server.
 
 ## Support
 
@@ -72,5 +83,8 @@ If you run into any issues or have any questions, you can join the support serve
 clicking [here](https://discord.gg/UdC7dVTn9K). The support server is the best place to get help with the bot and to
 report any issues you may encounter.
 
+## Donations
 
-
+This bot is free to use, but if you want to support the development of the bot, you can donate to the developer. This
+will help keep the bot running and allow for more features to be added. You can donate by
+clicking [here](https://donate.stripe.com/dR6eV63rQfr5g2kcMM).
