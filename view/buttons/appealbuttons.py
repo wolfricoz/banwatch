@@ -18,7 +18,7 @@ class AppealButtons(View):
         modchannel = self.bot.get_channel(int(config))
         await modchannel.send(embed=banembed)
 
-    @discord.ui.button(label="Approve", style=discord.ButtonStyle.success)
+    @discord.ui.button(label="Approve", style=discord.ButtonStyle.success, custom_id="approve_appeal")
     async def approve(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         if self.bot is None or self.user is None:
@@ -30,7 +30,7 @@ class AppealButtons(View):
         await interaction.followup.send("Appeal approved, user unbanned", ephemeral=True)
         await self.user.send(f"Your appeal has been approved, you have been unbanned from {interaction.guild.name}")
 
-    @discord.ui.button(label="Deny", style=discord.ButtonStyle.danger)
+    @discord.ui.button(label="Deny", style=discord.ButtonStyle.danger, custom_id="deny_appeal")
     async def deny(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         if self.bot is None or self.user is None:
