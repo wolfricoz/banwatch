@@ -147,7 +147,7 @@ class Logging(commands.Cog):
             logging.debug(f'\n{server.name}({server.id}): {user}({user.id}) issued appcommand: `{commandname.name}` with arguments: {interaction.data["options"]}')
         except KeyError:
             logging.debug(f'\n{server.name}({server.id}): {user}({user.id}) issued appcommand: `{commandname.name}` with no arguments.')
-        except attributeerror:
+        except AttributeError:
             logging.debug(f'\n{server.name}({server.id}): {user}({user.id}) issued a command with no data or name.')
 
     @app_commands.command(name="getlog")

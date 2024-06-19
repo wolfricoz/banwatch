@@ -20,7 +20,7 @@ DEV = int(os.getenv("DEV"))
 # declares the bots intent
 intents = discord.Intents.default()
 # intents.message_content = True
-intents.members = True
+# intents.members = True
 bot = commands.Bot(command_prefix=PREFIX, case_insensitive=False, intents=intents)
 bot.BANCHANNEL = int(os.getenv('BANS'))
 bot.DENIALCHANNEL = int(os.getenv('DENIED'))
