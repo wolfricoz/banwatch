@@ -28,7 +28,7 @@ class BanEvents(commands.Cog):
         embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
                               description=f"{ban.reason}")
         embed.set_footer(text=f"{datetime.now()}")
-        await channel.send(embed=embed, view=BanApproval(bot, guild, user, ban, 5))
+        await channel.send(embed=embed, view=BanApproval(bot, guild, user, ban))
 
     @commands.Cog.listener()
     async def on_member_unban(self, guild, user):
