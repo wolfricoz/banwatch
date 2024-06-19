@@ -25,7 +25,7 @@ class BanApproval(View):
     @discord.ui.button(label="Approve", style=discord.ButtonStyle.success, custom_id="approve_broadcast")
     async def approve(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
-        if self.bot is None or self.guild is None or self.user is None or self.ban is None:
+        if self.bot is None or self.guild is None or self.user is None or self.ban is None or self.guild.owner is None:
             await interaction.followup.send("Error: The bot has restarted, the data of this button was lost", ephemeral=True)
             return
         owner = self.guild.owner
