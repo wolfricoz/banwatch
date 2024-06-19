@@ -22,7 +22,7 @@ class BanApproval(View):
         modchannel = self.bot.get_channel(int(config))
         await modchannel.send(embed=banembed)
 
-    @discord.ui.button(label="Approve", style=discord.ButtonStyle.success)
+    @discord.ui.button(label="Approve", style=discord.ButtonStyle.success, custom_id="approve_broadcast")
     async def approve(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         if self.bot is None or self.guild is None or self.user is None or self.ban is None:
@@ -56,7 +56,7 @@ class BanApproval(View):
         await interaction.message.delete()
         await approved_channel.send(embed=banembed)
 
-    @discord.ui.button(label="Deny", style=discord.ButtonStyle.danger)
+    @discord.ui.button(label="Deny", style=discord.ButtonStyle.danger, custom_id="deny_broadcast")
     async def deny(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         if self.bot is None or self.guild is None or self.user is None or self.ban is None:
