@@ -69,10 +69,6 @@ To monitor bans, you need ban member privileges:
   files in the channel to use this command.
 - `/support`: This command gives you a link to the documentation.
 
-- `/update_ban user:<userid> reason:<text>`: This command will update a ban of an user by unbanning and banning them
-  again. This is useful if you
-  want to update the ban reason
-
 - `/appeal guild:<guildid>`: To appeal a ban, you can use this command. A modal will pop up where you can give your
   reason to be unbanned and the bot will send it to the server the user was banned from. You are only allowed to appeal
   once per server.

@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 from abc import ABC
@@ -6,6 +7,7 @@ import discord
 from discord.ext import commands
 from sqlalchemy.orm import sessionmaker
 
+from classes.bans import Bans
 from classes.configer import Configer
 from classes.queue import queue
 
@@ -52,8 +54,13 @@ class BanCheck(ABC):
 
 class dev(commands.Cog, name="dev"):
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot):
         self.bot = bot
+
+    async def inform_server(self, guilds, banembed):
+        config = await Configer.get(guilds.id, "modchannel")
+        modchannel = self.bot.get_channel(int(config))
+        await modchannel.send(embed=banembed)
 
     @commands.command(name="countbans", aliases=['cb'])
     @commands.is_owner()
@@ -148,12 +155,42 @@ class dev(commands.Cog, name="dev"):
         if ctx.author.id != 188647277181665280:
             return await ctx.send("You are not allowed to use this command.")
         try:
-            await ctx.guild.unban(user, reason="[silent]Test unban")
+            await ctx.guild.unban(user, reason="Test unban")
         except:
-            pass
-        await ctx.guild.ban(user, reason="[silent]Test ban")
+            print("User not banned")
+        await ctx.guild.ban(user, reason="Test ban")
         await ctx.send(f"Banned {userid}")
 
+    @commands.command()
+    @commands.is_owner()
+    async def approve_announcement(self, ctx: commands.Context, wait_id):
+        guildid, userid, reason = await Bans().announce_retrieve(wait_id)
+        if guildid is None or userid is None or reason is None:
+            return await ctx.send("Waitlist ERROR")
+        guild = self.bot.get_guild(guildid)
+        owner = guild.owner
+        user = await self.bot.fetch_user(userid)
+
+        approved_channel = self.bot.get_channel(self.bot.APPROVALCHANNEL)
+        banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
+                                 description=f"{reason}")
+        try:
+            config = await Configer.get(guild.id, "modchannel")
+            invite = await guild.get_channel(config).create_invite()
+        except discord.Forbidden:
+            invite = 'No permission'
+        except Exception as e:
+            invite = f'No permission/Error'
+            logging.error(f"Error creating invite: {e}")
+        banembed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} Banned userid: {user.id} ")
+        for guilds in self.bot.guilds:
+            if guilds.id == guild.id:
+                continue
+            if user in guilds.members:
+                queue().add(self.inform_server(guilds, banembed))
+        await Bans().announce_remove(wait_id)
+        await ctx.message.delete()
+        await approved_channel.send(embed=banembed)
 async def setup(bot: commands.Bot):
     await bot.add_cog(dev(bot))
 

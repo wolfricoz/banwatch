@@ -1,4 +1,5 @@
 import logging
+import os
 from datetime import datetime
 
 import discord
@@ -25,10 +26,12 @@ class BanEvents(commands.Cog):
             print("silent or hidden ban/no reason, not adding to list")
             return
         channel = bot.get_channel(bot.BANCHANNEL)
+        wait_id = await Bans().announce_add(guild.id, user.id, ban.reason)
         embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
                               description=f"{ban.reason}")
-        embed.set_footer(text=f"{datetime.now()}")
-        await channel.send(embed=embed, view=BanApproval(bot, guild, user, ban))
+        embed.set_footer(text=f"{os.getenv('PREFIX')}approve_announcement {wait_id}")
+
+        await channel.send(embed=embed, view=BanApproval(bot, wait_id))
 
     @commands.Cog.listener()
     async def on_member_unban(self, guild, user):

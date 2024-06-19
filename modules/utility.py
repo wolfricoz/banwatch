@@ -20,25 +20,6 @@ class Utility(commands.Cog):
         await interaction.response.send_message(
                 "If you are in need of support, please read our documentation at https://wolfricoz.github.io/banwatch/ ! You can find our discord link in the documentation. If you still need help, please join our discord server and ask in the support channel.", ephemeral=True)
 
-    @app_commands.command()
-    @app_commands.checks.has_permissions(ban_members=True)
-    async def update_ban(self, interaction: discord.Interaction, user: str, reason: str):
-        if isinstance(user, str):
-            user = await self.bot.fetch_user(int(user))
-        if user not in interaction.guild.bans():
-            await interaction.response.send_message(f"{user} is not banned in this server")
-            return
-        try:
-            await interaction.guild.unban(user, reason='[silent] Updating ban')
-            await interaction.guild.ban(user, reason=reason)
-        except discord.NotFound:
-            await interaction.response.send_message(f"User {user} not found")
-            return
-        except discord.Forbidden:
-            await interaction.response.send_message(f"Bot does not have permission to ban {user}")
-            return
-        await interaction.response.send_message(f"Updating ban for {user} for {reason}")
-
     async def autocomplete_appeal(self, interaction: discord.Interaction, text: str) -> typing.List[app_commands.Choice[str]]:
         data = []
         try:
@@ -79,6 +60,8 @@ class Utility(commands.Cog):
         await modchannel.send(embed=embed, view=AppealButtons(self.bot, interaction.user))
         await Configer.add_appeal(interaction.user.id, guild.id, reason)
         await interaction.followup.send(f"Ban appeal sent to moderators of {guild.name}", ephemeral=True)
+
+
 
 
 async def setup(bot: commands.Bot):

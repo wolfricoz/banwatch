@@ -8,6 +8,7 @@ from discord.ext import commands
 class Bans:
     bans = {}
     guildinvites = {}
+    waiting = {}
 
     def __init__(self):
         pass
@@ -42,7 +43,6 @@ class Bans:
             self.bans[f"{user.id}"][f"{guild.id}"]['reason'] = reason
             self.bans[f"{user.id}"]['name'] = user.name
 
-
     async def check(self, bot: commands.Bot, memberid: int):
         """checks if user is in banlist"""
         if f"{memberid}" in self.bans:
@@ -69,3 +69,20 @@ class Bans:
             message = f"{Bans().bans[f'{memberid}']['name']}({memberid}) is banned in: {sr}"
             await channel.send(message[characters:characters + 1800])
             characters += 1800
+
+    async def announce_add(self, guildid, userid, reason):
+        """Creates an announcement in waiting list"""
+        wait_id = guildid + userid
+        self.waiting[wait_id] = {}
+        self.waiting[wait_id]['guild'] = guildid
+        self.waiting[wait_id]['user'] = userid
+        self.waiting[wait_id]['reason'] = reason
+        return wait_id
+
+    async def announce_remove(self, wait_id):
+        """Removes an announcement from waiting list"""
+        self.waiting.pop(wait_id)
+
+    async def announce_retrieve(self, wait_id):
+        """Retrieves an announcement from waiting list"""
+        return self.waiting[wait_id]['guild'], self.waiting[wait_id]['user'], self.waiting[wait_id]['reason']
