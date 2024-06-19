@@ -27,7 +27,7 @@ class Configer(ABC):
 
     @staticmethod
     @abstractmethod
-    async def create_bot_config(guildid):
+    async def create_bot_config():
         """Creates the general config"""
         dictionary = {
             "blacklist": [],
@@ -38,6 +38,77 @@ class Configer(ABC):
         with open(f"configs/config.json", "w") as outfile:
             outfile.write(json_object)
             logging.info(f"universal config created")
+
+    @staticmethod
+    @abstractmethod
+    async def create_appeals():
+        """Creates the general config"""
+        dictionary = {
+
+        }
+        json_object = json.dumps(dictionary, indent=4)
+        if os.path.exists(f"configs/appeals.json"):
+            return
+        with open(f"configs/appeals.json", "w") as outfile:
+            outfile.write(json_object)
+            logging.info(f"universal appeals created")
+
+    @staticmethod
+    @abstractmethod
+    async def add_appeal(userid, guildid, reason):
+        """This adds an appeal to the appeals.json file"""
+        if not os.path.exists(f"configs/appeals.json"):
+            await Configer.create_appeals()
+        with open(f"configs/appeals.json") as f:
+            data = json.load(f)
+            data[f"{userid}"] = {}
+            data[f"{userid}"][f"{guildid}"] = {}
+            data[f"{userid}"][f"{guildid}"]["reason"] = str(reason)
+            data[f"{userid}"][f"{guildid}"]["status"] = "pending"
+
+        with open(f"configs/appeals.json", 'w') as f:
+            json.dump(data, f, indent=4)
+            logging.info(f"{guildid} added to appeals")
+
+
+
+
+    @staticmethod
+    @abstractmethod
+    async def get_all_appeals():
+        """Gets the appeals from the appeals.json file"""
+        if os.path.exists(f"configs/appeals.json"):
+            with open(f"configs/appeals.json") as f:
+                data = json.load(f)
+                return data
+
+    @staticmethod
+    @abstractmethod
+    async def get_user_appeals(userid):
+        """Gets the appeals from the appeals.json file"""
+        if not os.path.exists(f"configs/appeals.json"):
+            await Configer.create_appeals()
+        with open(f"configs/appeals.json") as f:
+            data = json.load(f)
+            if str(userid) not in data.keys():
+                return None
+            return data[str(userid)]
+
+    @staticmethod
+    @abstractmethod
+    async def update_appeal_status(userid, guildid, status):
+        """Changes the status of an appeal"""
+        if status not in ["pending", "approved", "denied"]:
+            return
+        if not os.path.exists(f"configs/appeals.json"):
+            await Configer.create_appeals()
+        with open(f"configs/appeals.json") as f:
+            data = json.load(f)
+            print(userid, " " , guildid, " ", status)
+            data[str(userid)][str(guildid)]["status"] = str(status)
+        with open(f"configs/appeals.json", 'w') as f:
+            json.dump(data, f, indent=4)
+            logging.info(f"{guildid} changed to {status}")
 
     @staticmethod
     @abstractmethod

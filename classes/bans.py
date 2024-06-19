@@ -31,12 +31,14 @@ class Bans:
             return
         if str(user.id) in self.bans:
             self.bans[f"{user.id}"][f"{guild.id}"] = {}
+            self.bans[f"{user.id}"][f"{guild.id}"]["name"] = guild.name
             self.bans[f"{user.id}"][f"{guild.id}"]['reason'] = reason
             self.bans[f"{user.id}"]['name'] = user.name
         else:
 
             self.bans[f"{user.id}"] = {}
             self.bans[f"{user.id}"][f"{guild.id}"] = {}
+            self.bans[f"{user.id}"][f"{guild.id}"]["name"] = guild.name
             self.bans[f"{user.id}"][f"{guild.id}"]['reason'] = reason
             self.bans[f"{user.id}"]['name'] = user.name
 

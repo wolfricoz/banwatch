@@ -16,6 +16,7 @@ DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 PREFIX = os.getenv("PREFIX")
 DBTOKEN = os.getenv("DB")
 DEV = int(os.getenv("DEV"))
+
 # declares the bots intent
 intents = discord.Intents.default()
 # intents.message_content = True
@@ -24,7 +25,7 @@ bot = commands.Bot(command_prefix=PREFIX, case_insensitive=False, intents=intent
 bot.BANCHANNEL = int(os.getenv('BANS'))
 bot.DENIALCHANNEL = int(os.getenv('DENIED'))
 bot.APPROVALCHANNEL = int(os.getenv('APPROVED'))
-
+bot.DEV = DEV
 
 # EVENT LISTENER FOR WHEN THE BOT HAS SWITCHED FROM OFFLINE TO ONLINE.
 
@@ -42,7 +43,8 @@ async def on_ready():
         # logging.info THE SERVER'S ID AND NAME.
         guilds.append(f"- {guild.id} (name: {guild.name})")
         await Configer.create(guild.id, guild.name)
-        await Configer.create_bot_config(guild.id)
+        await Configer.create_appeals()
+        await Configer.create_bot_config()
         if await Configer.is_blacklisted(guild.id):
             logging.info(f"Leaving {guild.name} because it is blacklisted")
             await guild.leave()
@@ -53,7 +55,7 @@ async def on_ready():
     # formguilds = "\n".join(guilds)
 
     await bot.tree.sync()
-    await devroom.send(f"Banwatch is in {guild_count} guilds. Version 2.0")
+    # await devroom.send(f"Banwatch is in {guild_count} guilds. Version 2.0")
     return guilds
 
 
