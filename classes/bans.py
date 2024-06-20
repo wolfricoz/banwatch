@@ -16,7 +16,6 @@ class Bans:
     async def update(self, bot):
         """Updates the ban list"""
         guild: discord.Guild
-        invite = None
         for guild in bot.guilds:
             try:
                 async for entry in guild.bans():
@@ -33,7 +32,6 @@ class Bans:
                 invite: str = "No permission"
             except Exception as e:
                 logging.error(f"Error creating invite: {e}")
-                print(f"Error creating invite: {e}")
                 invite: str = "No permission/Error"
             await self.add_invite(guild.id, invite)
         print("List updated")
@@ -64,7 +62,6 @@ class Bans:
         if f"{memberid}" in self.bans:
             print("member in bans")
             reasons = []
-            invite = None
             count = 0
             for ban in self.bans[f"{memberid}"]:
                 if ban == "name":
