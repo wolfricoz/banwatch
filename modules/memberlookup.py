@@ -5,10 +5,8 @@ from abc import ABC
 import discord
 from discord import app_commands
 from discord.ext import commands
-from sqlalchemy.orm import sessionmaker
 
 from classes.bans import Bans
-
 
 
 class BanCheck(ABC):
@@ -19,11 +17,11 @@ class BanCheck(ABC):
         with open(f"bans.txt", 'w', encoding='utf-8') as f:
             f.write(f"Bans:")
         for member in interaction.guild.members:
-            print(f"{interaction.guild}: Checking {member}")
+
             if f"{member.id}" in bans:
                 bcount += 1
                 count = 0
-                print("member in bans")
+
                 reasons = []
                 for guild in bot.guilds:
                     try:
@@ -62,9 +60,7 @@ class User(commands.GroupCog, name="user"):
     @app_commands.checks.has_permissions(ban_members=True)
     async def lookup(self, interaction: discord.Interaction, member: discord.Member):
         await interaction.response.defer(ephemeral=True)
-        count = 0
         sr = await Bans().check(self.bot, member.id)
-
         if sr is None:
             await interaction.channel.send(f"<@{member.id}> is not banned in any servers the bot is in.")
             return
@@ -73,6 +69,7 @@ class User(commands.GroupCog, name="user"):
     @app_commands.command(name="lookupid", description="Looks up user's bans with user id and displays them in the channel")
     @app_commands.checks.has_permissions(ban_members=True)
     async def lookupid(self, interaction: discord.Interaction, memberid: str):
+
         try:
             memberid = int(memberid)
         except ValueError:
@@ -101,4 +98,3 @@ class User(commands.GroupCog, name="user"):
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(User(bot))
-

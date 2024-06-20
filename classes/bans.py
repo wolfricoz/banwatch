@@ -15,6 +15,8 @@ class Bans:
 
     async def update(self, bot):
         """Updates the ban list"""
+        guild: discord.Guild
+        invite = None
         for guild in bot.guilds:
             try:
                 async for entry in guild.bans():
@@ -24,6 +26,16 @@ class Bans:
                     await guild.owner.send("[Permission ERROR] I need the ban permission to view the server's ban list. Please give me the ban permission.")
                 except discord.Forbidden:
                     logging.error(f"Unable to send message to {guild.owner} after trying to inform about missing permissions")
+
+            try:
+                invite: discord.Invite = (await guild.invites())[0]
+            except discord.Forbidden:
+                invite: str = "No permission"
+            except Exception as e:
+                logging.error(f"Error creating invite: {e}")
+                print(f"Error creating invite: {e}")
+                invite: str = "No permission/Error"
+            await self.add_invite(guild.id, invite)
         print("List updated")
 
     async def add_ban(self, bot, guild, user, reason):
@@ -43,22 +55,30 @@ class Bans:
             self.bans[f"{user.id}"][f"{guild.id}"]['reason'] = reason
             self.bans[f"{user.id}"]['name'] = user.name
 
+    async def add_invite(self, guildid, invite):
+        """Adds a server invite to the invite list"""
+        self.guildinvites[f"{guildid}"] = invite
+
     async def check(self, bot: commands.Bot, memberid: int):
         """checks if user is in banlist"""
         if f"{memberid}" in self.bans:
             print("member in bans")
             reasons = []
+            invite = None
             count = 0
-            for guild in bot.guilds:
+            for ban in self.bans[f"{memberid}"]:
+                if ban == "name":
+                    continue
+                guild = bot.get_guild(int(ban))
                 try:
-                    ban = self.bans[f"{memberid}"][f"{guild.id}"]['reason']
-                    reasons.append(f"\n{guild}: {ban}"
-                                   f"\nOwner: `{guild.owner}` Server: `{guild.name}` invite: <{self.guildinvites[f'{guild.id}']}>")
-                    count += 1
-                except discord.NotFound:
-                    pass
-                except Exception as e:
-                    pass
+                    print(f"guild: {guild}")
+                    invite = self.guildinvites[f"{guild.id}"]
+                except KeyError:
+                    invite = "No permission"
+                reasons.append(f"\n{guild}: {self.bans[f'{memberid}'][f'{ban}']['reason']}"
+                               f"\nOwner: `{guild.owner}` Server: `{guild.name}` Invite: `{invite}`\n")
+                count += 1
+
             sr = "".join(reasons)
 
             return sr
@@ -67,7 +87,9 @@ class Bans:
         characters = 0
         while characters < len(sr):
             message = f"{Bans().bans[f'{memberid}']['name']}({memberid}) is banned in: {sr}"
+            print(message[characters:characters + 1800])
             await channel.send(message[characters:characters + 1800])
+            print('sent message')
             characters += 1800
 
     async def announce_add(self, guildid, userid, reason):
