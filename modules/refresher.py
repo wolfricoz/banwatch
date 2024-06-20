@@ -18,6 +18,7 @@ class refresher(commands.Cog):
         print(f"[auto refresh]refreshing banlist")
         bot = self.bot
         await Bans().update(bot)
+        print(f"[auto refresh]Bans Updated")
 
 
 async def setup(bot):

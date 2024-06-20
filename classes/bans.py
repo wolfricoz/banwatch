@@ -13,9 +13,15 @@ class Bans:
     def __init__(self):
         pass
 
+    def is_ready(self):
+        """Checks if the ban list is ready"""
+        if len(self.bans) > 0:
+            return True
+        else:
+            return False
+
     async def update(self, bot):
         """Updates the ban list"""
-        print("updating bans")
         guild: discord.Guild
         for guild in bot.guilds:
             try:
@@ -35,7 +41,6 @@ class Bans:
                 logging.error(f"Error creating invite: {e}")
                 invite: str = "No permission/Error"
             await self.add_invite(guild.id, invite)
-        print("bans updated")
 
 
     async def add_ban(self, bot, guild, user, reason):
