@@ -15,6 +15,7 @@ class Bans:
 
     async def update(self, bot):
         """Updates the ban list"""
+        print("updating bans")
         guild: discord.Guild
         for guild in bot.guilds:
             try:
@@ -34,7 +35,8 @@ class Bans:
                 logging.error(f"Error creating invite: {e}")
                 invite: str = "No permission/Error"
             await self.add_invite(guild.id, invite)
-        print("List updated")
+        print("bans updated")
+
 
     async def add_ban(self, bot, guild, user, reason):
         """Adds a ban to the ban list"""
@@ -60,7 +62,6 @@ class Bans:
     async def check(self, bot: commands.Bot, memberid: int):
         """checks if user is in banlist"""
         if f"{memberid}" in self.bans:
-            print("member in bans")
             reasons = []
             count = 0
             for ban in self.bans[f"{memberid}"]:
@@ -84,9 +85,7 @@ class Bans:
         characters = 0
         while characters < len(sr):
             message = f"{Bans().bans[f'{memberid}']['name']}({memberid}) is banned in: {sr}"
-            print(message[characters:characters + 1800])
             await channel.send(message[characters:characters + 1800])
-            print('sent message')
             characters += 1800
 
     async def announce_add(self, guildid, userid, reason):

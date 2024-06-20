@@ -32,8 +32,6 @@ bot.DEV = DEV
 @bot.event
 async def on_ready():
     devroom = bot.get_channel(DEV)
-    # Fills banlist
-    await Bans().update(bot)
     # CREATES A COUNTER TO KEEP TRACK OF HOW MANY GUILDS / SERVERS THE BOT IS CONNECTED TO.
     guild_count = 0
     guilds = []
