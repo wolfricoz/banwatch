@@ -33,7 +33,7 @@ class BanEvents(commands.Cog):
         checklist: list = await Configer.get_checklist()
         if checklist:
             for word in checklist:
-                if word in ban.reason:
+                if word.lower() in ban.reason.lower():
                     found = True
         if not found:
             invite = await Bans().create_invite(guild)
