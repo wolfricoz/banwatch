@@ -5,7 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Added a check if the banlist is filled">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/configer.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/configer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/countbans.txt" beforeDir="false" afterPath="$PROJECT_DIR$/countbans.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/devtools.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/devtools.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/memberlookup.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/memberlookup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/on_member_ban.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/on_member_ban.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -381,7 +386,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/modules/devtools.py</url>
-          <line>58</line>
+          <line>75</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
       </breakpoints>
