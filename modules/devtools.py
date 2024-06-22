@@ -4,8 +4,9 @@ import random
 from abc import ABC
 
 import discord
+from discord import app_commands
+from discord.app_commands import Choice
 from discord.ext import commands
-from sqlalchemy.orm import sessionmaker
 
 from classes.bans import Bans
 from classes.configer import Configer
@@ -52,7 +53,24 @@ class BanCheck(ABC):
         return fcount
 
 
-class dev(commands.Cog, name="dev"):
+OWNER = int(os.getenv("OWNER"))
+GUILD = int(os.getenv("GUILD"))
+
+
+def in_guild():
+    async def predicate(interaction: discord.Interaction):
+        if interaction.guild is None:
+            return False
+        if interaction.guild.id != GUILD:
+            return False
+        if interaction.user.id != OWNER:
+            return False
+        return True
+
+    return app_commands.check(predicate)
+
+
+class dev(commands.GroupCog, name="dev"):
 
     def __init__(self, bot):
         self.bot = bot
@@ -62,9 +80,9 @@ class dev(commands.Cog, name="dev"):
         modchannel = self.bot.get_channel(int(config))
         await modchannel.send(embed=banembed)
 
-    @commands.command(name="countbans", aliases=['cb'])
-    @commands.is_owner()
-    async def cb(self, interaction: discord.Interaction):
+    @app_commands.command(name="countbans", description="[DEV] Counts all bans in all servers", )
+    @in_guild()
+    async def countbans(self, interaction: discord.Interaction):
         with open('countbans.txt', 'w'):
             pass
         testbans = []
@@ -96,77 +114,68 @@ class dev(commands.Cog, name="dev"):
         await interaction.channel.send(f"Total bans: {total}, Unique: {ucount}",
                                        file=discord.File(f.name, "countbans.txt"))
 
-    @commands.command(name="announce", aliases=['a'])
-    @commands.is_owner()
-    async def announce(self, ctx, *, message: str):
-        if ctx.author.id == 188647277181665280:
-            dmed = []
-            for guild in self.bot.guilds:
-                print(f"{guild}: owner {guild.owner} ")
-                if guild.owner.id in dmed:
-                    continue
-                dmed.append(guild.owner.id)
-                try:
-                    await guild.owner.send(f"__**BAN WATCH ANNOUNCEMENT**__\n"
-                                           f"{message}")
-                except discord.Forbidden:
-                    try:
-                        config = await Configer.get(guild.id, "modchannel")
-                        configid = int(config)
-                        channel = self.bot.get_channel(configid)
-                        await channel.send(f"__**BAN WATCH ANNOUNCEMENT**__\n"
-                                           f"{message} \n (Bot could not dm owner)")
-                    except:
-                        print(f"couldn't dm {guild.owner}, no modchannel set")
-                except Exception as e:
-                    print(f"couldn't dm {guild.owner}, error reason: \n {e}")
+    @app_commands.command(name="announce", description="[DEV] Send an announcement to all guild owners")
+    @in_guild()
+    async def announce(self, interaction: discord.Interaction, message: str):
+        if interaction.user.id != 188647277181665280:
+            return
 
-    @commands.command()
-    @commands.is_owner()
-    async def leave_server(self, ctx, guildid: int):
-        if ctx.author.id != 188647277181665280:
-            return await ctx.send("You are not allowed to use this command.")
+        dmed = []
+        for guild in self.bot.guilds:
+            print(f"{guild}: owner {guild.owner} ")
+
+            if guild.owner.id in dmed:
+                continue
+
+            dmed.append(guild.owner.id)
+            try:
+                await guild.owner.send(f"__**BAN WATCH ANNOUNCEMENT**__\n{message}")
+            except discord.Forbidden:
+                try:
+                    config = await Configer.get(guild.id, "modchannel")
+                    configid = int(config)
+                    channel = self.bot.get_channel(configid)
+                    await channel.send(f"__**BAN WATCH ANNOUNCEMENT**__\n{message} \n (Bot could not dm owner)")
+                except:
+                    print(f"couldn't dm {guild.owner}, no modchannel set")
+            except Exception as e:
+                print(f"couldn't dm {guild.owner}, error reason: \n {e}")
+
+    @app_commands.command(name="leave_server", description="[DEV] Leave a server")
+    @in_guild()
+    async def leave_server(self, interaction: discord.Interaction, guildid: int):
+        if interaction.user.id != 188647277181665280:
+            return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
         guild = self.bot.get_guild(guildid)
         await guild.leave()
-        await ctx.send(f"Left {guild}")
+        await interaction.response.send_message(f"Left {guild}")
 
-    @commands.command()
-    @commands.is_owner()
-    async def blacklist_server(self, ctx, guildid: int):
-        if ctx.author.id != 188647277181665280:
-            return await ctx.send("You are not allowed to use this command.")
+    @app_commands.command(name="blacklist_server", description="[DEV] Blacklist a server")
+    @in_guild()
+    async def blacklist_server(self, interaction: discord.Interaction, guildid: int):
+        if interaction.user.id != 188647277181665280:
+            return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
         guild = self.bot.get_guild(guildid)
         await Configer.add_to_blacklist(guildid)
         await guild.leave()
-        await ctx.send(f"blacklisted {guild}")
+        await interaction.response.send_message(f"Blacklisted {guild}")
 
-    @commands.command()
-    @commands.is_owner()
-    async def unblacklist_server(self, ctx, guildid: int):
-        if ctx.author.id != 188647277181665280:
-            return await ctx.send("You are not allowed to use this command.")
+    @app_commands.command(name="unblacklist_server", description="[DEV] Remove a server from the blacklist")
+    @in_guild()
+    async def unblacklist_server(self, interaction: discord.Interaction, guildid: int):
+        if interaction.user.id != 188647277181665280:
+            return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
         await Configer.remove_from_blacklist(guildid)
-        await ctx.send(f"unblacklist {guildid}")
+        await interaction.response.send_message(f"Unblacklisted {guildid}")
 
-    @commands.command()
-    @commands.is_owner()
-    async def testban(self, ctx, userid: int):
-        user = self.bot.get_user(userid)
-        if ctx.author.id != 188647277181665280:
-            return await ctx.send("You are not allowed to use this command.")
-        try:
-            await ctx.guild.unban(user, reason="Test unban")
-        except:
-            print("User not banned")
-        await ctx.guild.ban(user, reason="Test ban")
-        await ctx.send(f"Banned {userid}")
-
-    @commands.command()
-    @commands.is_owner()
-    async def approve_announcement(self, ctx: commands.Context, wait_id):
+    @app_commands.command(name="approve_ban", description="Approve a ban")
+    @in_guild()
+    async def approve_ban(self, interaction: discord.Interaction, wait_id: int):
+        if interaction.user.id != 188647277181665280:
+            return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
         guildid, userid, reason = await Bans().announce_retrieve(wait_id)
         if guildid is None or userid is None or reason is None:
-            return await ctx.send("Waitlist ERROR")
+            return await interaction.response.send_message("Waitlist ERROR", ephemeral=True)
         guild = self.bot.get_guild(guildid)
         owner = guild.owner
         user = await self.bot.fetch_user(userid)
@@ -189,9 +198,29 @@ class dev(commands.Cog, name="dev"):
             if user in guilds.members:
                 queue().add(self.inform_server(guilds, banembed))
         await Bans().announce_remove(wait_id)
-        await ctx.message.delete()
+        await interaction.response.send_message(f"Approved ban for {user.id}", ephemeral=True)
         await approved_channel.send(embed=banembed)
+
+    @app_commands.command(name="checklist", description="[DEV] Manage the checklist, these bans will be checked due to controversial reasons")
+    @app_commands.choices(operation=[
+        Choice(name="add", value="add"),
+        Choice(name="remove", value="remove"),
+        Choice(name="list", value="list")
+    ])
+    @in_guild()
+    async def checklist(self, interaction: discord.Interaction, operation: Choice[str], word: str):
+        match operation.value:
+            case "add":
+                await Configer.add_checklist(word)
+                await interaction.response.send_message(f"Added {word} to the checklist", ephemeral=True)
+            case "remove":
+                await Configer.remove_checklist(word)
+                await interaction.response.send_message(f"Removed {word} from the checklist", ephemeral=True)
+            case "list":
+                checklist: list = await Configer.get_checklist()
+                l = "\n".join(checklist)
+                await interaction.response.send_message(f"Checklist: {l}", ephemeral=True)
+
+
 async def setup(bot: commands.Bot):
     await bot.add_cog(dev(bot))
-
-
