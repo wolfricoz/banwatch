@@ -4,6 +4,9 @@ import logging
 import discord
 from discord.ext import commands
 
+from classes.configer import Configer
+from classes.queue import queue
+
 
 class Bans:
     bans = {}
@@ -41,7 +44,6 @@ class Bans:
                 logging.error(f"Error creating invite: {e}")
                 invite: str = "No permission/Error"
             await self.add_invite(guild.id, invite)
-
 
     async def add_ban(self, bot, guild, user, reason):
         """Adds a ban to the ban list"""
@@ -109,3 +111,20 @@ class Bans:
     async def announce_retrieve(self, wait_id):
         """Retrieves an announcement from waiting list"""
         return self.waiting[wait_id]['guild'], self.waiting[wait_id]['user'], self.waiting[wait_id]['reason']
+
+    async def inform_server(self, bot, guilds, banembed):
+        config = await Configer.get(guilds.id, "modchannel")
+        modchannel = bot.get_channel(int(config))
+        await modchannel.send(embed=banembed)
+
+    async def check_guilds(self, interaction, bot, guild, user, banembed, wait_id):
+        approved_channel = bot.get_channel(bot.APPROVALCHANNEL)
+        for guilds in bot.guilds:
+            if guilds.id == guild.id:
+                continue
+            if user in guilds.members:
+                queue().add(self.inform_server(bot, guilds, banembed))
+        await Bans().announce_remove(wait_id)
+        if interaction is not None:
+            await interaction.message.delete()
+        await approved_channel.send(embed=banembed)

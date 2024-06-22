@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 
 from classes.bans import Bans
+from classes.configer import Configer
 from view.buttons.banapproval import BanApproval
 
 
@@ -19,6 +20,7 @@ class BanEvents(commands.Cog):
         bot = self.bot
         logging.info("starting to update banlist and informing other servers")
         ban = await guild.fetch_ban(user)
+        found = False
         await Bans().add_ban(bot, guild, user, ban.reason)
         if ban.reason is None or ban.reason == "" or ban.reason.lower == "none" or str(ban.reason).lower().startswith('[silent]') or str(ban.reason).lower().startswith('[hidden]'):
             print("silent or hidden ban/no reason, not adding to list")
@@ -28,8 +30,15 @@ class BanEvents(commands.Cog):
         embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
                               description=f"{ban.reason}")
         embed.set_footer(text=f"/approve_ban {wait_id}")
-
-        await channel.send(embed=embed, view=BanApproval(bot, wait_id))
+        checklist: list = await Configer.get_checklist()
+        if checklist:
+            for word in checklist:
+                if word in ban.reason:
+                    found = True
+        if found:
+            await channel.send(embed=embed, view=BanApproval(bot, wait_id))
+            return
+        await Bans().check_guilds(None, bot, guild, user, embed, wait_id)
 
     @commands.Cog.listener()
     async def on_member_unban(self, guild, user):
