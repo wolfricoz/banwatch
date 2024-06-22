@@ -128,3 +128,15 @@ class Bans:
         if interaction is not None:
             await interaction.message.delete()
         await approved_channel.send(embed=banembed)
+
+    async def create_invite(self, guild: discord.Guild):
+        try:
+            config = await Configer.get(guild.id, "modchannel")
+            invite = await guild.get_channel(config).create_invite()
+        except discord.Forbidden:
+            invite = 'No permission'
+        except Exception as e:
+            invite = f'No permission/Error'
+            logging.error(f"Error creating invite: {e}")
+
+        return invite

@@ -29,18 +29,9 @@ class BanApproval(View):
         guild = self.bot.get_guild(guildid)
         owner = guild.owner
         user = await self.bot.fetch_user(userid)
-
-        approved_channel = self.bot.get_channel(self.bot.APPROVALCHANNEL)
         banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
                                  description=f"{reason}")
-        try:
-            config = await Configer.get(guild.id, "modchannel")
-            invite = await guild.get_channel(config).create_invite()
-        except discord.Forbidden:
-            invite = 'No permission'
-        except Exception as e:
-            invite = f'No permission/Error'
-            logging.error(f"Error creating invite: {e}")
+        invite = await Bans().create_invite(guild)
         banembed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} Banned userid: {user.id} ")
         await interaction.followup.send("Approved", ephemeral=True)
         await Bans().check_guilds(interaction, self.bot, guild, user, banembed, self.wait_id)

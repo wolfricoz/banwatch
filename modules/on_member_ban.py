@@ -35,10 +35,14 @@ class BanEvents(commands.Cog):
             for word in checklist:
                 if word in ban.reason:
                     found = True
-        if found:
-            await channel.send(embed=embed, view=BanApproval(bot, wait_id))
-            return
-        await Bans().check_guilds(None, bot, guild, user, embed, wait_id)
+        if not found:
+            invite = await Bans().create_invite(guild)
+            owner = guild.owner
+            embed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} Banned userid: {user.id} ")
+            await Bans().check_guilds(None, bot, guild, user, embed, wait_id)
+
+        await channel.send(embed=embed, view=BanApproval(bot, wait_id))
+        return
 
     @commands.Cog.listener()
     async def on_member_unban(self, guild, user):
