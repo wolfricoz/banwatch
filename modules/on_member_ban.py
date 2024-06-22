@@ -1,6 +1,4 @@
 import logging
-import os
-from datetime import datetime
 
 import discord
 from discord.ext import commands
@@ -29,7 +27,7 @@ class BanEvents(commands.Cog):
         wait_id = await Bans().announce_add(guild.id, user.id, ban.reason)
         embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
                               description=f"{ban.reason}")
-        embed.set_footer(text=f"{os.getenv('PREFIX')}approve_announcement {wait_id}")
+        embed.set_footer(text=f"/approve_ban {wait_id}")
 
         await channel.send(embed=embed, view=BanApproval(bot, wait_id))
 

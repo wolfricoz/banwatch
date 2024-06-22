@@ -12,7 +12,6 @@ from classes.bans import Bans
 class BanCheck(ABC):
     async def checkerall(self, interaction, bot):
 
-
         fcount = 0
         bcount = 0
         bans = Bans().bans

@@ -31,9 +31,20 @@ class Configer(ABC):
         """Creates the general config"""
         dictionary = {
             "blacklist": [],
+            "checklist": [
+
+            ],
         }
         json_object = json.dumps(dictionary, indent=4)
         if os.path.exists(f"configs/config.json"):
+            with open(f"configs/config.json") as f:
+                data = json.load(f)
+                dictionary = {
+                    "blacklist": data.get("blacklist", []),
+                    "checklist": data.get("checklist", [])
+                }
+            with open(f"configs/config.json", "w") as f:
+                json.dump(dictionary, f, indent=4)
             return
         with open(f"configs/config.json", "w") as outfile:
             outfile.write(json_object)
@@ -168,3 +179,42 @@ class Configer(ABC):
                 data = json.load(f)
                 if guildid in data["blacklist"]:
                     return True
+
+    @staticmethod
+    @abstractmethod
+    async def add_checklist(word:str):
+        """Adds a word to the checklist"""
+        if os.path.exists(f"configs/config.json"):
+            with open(f"configs/config.json") as f:
+                data = json.load(f)
+                if word in data["checklist"]:
+                    return
+                data["checklist"].append(word)
+            with open(f"configs/config.json", 'w') as f:
+                json.dump(data, f, indent=4)
+                logging.info(f"{word} added to checklist")
+        else:
+            await Configer.create_bot_config()
+
+    @staticmethod
+    @abstractmethod
+    async def remove_checklist(word:str):
+        """Removes a word from the checklist"""
+        if os.path.exists(f"configs/config.json"):
+            with open(f"configs/config.json") as f:
+                data = json.load(f)
+                data["checklist"].remove(word)
+            with open(f"configs/config.json", 'w') as f:
+                json.dump(data, f, indent=4)
+                logging.info(f"{word} removed from checklist")
+        else:
+            await Configer.create_bot_config()
+
+    @staticmethod
+    @abstractmethod
+    async def get_checklist():
+        """Gets the checklist"""
+        if os.path.exists(f"configs/config.json"):
+            with open(f"configs/config.json") as f:
+                data = json.load(f)
+                return data["checklist"]
