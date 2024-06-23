@@ -40,6 +40,7 @@ class BanEvents(commands.Cog):
             owner = guild.owner
             embed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} Banned userid: {user.id} ")
             await Bans().check_guilds(None, bot, guild, user, embed, wait_id)
+            return
 
         await channel.send(embed=embed, view=BanApproval(bot, wait_id))
         return
