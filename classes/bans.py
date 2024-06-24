@@ -132,7 +132,7 @@ class Bans:
     async def create_invite(self, guild: discord.Guild):
         try:
             config = await Configer.get(guild.id, "modchannel")
-            invite = await guild.get_channel(config).create_invite()
+            invite = await guild.get_channel(config).create_invite(max_age=604800)
         except discord.Forbidden:
             invite = 'No permission'
         except Exception as e:
