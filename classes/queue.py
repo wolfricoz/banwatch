@@ -21,3 +21,4 @@ class queue():
             except Exception as e:
                 print(e)
             self.task_finished = True
+            print(f"Remaining queue: {len(self.queue)}")

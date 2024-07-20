@@ -76,7 +76,7 @@ To monitor bans, you need ban member privileges:
 ## Support
 
 If you run into any issues or have any questions, you can join the support server by
-clicking [here](https://discord.gg/UdC7dVTn9K). The support server is the best place to get help with the bot and to
+clicking [here](https://discord.gg/sXqhbPxgGn). The support server is the best place to get help with the bot and to
 report any issues you may encounter.
 
 ## Donations

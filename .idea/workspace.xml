@@ -4,11 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Adding a checklist: added to config">
+    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Enabling dev tools">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/bans.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/bans.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/on_member_ban.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/on_member_ban.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/view/buttons/banapproval.py" beforeDir="false" afterPath="$PROJECT_DIR$/view/buttons/banapproval.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/queue.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/queue.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/index.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/devtools.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/devtools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/queuetask.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/queuetask.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,6 +25,7 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="HARD" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {
@@ -50,26 +52,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.checkword.executor": "Run",
-    "Python.main.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "C:/Users/ricoi/PycharmProjects/banbot/view/buttons",
-    "run.code.analysis.last.selected.profile": "aDefault",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.checkword.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/ricoi/PycharmProjects/banbot/modules&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\ricoi\PycharmProjects\banbot\modules" />
       <recent name="C:\Users\ricoi\PycharmProjects\banbot\view\buttons" />
       <recent name="C:\Users\ricoi\PycharmProjects\banbot\view\modals" />
-      <recent name="C:\Users\ricoi\PycharmProjects\banbot\modules" />
       <recent name="C:\Users\ricoi\PycharmProjects\banbot\Modules" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\ricoi\PycharmProjects\banbot\test" />
       <recent name="C:\Users\ricoi\PycharmProjects\banbot\classes" />
       <recent name="C:\Users\ricoi\PycharmProjects\banbot\templates" />
       <recent name="C:\Users\ricoi\PycharmProjects\banbot" />
@@ -392,7 +395,31 @@
       <option name="project" value="LOCAL" />
       <updated>1719064864448</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="fixing bug">
+      <option name="closed" value="true" />
+      <created>1719129847722</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1719129847722</updated>
+    </task>
+    <task id="LOCAL-00033" summary="fixing bug">
+      <option name="closed" value="true" />
+      <created>1719130014215</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1719130014215</updated>
+    </task>
+    <task id="LOCAL-00034" summary="Enabling dev tools">
+      <option name="closed" value="true" />
+      <created>1719609755427</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1719609755427</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -427,14 +454,16 @@
     <MESSAGE value="Added a check if the banlist is filled" />
     <MESSAGE value="Changed dev tools to app commands, and added a check in there." />
     <MESSAGE value="Adding a checklist: added to config" />
-    <option name="LAST_COMMIT_MESSAGE" value="Adding a checklist: added to config" />
+    <MESSAGE value="fixing bug" />
+    <MESSAGE value="Enabling dev tools" />
+    <option name="LAST_COMMIT_MESSAGE" value="Enabling dev tools" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/modules/devtools.py</url>
-          <line>75</line>
+          <line>76</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
       </breakpoints>

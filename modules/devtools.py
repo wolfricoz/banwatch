@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import random
@@ -209,6 +210,8 @@ class dev(commands.GroupCog, name="dev"):
     ])
     @in_guild()
     async def checklist(self, interaction: discord.Interaction, operation: Choice[str], word: str):
+        if interaction.user.id != 188647277181665280:
+            return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
         match operation.value:
             case "add":
                 await Configer.add_checklist(word)
@@ -220,6 +223,25 @@ class dev(commands.GroupCog, name="dev"):
                 checklist: list = await Configer.get_checklist()
                 l = "\n".join(checklist)
                 await interaction.response.send_message(f"Checklist: {l}", ephemeral=True)
+
+    @app_commands.command(name="migrate_ban")
+    @in_guild()
+    async def copy(self, interaction: discord.Interaction, channelid: str):
+        if interaction.user.id != 188647277181665280:
+            return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
+        await interaction.response.send_message("Migration Started")
+        channel = self.bot.get_channel(int(channelid))
+        async for message in channel.history(limit=None, oldest_first=True):
+            thread = interaction.guild.get_thread(message.id)
+            await asyncio.sleep(2)
+            timestamp = message.created_at.strftime("%m/%d/%Y")
+            new = await interaction.channel.send(f"Migrated ban from the old server, sent on {timestamp}:\n{message.content} ", embeds=message.embeds, silent=True)
+            if thread is not None:
+                new_thread = await new.create_thread(name=thread.name)
+                async for msg in thread.history(limit=None, oldest_first=True):
+                    if msg.content is None and len(msg.attachments) < 1 and len(msg.embeds) < 1:
+                        continue
+                    queue().add(new_thread.send(msg.content if len(msg.content) > 0 else "Empty Msg", embeds=msg.embeds, files=[await attachment.to_file() for attachment in msg.attachments], silent=True))
 
 
 async def setup(bot: commands.Bot):
