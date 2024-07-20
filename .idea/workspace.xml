@@ -4,12 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Enabling dev tools">
+    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="added migration, reduced queue task, and added a print statement that keeps track of the queue">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/queue.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/queue.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/devtools.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/devtools.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/queuetask.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/queuetask.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -419,7 +416,15 @@
       <option name="project" value="LOCAL" />
       <updated>1719609755427</updated>
     </task>
-    <option name="localTasksCounter" value="35" />
+    <task id="LOCAL-00035" summary="added migration, reduced queue task, and added a print statement that keeps track of the queue">
+      <option name="closed" value="true" />
+      <created>1721436316418</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1721436316418</updated>
+    </task>
+    <option name="localTasksCounter" value="36" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -456,7 +461,8 @@
     <MESSAGE value="Adding a checklist: added to config" />
     <MESSAGE value="fixing bug" />
     <MESSAGE value="Enabling dev tools" />
-    <option name="LAST_COMMIT_MESSAGE" value="Enabling dev tools" />
+    <MESSAGE value="added migration, reduced queue task, and added a print statement that keeps track of the queue" />
+    <option name="LAST_COMMIT_MESSAGE" value="added migration, reduced queue task, and added a print statement that keeps track of the queue" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

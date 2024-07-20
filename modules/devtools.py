@@ -232,7 +232,7 @@ class dev(commands.GroupCog, name="dev"):
         await interaction.response.send_message("Migration Started")
         channel = self.bot.get_channel(int(channelid))
         async for message in channel.history(limit=None, oldest_first=True):
-            thread = interaction.guild.get_thread(message.id)
+            thread = channel.guild.get_thread(message.id)
             await asyncio.sleep(2)
             timestamp = message.created_at.strftime("%m/%d/%Y")
             new = await interaction.channel.send(f"Migrated ban from the old server, sent on {timestamp}:\n{message.content} ", embeds=message.embeds, silent=True)
