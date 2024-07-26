@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import os
 import random
 from abc import ABC
@@ -137,11 +136,12 @@ class dev(commands.GroupCog, name="dev"):
                 channel = self.bot.get_channel(configid)
                 await channel.send(announcement)
             except Exception as e:
-                await interaction.channel.send(f"Error sending to {guild}({guild.owner}): {e}")
-
-
-
-
+                try:
+                    await guild.owner.send(
+                        "Banwatch could not send the announcement to your server to your modchannel, please check the mod channel settings. You can setup your modchannel with: ```/config change option:Mod channel channel:```")
+                    await guild.owner.send(announcement)
+                except Exception as e:
+                    await interaction.channel.send(f"Error sending to {guild}({guild.owner}): {e}")
 
     @app_commands.command(name="leave_server", description="[DEV] Leave a server")
     @in_guild()
@@ -242,5 +242,7 @@ class dev(commands.GroupCog, name="dev"):
             pass
         await interaction.guild.ban(user, reason="Test ban")
         await interaction.response.send_message("Test ban complete", ephemeral=True)
+
+
 async def setup(bot: commands.Bot):
     await bot.add_cog(dev(bot))
