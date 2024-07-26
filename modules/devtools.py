@@ -119,7 +119,7 @@ class dev(commands.GroupCog, name="dev"):
     @app_commands.command(name="announce", description="[DEV] Send an announcement to all guild owners")
     @in_guild()
     async def announce(self, interaction: discord.Interaction):
-        message = send_modal(interaction, "What is the announcement?", "Announcement", 1500)
+        message = await send_modal(interaction, "What is the announcement?", "Announcement", 1500)
         if interaction.user.id != 188647277181665280:
             return
         bot = self.bot
