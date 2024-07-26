@@ -7,6 +7,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 
 from classes.bans import Bans
+from classes.cacher import LongTermCache
 from classes.configer import Configer
 
 # LOADS THE .ENV FILE THAT RESIDES ON THE SAME LEVEL AS THE SCRIPT.
@@ -22,6 +23,7 @@ intents = discord.Intents.default()
 # intents.message_content = True
 intents.members = True
 bot = commands.Bot(command_prefix=PREFIX, case_insensitive=False, intents=intents)
+bot.SUPPORTGUILD = int(os.getenv('GUILD'))
 bot.BANCHANNEL = int(os.getenv('BANS'))
 bot.DENIALCHANNEL = int(os.getenv('DENIED'))
 bot.APPROVALCHANNEL = int(os.getenv('APPROVED'))
@@ -41,8 +43,9 @@ async def on_ready():
         # logging.info THE SERVER'S ID AND NAME.
         guilds.append(f"- {guild.id} (name: {guild.name})")
         await Configer.create(guild.id, guild.name)
-        await Configer.create_appeals()
         await Configer.create_bot_config()
+        await Configer.create_appeals()
+        LongTermCache().create()
         if await Configer.is_blacklisted(guild.id):
             logging.info(f"Leaving {guild.name} because it is blacklisted")
             await guild.leave()
@@ -53,7 +56,7 @@ async def on_ready():
     # formguilds = "\n".join(guilds)
 
     await bot.tree.sync()
-    await devroom.send(f"Banwatch is in {guild_count} guilds. Version 2.0")
+    await devroom.send(f"Banwatch is in {guild_count} guilds. Version 2.1.0")
     return guilds
 
 

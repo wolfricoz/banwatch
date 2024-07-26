@@ -4,6 +4,7 @@ import logging
 import discord
 from discord.ext import commands
 
+from classes.cacher import LongTermCache
 from classes.configer import Configer
 from classes.queue import queue
 
@@ -11,7 +12,6 @@ from classes.queue import queue
 class Bans:
     bans = {}
     guildinvites = {}
-    waiting = {}
 
     def __init__(self):
         pass
@@ -98,26 +98,33 @@ class Bans:
     async def announce_add(self, guildid, userid, reason):
         """Creates an announcement in waiting list"""
         wait_id = guildid + userid
-        self.waiting[wait_id] = {}
-        self.waiting[wait_id]['guild'] = guildid
-        self.waiting[wait_id]['user'] = userid
-        self.waiting[wait_id]['reason'] = reason
+
+        ban_info = {
+            "guild" : guildid,
+            "user"  : userid,
+            "reason": reason
+        }
+        LongTermCache().add_ban(wait_id, ban_info)
         return wait_id
 
     async def announce_remove(self, wait_id):
         """Removes an announcement from waiting list"""
-        self.waiting.pop(wait_id)
+        if not LongTermCache().remove_ban(wait_id):
+            raise Exception("Wait ID not found")
 
     async def announce_retrieve(self, wait_id):
         """Retrieves an announcement from waiting list"""
-        return self.waiting[wait_id]['guild'], self.waiting[wait_id]['user'], self.waiting[wait_id]['reason']
+        ban_info = LongTermCache().get_ban(wait_id)
+        if not ban_info:
+            raise Exception("Wait ID not found")
+        return ban_info['guild'], ban_info['user'], ban_info['reason']
 
     async def inform_server(self, bot, guilds, banembed):
         config = await Configer.get(guilds.id, "modchannel")
         modchannel = bot.get_channel(int(config))
         await modchannel.send(embed=banembed)
 
-    async def check_guilds(self, interaction, bot, guild, user, banembed, wait_id):
+    async def check_guilds(self, interaction, bot, guild, user, banembed, wait_id, open_thread=False):
         approved_channel = bot.get_channel(bot.APPROVALCHANNEL)
         for guilds in bot.guilds:
             if guilds.id == guild.id:
@@ -127,7 +134,14 @@ class Bans:
         await Bans().announce_remove(wait_id)
         if interaction is not None:
             await interaction.message.delete()
-        await approved_channel.send(embed=banembed)
+        approved_message = await approved_channel.send(embed=banembed)
+        if not open_thread:
+            return
+        guild_owner = guild.owner
+        thread = await approved_message.create_thread(name=f"Ban approval for {user.name}")
+        await thread.send(f"Please provide the proof of the ban here {guild_owner.mention}")
+        await guild_owner.send(
+            f"Your ban for {user.name} has been approved and has been broadcasted, please provide the proof of the ban in the thread {thread.mention} in our support server. Not in our support server? Do the /support command to get the link!")
 
     async def create_invite(self, guild: discord.Guild):
         try:

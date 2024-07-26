@@ -11,10 +11,11 @@ from classes.queue import queue
 class BanApproval(View):
     bot = None
 
-    def __init__(self, bot, wait_id):
+    def __init__(self, bot, wait_id, create_thread = False):
         super().__init__(timeout=None)
         self.bot = bot
         self.wait_id = wait_id
+        self.create_thread = create_thread
 
     @discord.ui.button(label="Approve", style=discord.ButtonStyle.success, custom_id="approve_broadcast")
     async def approve(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -34,7 +35,7 @@ class BanApproval(View):
         invite = await Bans().create_invite(guild)
         banembed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} Banned userid: {user.id} ")
         await interaction.followup.send("Approved", ephemeral=True)
-        await Bans().check_guilds(interaction, self.bot, guild, user, banembed, self.wait_id)
+        await Bans().check_guilds(interaction, self.bot, guild, user, banembed, self.wait_id, self.create_thread)
 
     @discord.ui.button(label="Deny", style=discord.ButtonStyle.danger, custom_id="deny_broadcast")
     async def deny(self, interaction: discord.Interaction, button: discord.ui.Button):

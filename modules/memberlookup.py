@@ -10,6 +10,10 @@ from classes.bans import Bans
 
 
 class BanCheck(ABC):
+
+    def member_count_check(self, guild):
+        return len(guild.members) >= 50
+
     async def checkerall(self, interaction, bot):
 
         fcount = 0
@@ -60,6 +64,7 @@ class User(commands.GroupCog, name="user"):
     @app_commands.command(name="lookup", description="Looks up user's bans and displays them in the channel")
     @app_commands.checks.has_permissions(ban_members=True)
     async def lookup(self, interaction: discord.Interaction, member: discord.Member):
+
         await interaction.response.defer(ephemeral=True)
         if Bans().is_ready() is False:
             return await interaction.response.send_message("Bans not ready, please wait a moment - this usually takes 2 minutes.", ephemeral=True)
@@ -72,6 +77,10 @@ class User(commands.GroupCog, name="user"):
     @app_commands.command(name="lookupid", description="Looks up user's bans with user id and displays them in the channel")
     @app_commands.checks.has_permissions(ban_members=True)
     async def lookupid(self, interaction: discord.Interaction, memberid: str):
+        print(BanCheck().member_count_check(interaction.guild))
+        if not interaction.guild or BanCheck().member_count_check(interaction.guild) is False:
+            await interaction.channel.send("This command can only be used in servers with 50 or more members, to prevent abuse.")
+            return
         if Bans().is_ready() is False:
             return await interaction.response.send_message("Bans not ready, please wait a moment - this usually takes 2 minutes.", ephemeral=True)
         try:

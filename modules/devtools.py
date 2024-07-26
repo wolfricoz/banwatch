@@ -12,6 +12,7 @@ from discord.ext import commands
 from classes.bans import Bans
 from classes.configer import Configer
 from classes.queue import queue
+from view.modals.inputmodal import send_modal
 
 
 class BanCheck(ABC):
@@ -117,30 +118,30 @@ class dev(commands.GroupCog, name="dev"):
 
     @app_commands.command(name="announce", description="[DEV] Send an announcement to all guild owners")
     @in_guild()
-    async def announce(self, interaction: discord.Interaction, message: str):
+    async def announce(self, interaction: discord.Interaction):
+        message = send_modal(interaction, "What is the announcement?", "Announcement", 1500)
         if interaction.user.id != 188647277181665280:
             return
+        bot = self.bot
+        supportguild = bot.get_guild(bot.SUPPORTGUILD)
+        support_invite = await Bans().create_invite(supportguild)
+        announcement = (f"## BAN WATCH ANNOUNCEMENT"
+                        f"\n{message}"
+                        f"\n-# You can join our support server by [clicking here to join]({support_invite}). If you have any questions, errors or concerns, please open a ticket in the support server.")
 
-        dmed = []
         for guild in self.bot.guilds:
-            print(f"{guild}: owner {guild.owner} ")
-
-            if guild.owner.id in dmed:
-                continue
-
-            dmed.append(guild.owner.id)
+            await asyncio.sleep(1)
             try:
-                await guild.owner.send(f"__**BAN WATCH ANNOUNCEMENT**__\n{message}")
-            except discord.Forbidden:
-                try:
-                    config = await Configer.get(guild.id, "modchannel")
-                    configid = int(config)
-                    channel = self.bot.get_channel(configid)
-                    await channel.send(f"__**BAN WATCH ANNOUNCEMENT**__\n{message} \n (Bot could not dm owner)")
-                except:
-                    print(f"couldn't dm {guild.owner}, no modchannel set")
+                config = await Configer.get(guild.id, "modchannel")
+                configid = int(config)
+                channel = self.bot.get_channel(configid)
+                await channel.send(announcement)
             except Exception as e:
-                print(f"couldn't dm {guild.owner}, error reason: \n {e}")
+                await interaction.channel.send(f"Error sending to {guild}({guild.owner}): {e}")
+
+
+
+
 
     @app_commands.command(name="leave_server", description="[DEV] Leave a server")
     @in_guild()
@@ -171,36 +172,22 @@ class dev(commands.GroupCog, name="dev"):
 
     @app_commands.command(name="approve_ban", description="Approve a ban")
     @in_guild()
-    async def approve_ban(self, interaction: discord.Interaction, wait_id: int):
+    async def approve_ban(self, interaction: discord.Interaction, wait_id: str):
         if interaction.user.id != 188647277181665280:
             return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
-        guildid, userid, reason = await Bans().announce_retrieve(wait_id)
+        guildid, userid, reason = await Bans().announce_retrieve(self.wait_id)
         if guildid is None or userid is None or reason is None:
-            return await interaction.response.send_message("Waitlist ERROR", ephemeral=True)
+            await interaction.followup.send("Waitlist ERROR", ephemeral=True)
+            return
         guild = self.bot.get_guild(guildid)
         owner = guild.owner
         user = await self.bot.fetch_user(userid)
-
-        approved_channel = self.bot.get_channel(self.bot.APPROVALCHANNEL)
         banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
                                  description=f"{reason}")
-        try:
-            config = await Configer.get(guild.id, "modchannel")
-            invite = await guild.get_channel(config).create_invite()
-        except discord.Forbidden:
-            invite = 'No permission'
-        except Exception as e:
-            invite = f'No permission/Error'
-            logging.error(f"Error creating invite: {e}")
+        invite = await Bans().create_invite(guild)
         banembed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} Banned userid: {user.id} ")
-        for guilds in self.bot.guilds:
-            if guilds.id == guild.id:
-                continue
-            if user in guilds.members:
-                queue().add(self.inform_server(guilds, banembed))
-        await Bans().announce_remove(wait_id)
-        await interaction.response.send_message(f"Approved ban for {user.id}", ephemeral=True)
-        await approved_channel.send(embed=banembed)
+        await interaction.followup.send("Approved", ephemeral=True)
+        await Bans().check_guilds(interaction, self.bot, guild, user, banembed, wait_id, True)
 
     @app_commands.command(name="checklist", description="[DEV] Manage the checklist, these bans will be checked due to controversial reasons")
     @app_commands.choices(operation=[
@@ -243,6 +230,17 @@ class dev(commands.GroupCog, name="dev"):
                         continue
                     queue().add(new_thread.send(msg.content if len(msg.content) > 0 else "Empty Msg", embeds=msg.embeds, files=[await attachment.to_file() for attachment in msg.attachments], silent=True))
 
-
+    @app_commands.command(name="testban", description="[DEV] unbans and rebans the test account")
+    # @in_guild()
+    async def testban(self, interaction: discord.Interaction):
+        if interaction.user.id != 188647277181665280:
+            return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
+        user = self.bot.get_user(474365489670389771)
+        try:
+            await interaction.guild.unban(user, reason="Test unban")
+        except discord.NotFound:
+            pass
+        await interaction.guild.ban(user, reason="Test ban")
+        await interaction.response.send_message("Test ban complete", ephemeral=True)
 async def setup(bot: commands.Bot):
     await bot.add_cog(dev(bot))
