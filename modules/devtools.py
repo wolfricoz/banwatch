@@ -138,7 +138,7 @@ class dev(commands.GroupCog, name="dev"):
             except Exception as e:
                 try:
                     await guild.owner.send(
-                        "Banwatch could not send the announcement to your server to your modchannel, please check the mod channel settings. You can setup your modchannel with: ```/config change option:Mod channel channel:```")
+                            f"Banwatch could not send the announcement to your modchannel in {guild.name}, please check the mod channel settings. You can setup your modchannel with: ```/config change option:Mod channel channel:```")
                     await guild.owner.send(announcement)
                 except Exception as e:
                     await interaction.channel.send(f"Error sending to {guild}({guild.owner}): {e}")
@@ -238,10 +238,18 @@ class dev(commands.GroupCog, name="dev"):
         user = self.bot.get_user(474365489670389771)
         try:
             await interaction.guild.unban(user, reason="Test unban")
-        except discord.NotFound:
+        except Exception:
             pass
         await interaction.guild.ban(user, reason="Test ban")
         await interaction.response.send_message("Test ban complete", ephemeral=True)
+
+
+
+    @app_commands.command(name="revokeban", description="[DEV] Revokes a ban message. This does not unban the user.")
+    @in_guild()
+    async def getembed(self, interaction: discord.Interaction, banid: str, reason: str):
+        message = await interaction.response.send_message("Queueing the search for the embed")
+        await Bans().revoke_bans(self.bot, banid, reason, interaction)
 
 
 async def setup(bot: commands.Bot):

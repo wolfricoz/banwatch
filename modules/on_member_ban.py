@@ -17,6 +17,7 @@ class BanEvents(commands.Cog):
     async def on_member_ban(self, guild, user):
         """informs other servers an user is banned and updates banlist"""
         print('ban event')
+
         bot = self.bot
         logging.info("starting to update banlist and informing other servers")
         ban = await guild.fetch_ban(user)
@@ -38,7 +39,7 @@ class BanEvents(commands.Cog):
         if not found:
             invite = await Bans().create_invite(guild)
             owner = guild.owner
-            embed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} Banned userid: {user.id} ")
+            embed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} ban ID: {wait_id}")
             await Bans().check_guilds(None, bot, guild, user, embed, wait_id)
             return
 
@@ -53,13 +54,6 @@ class BanEvents(commands.Cog):
         support_invite = await Bans().create_invite(supportguild)
         await modchannel.send(f"Banwatch has flagged a ban in {user}({user.id}) with the reason: `{ban.reason}` for further review. Please join the support server and open a ticket."
                               f"\n-# You can join our support server by [clicking here to join]({support_invite}). We investigate certain bans with serious accusations to prevent spreading false information.")
-
-    @commands.Cog.listener()
-    async def on_member_unban(self, guild, user):
-        """Updates banlist when user is unbanned"""
-        logging.info(f"{guild}: unbanned {user}, refreshing banlist")
-        await Bans().update(self.bot)
-        logging.info("List updated")
 
 
 async def setup(bot):

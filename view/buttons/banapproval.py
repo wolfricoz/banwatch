@@ -33,7 +33,7 @@ class BanApproval(View):
         banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
                                  description=f"{reason}")
         invite = await Bans().create_invite(guild)
-        banembed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} Banned userid: {user.id} ")
+        banembed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} ban ID: {self.wait_id} ")
         await interaction.followup.send("Approved", ephemeral=True)
         await Bans().check_guilds(interaction, self.bot, guild, user, banembed, self.wait_id, self.create_thread)
 

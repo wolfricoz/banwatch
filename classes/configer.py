@@ -143,7 +143,7 @@ class Configer(ABC):
         if os.path.exists(f"configs/{guildid}.json"):
             with open(f"configs/{guildid}.json") as f:
                 data = json.load(f)
-                return data[key]
+                return data.get(key, None)
 
     @staticmethod
     @abstractmethod

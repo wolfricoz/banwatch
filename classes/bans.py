@@ -141,7 +141,7 @@ class Bans:
         thread = await approved_message.create_thread(name=f"Ban approval for {user.name}")
         await thread.send(f"Please provide the proof of the ban here {guild_owner.mention}")
         await guild_owner.send(
-            f"Your ban for {user.name} has been approved and has been broadcasted, please provide the proof of the ban in the thread {thread.mention} in our support server. Not in our support server? Do the /support command to get the link!")
+                f"Your ban for {user.name} has been approved and has been broadcasted, please provide the proof of the ban in the thread {thread.mention} in our support server. Not in our support server? Do the /support command to get the link!")
 
     async def create_invite(self, guild: discord.Guild):
         try:
@@ -154,3 +154,34 @@ class Bans:
             logging.error(f"Error creating invite: {e}")
 
         return invite
+
+    async def delete_message(self, message):
+        print(f"deleting {message.id}")
+        await message.delete()
+
+    async def search_messages(self, bot, interaction: discord.Interaction, channel: discord.TextChannel, banid: str, reason: str):
+        count = 0
+        banid = str(banid)
+        print(f"sending {channel} in {channel.guild}")
+        async for message in channel.history(limit=100):
+            if message.author.id != bot.user.id:
+                continue
+            if len(message.embeds) < 1:
+                continue
+            embed = message.embeds[0]
+            if embed.footer.text and banid in embed.footer.text:
+                queue().add(self.delete_message(message))
+                queue().add(channel.send(f"Revoked ban `{embed.title}`! Reason: \n"
+                                         f"{reason}"))
+                count += 1
+        if interaction is not None:
+            await interaction.followup.send(f"Deleted {count} messages in {channel.name} ({channel.guild.name})")
+        logging.info(f"[revoke_ban] Deleted {count} messages in {channel.name} ({channel.guild.name})")
+
+    async def revoke_bans(self, bot, banid, reason, interaction = None):
+        for guild in bot.guilds:
+            modchannel = await Configer.get(guild.id, "modchannel")
+            if modchannel is None:
+                continue
+            channel = bot.get_channel(int(modchannel))
+            queue().add(self.search_messages(bot, interaction, channel, banid, reason))
