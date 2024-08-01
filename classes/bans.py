@@ -185,3 +185,5 @@ class Bans:
                 continue
             channel = bot.get_channel(int(modchannel))
             queue().add(self.search_messages(bot, interaction, channel, banid, reason))
+        channel = bot.get_channel(bot.APPROVALCHANNEL)
+        queue().add(self.search_messages(bot, interaction, channel, banid, reason))
