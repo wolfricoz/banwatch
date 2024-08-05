@@ -162,7 +162,6 @@ class Bans:
     async def search_messages(self, bot, channel: discord.TextChannel, banid: str, reason: str):
         count = 0
         banid = str(banid)
-        print(f"sending {channel} in {channel.guild}")
         async for message in channel.history(limit=100):
             if message.author.id != bot.user.id:
                 continue

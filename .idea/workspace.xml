@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Added ban revoking, a developer command and on unban.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-    </list>
+    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Live testing" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -441,7 +438,15 @@
       <option name="project" value="LOCAL" />
       <updated>1722524671646</updated>
     </task>
-    <option name="localTasksCounter" value="38" />
+    <task id="LOCAL-00038" summary="Live testing">
+      <option name="closed" value="true" />
+      <created>1722893300776</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1722893300776</updated>
+    </task>
+    <option name="localTasksCounter" value="39" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -480,7 +485,8 @@
     <MESSAGE value="Enabling dev tools" />
     <MESSAGE value="added migration, reduced queue task, and added a print statement that keeps track of the queue" />
     <MESSAGE value="Added ban revoking, a developer command and on unban." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added ban revoking, a developer command and on unban." />
+    <MESSAGE value="Live testing" />
+    <option name="LAST_COMMIT_MESSAGE" value="Live testing" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
