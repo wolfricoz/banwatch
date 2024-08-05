@@ -18,6 +18,7 @@ class Bans:
 
     def is_ready(self):
         """Checks if the ban list is ready"""
+        print(self.bans)
         if len(self.bans) > 0:
             print("Bans ready")
             return True
@@ -63,6 +64,8 @@ class Bans:
             self.bans[f"{user.id}"][f"{guild.id}"]["name"] = guild.name
             self.bans[f"{user.id}"][f"{guild.id}"]['reason'] = reason
             self.bans[f"{user.id}"]['name'] = user.name
+
+        print(self.bans)
 
     async def add_invite(self, guildid, invite):
         """Adds a server invite to the invite list"""

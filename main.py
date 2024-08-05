@@ -38,6 +38,7 @@ async def on_ready():
     guild_count = 0
     guilds = []
     # LOOPS THROUGH ALL THE GUILD / SERVERS THAT THE BOT IS ASSOCIATED WITH.
+    await Bans().update(bot)
     for guild in bot.guilds:
         # add invites
         # logging.info THE SERVER'S ID AND NAME.
