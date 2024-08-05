@@ -159,7 +159,7 @@ class Bans:
         print(f"deleting {message.id}")
         await message.delete()
 
-    async def search_messages(self, bot, interaction: discord.Interaction, channel: discord.TextChannel, banid: str, reason: str):
+    async def search_messages(self, bot, channel: discord.TextChannel, banid: str, reason: str):
         count = 0
         banid = str(banid)
         print(f"sending {channel} in {channel.guild}")
@@ -174,16 +174,15 @@ class Bans:
                 queue().add(channel.send(f"Revoked ban `{embed.title}`! Reason: \n"
                                          f"{reason}"))
                 count += 1
-        if interaction is not None:
-            await interaction.followup.send(f"Deleted {count} messages in {channel.name} ({channel.guild.name})")
+        print(f"[revoke_ban] deleted {count} messages in {channel.name} ({channel.guild.name})")
         logging.info(f"[revoke_ban] Deleted {count} messages in {channel.name} ({channel.guild.name})")
 
-    async def revoke_bans(self, bot, banid, reason, interaction = None):
+    async def revoke_bans(self, bot, banid, reason):
         for guild in bot.guilds:
             modchannel = await Configer.get(guild.id, "modchannel")
             if modchannel is None:
                 continue
             channel = bot.get_channel(int(modchannel))
-            queue().add(self.search_messages(bot, interaction, channel, banid, reason))
+            queue().add(self.search_messages(bot, channel, banid, reason))
         channel = bot.get_channel(bot.APPROVALCHANNEL)
-        queue().add(self.search_messages(bot, interaction, channel, banid, reason))
+        queue().add(self.search_messages(bot, channel, banid, reason))

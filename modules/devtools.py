@@ -243,13 +243,20 @@ class dev(commands.GroupCog, name="dev"):
         await interaction.guild.ban(user, reason="Test ban")
         await interaction.response.send_message("Test ban complete", ephemeral=True)
 
-
-
     @app_commands.command(name="revokeban", description="[DEV] Revokes a ban message. This does not unban the user.")
     @in_guild()
     async def getembed(self, interaction: discord.Interaction, banid: str, reason: str):
         message = await interaction.response.send_message("Queueing the search for the embed")
-        await Bans().revoke_bans(self.bot, banid, reason, interaction)
+        # await Bans().revoke_bans(self.bot, banid, reason)
+        bot = self.bot
+        for guild in bot.guilds:
+            modchannel = await Configer.get(guild.id, "modchannel")
+            if modchannel is None:
+                continue
+            channel = bot.get_channel(int(modchannel))
+            await Bans().search_messages(bot, channel, banid, reason)
+        channel = bot.get_channel(bot.APPROVALCHANNEL)
+        await Bans().search_messages(bot, channel, banid, reason)
 
 
 async def setup(bot: commands.Bot):
