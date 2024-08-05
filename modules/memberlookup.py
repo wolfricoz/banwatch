@@ -11,7 +11,9 @@ from classes.bans import Bans
 
 class BanCheck(ABC):
 
-    def member_count_check(self, guild):
+    def member_count_check(self, guild, bot):
+        if guild.id == bot.SUPPORTGUILD:
+            return
         return len(guild.members) >= 50
 
     async def checkerall(self, interaction, bot):
@@ -67,7 +69,7 @@ class User(commands.GroupCog, name="user"):
 
         await interaction.response.defer(ephemeral=True)
         if Bans().is_ready() is False:
-            return await interaction.response.send_message("Bans not ready, please wait a moment - this usually takes 2 minutes.", ephemeral=True)
+            return await interaction.followup.send("Bans not ready, please wait a moment - this usually takes 2 minutes.", ephemeral=True)
         sr = await Bans().check(self.bot, member.id)
         if sr is None:
             await interaction.channel.send(f"<@{member.id}> is not banned in any servers the bot is in.")
@@ -77,8 +79,7 @@ class User(commands.GroupCog, name="user"):
     @app_commands.command(name="lookupid", description="Looks up user's bans with user id and displays them in the channel")
     @app_commands.checks.has_permissions(ban_members=True)
     async def lookupid(self, interaction: discord.Interaction, memberid: str):
-        print(BanCheck().member_count_check(interaction.guild))
-        if not interaction.guild or BanCheck().member_count_check(interaction.guild) is False:
+        if BanCheck().member_count_check(interaction.guild, self.bot) is False:
             await interaction.channel.send("This command can only be used in servers with 50 or more members, to prevent abuse.")
             return
         if Bans().is_ready() is False:

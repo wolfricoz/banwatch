@@ -254,6 +254,7 @@ class dev(commands.GroupCog, name="dev"):
             channel = bot.get_channel(int(modchannel))
             if channel is None:
                 continue
+
             await Bans().search_messages(bot, channel, banid, reason)
         channel = bot.get_channel(bot.APPROVALCHANNEL)
         await Bans().search_messages(bot, channel, banid, reason)

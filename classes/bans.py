@@ -19,8 +19,10 @@ class Bans:
     def is_ready(self):
         """Checks if the ban list is ready"""
         if len(self.bans) > 0:
+            print("Bans ready")
             return True
         else:
+            print(f"Bans not ready: {len(self.bans)}")
             return False
 
     async def update(self, bot):
@@ -162,17 +164,23 @@ class Bans:
     async def search_messages(self, bot, channel: discord.TextChannel, banid: str, reason: str):
         count = 0
         banid = str(banid)
-        async for message in channel.history(limit=100):
-            if message.author.id != bot.user.id:
-                continue
-            if len(message.embeds) < 1:
-                continue
-            embed = message.embeds[0]
-            if embed.footer.text and banid in embed.footer.text:
-                queue().add(self.delete_message(message))
-                queue().add(channel.send(f"Revoked ban `{embed.title}`! Reason: \n"
-                                         f"{reason}"))
-                count += 1
+        try:
+            async for message in channel.history(limit=100):
+                if message.author.id != bot.user.id:
+                    continue
+                if len(message.embeds) < 1:
+                    continue
+                embed = message.embeds[0]
+                if embed.footer.text and banid in embed.footer.text:
+                    queue().add(self.delete_message(message))
+                    queue().add(channel.send(f"Revoked ban `{embed.title}`! Reason: \n"
+                                             f"{reason}"))
+                    count += 1
+        except discord.Forbidden:
+            await channel.guild.owner.send(
+                    f"Banwatch does not have permission to view chat history or access to the channel in {channel.name} ({channel.guild}). Please give Banwatch the necessary permissions to revoke bans. This is to ensure that"
+                    f" the correct information is shared and bans with false information can be removed.")
+            logging.error(f"Missing permissions to search messages in {channel.name} ({channel.guild})")
         print(f"[revoke_ban] deleted {count} messages in {channel.name} ({channel.guild.name})")
         logging.info(f"[revoke_ban] Deleted {count} messages in {channel.name} ({channel.guild.name})")
 
