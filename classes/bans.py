@@ -179,9 +179,9 @@ class Bans:
     async def revoke_bans(self, bot, banid, reason):
         for guild in bot.guilds:
             modchannel = await Configer.get(guild.id, "modchannel")
-            if modchannel is None:
-                continue
             channel = bot.get_channel(int(modchannel))
+            if channel is None:
+                continue
             queue().add(self.search_messages(bot, channel, banid, reason))
         channel = bot.get_channel(bot.APPROVALCHANNEL)
         queue().add(self.search_messages(bot, channel, banid, reason))

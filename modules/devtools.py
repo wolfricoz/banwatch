@@ -251,11 +251,9 @@ class dev(commands.GroupCog, name="dev"):
         bot = self.bot
         for guild in bot.guilds:
             modchannel = await Configer.get(guild.id, "modchannel")
-            if modchannel is None:
-                continue
-            print(modchannel)
             channel = bot.get_channel(int(modchannel))
-            print(f"C: {channel}")
+            if channel is None:
+                continue
             await Bans().search_messages(bot, channel, banid, reason)
         channel = bot.get_channel(bot.APPROVALCHANNEL)
         await Bans().search_messages(bot, channel, banid, reason)
