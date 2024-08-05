@@ -2,7 +2,6 @@
 import json
 import logging
 import os
-from abc import ABC, abstractmethod
 
 cache_path = "settings/cache.json"
 
@@ -14,14 +13,27 @@ class LongTermCache():
         """Creates the config"""
         dictionary = {
             "bans": {}
+
         }
         json_object = json.dumps(dictionary, indent=4)
         if os.path.exists(cache_path):
+            self.update()
             return
         with open(cache_path, "w") as outfile:
             outfile.write(json_object)
             logging.info(f"cache created")
 
+    def update(self):
+        """updates the dictionary"""
+        with open(cache_path) as f:
+            data = json.load(f)
+            dictionary = {
+                "bans"       : data.get("bans", {}),
+                "logged_bans": data.get("logged_bans", {})
+            }
+        with open(cache_path, "w") as f:
+            json.dump(dictionary, f, indent=4)
+            logging.info(f"cache updated")
 
     def add_ban(self, waitid, dict):
         """Adds a ban to the cache"""
@@ -66,195 +78,22 @@ class LongTermCache():
             json.dump(data, f, indent=4)
             logging.info(f"ban removed from cache")
         return True
-    # @staticmethod
-    # @abstractmethod
-    # async def create_bot_config():
-    #     """Creates the general config"""
-    #     if not os.path.isdir("settings"):
-    #         os.mkdir("settings")
-    #     dictionary = {
-    #         "blacklist": [],
-    #         "checklist": [
-    #
-    #         ],
-    #     }
-    #     json_object = json.dumps(dictionary, indent=4)
-    #     if os.path.exists(config_path):
-    #         with open(config_path) as f:
-    #             data = json.load(f)
-    #             dictionary = {
-    #                 "blacklist": data.get("blacklist", []),
-    #                 "checklist": data.get("checklist", [])
-    #             }
-    #         with open(config_path, "w") as f:
-    #             json.dump(dictionary, f, indent=4)
-    #         return
-    #     with open(config_path, "w") as outfile:
-    #         outfile.write(json_object)
-    #         logging.info(f"universal config created")
-    #
-    # @staticmethod
-    # @abstractmethod
-    # async def create_appeals():
-    #     """Creates the general config"""
-    #     dictionary = {
-    #
-    #     }
-    #     json_object = json.dumps(dictionary, indent=4)
-    #     if os.path.exists(appeals_path):
-    #         return
-    #     with open(appeals_path, "w") as outfile:
-    #         outfile.write(json_object)
-    #         logging.info(f"universal appeals created")
-    #
-    # @staticmethod
-    # @abstractmethod
-    # async def add_appeal(userid, guildid, reason):
-    #     """This adds an appeal to the appeals.json file"""
-    #     if not os.path.exists(appeals_path):
-    #         await Configer.create_appeals()
-    #     with open(appeals_path) as f:
-    #         data = json.load(f)
-    #         data[f"{userid}"] = {}
-    #         data[f"{userid}"][f"{guildid}"] = {}
-    #         data[f"{userid}"][f"{guildid}"]["reason"] = str(reason)
-    #         data[f"{userid}"][f"{guildid}"]["status"] = "pending"
-    #
-    #     with open(appeals_path, 'w') as f:
-    #         json.dump(data, f, indent=4)
-    #         logging.info(f"{guildid} added to appeals")
-    #
-    # @staticmethod
-    # @abstractmethod
-    # async def get_all_appeals():
-    #     """Gets the appeals from the appeals.json file"""
-    #     if os.path.exists(appeals_path):
-    #         with open(appeals_path) as f:
-    #             data = json.load(f)
-    #             return data
-    #
-    # @staticmethod
-    # @abstractmethod
-    # async def get_user_appeals(userid):
-    #     """Gets the appeals from the appeals.json file"""
-    #     if not os.path.exists(appeals_path):
-    #         await Configer.create_appeals()
-    #     with open(appeals_path) as f:
-    #         data = json.load(f)
-    #         if str(userid) not in data.keys():
-    #             return None
-    #         return data[str(userid)]
-    #
-    # @staticmethod
-    # @abstractmethod
-    # async def update_appeal_status(userid, guildid, status):
-    #     """Changes the status of an appeal"""
-    #     if status not in ["pending", "approved", "denied"]:
-    #         return
-    #     if not os.path.exists(appeals_path):
-    #         await Configer.create_appeals()
-    #     with open(appeals_path) as f:
-    #         data = json.load(f)
-    #         print(userid, " ", guildid, " ", status)
-    #         data[str(userid)][str(guildid)]["status"] = str(status)
-    #     with open(appeals_path, 'w') as f:
-    #         json.dump(data, f, indent=4)
-    #         logging.info(f"{guildid} changed to {status}")
-    #
-    # @staticmethod
-    # @abstractmethod
-    # async def change(guildid, interaction, channelid, key):
-    #     """Changes value in the config"""
-    #     if os.path.exists(f"configs/{guildid}.json"):
-    #         with open(f"configs/{guildid}.json") as f:
-    #             data = json.load(f)
-    #             data[key] = channelid
-    #         with open(f"configs/{guildid}.json", 'w') as f:
-    #             json.dump(data, f, indent=4)
-    #         await interaction.followup.send(f"Config key **{key}** changed to **{channelid}**")
-    #
-    # @staticmethod
-    # @abstractmethod
-    # async def get(guildid, key):
-    #     """Gets a value from the config"""
-    #     if os.path.exists(f"configs/{guildid}.json"):
-    #         with open(f"configs/{guildid}.json") as f:
-    #             data = json.load(f)
-    #             return data[key]
-    #
-    # @staticmethod
-    # @abstractmethod
-    # async def add_to_blacklist(guildid):
-    #     """Adds a server to the blacklist"""
-    #     if os.path.exists(config_path):
-    #         with open(config_path) as f:
-    #             data = json.load(f)
-    #             data["blacklist"].append(guildid)
-    #         with open(config_path, 'w') as f:
-    #             json.dump(data, f, indent=4)
-    #             logging.info(f"{guildid} added to blacklist")
-    #     else:
-    #         logging.warning("No blacklist found")
-    #
-    # @staticmethod
-    # @abstractmethod
-    # async def remove_from_blacklist(guildid):
-    #     """Removes a server from the blacklist"""
-    #     if os.path.exists(config_path):
-    #         with open(config_path) as f:
-    #             data = json.load(f)
-    #             data["blacklist"].remove(guildid)
-    #         with open(config_path, 'w') as f:
-    #             json.dump(data, f, indent=4)
-    #             logging.info(f"{guildid} removed from blacklist")
-    #     else:
-    #         logging.warning("No blacklist found")
-    #
-    # @staticmethod
-    # @abstractmethod
-    # async def is_blacklisted(guildid):
-    #     """Checks if a server is blacklisted"""
-    #     if os.path.exists(config_path):
-    #         with open(config_path) as f:
-    #             data = json.load(f)
-    #             if guildid in data["blacklist"]:
-    #                 return True
-    #
-    # @staticmethod
-    # @abstractmethod
-    # async def add_checklist(word: str):
-    #     """Adds a word to the checklist"""
-    #     if os.path.exists(config_path):
-    #         with open(config_path) as f:
-    #             data = json.load(f)
-    #             if word in data["checklist"]:
-    #                 return
-    #             data["checklist"].append(word)
-    #         with open(config_path, 'w') as f:
-    #             json.dump(data, f, indent=4)
-    #             logging.info(f"{word} added to checklist")
-    #     else:
-    #         await Configer.create_bot_config()
-    #
-    # @staticmethod
-    # @abstractmethod
-    # async def remove_checklist(word: str):
-    #     """Removes a word from the checklist"""
-    #     if os.path.exists(config_path):
-    #         with open(config_path) as f:
-    #             data = json.load(f)
-    #             data["checklist"].remove(word)
-    #         with open(config_path, 'w') as f:
-    #             json.dump(data, f, indent=4)
-    #             logging.info(f"{word} removed from checklist")
-    #     else:
-    #         await Configer.create_bot_config()
-    #
-    # @staticmethod
-    # @abstractmethod
-    # async def get_checklist():
-    #     """Gets the checklist"""
-    #     if os.path.exists(config_path):
-    #         with open(config_path) as f:
-    #             data = json.load(f)
-    #             return data["checklist"]
+
+    def update_logged_bans(self, bans: dict):
+        """Adds a ban to the cache"""
+        if not os.path.exists(cache_path):
+            self.create()
+        with open(cache_path) as f:
+            data = json.load(f)
+            data["logged_bans"] = bans
+        with open(cache_path, 'w') as f:
+            json.dump(data, f, indent=4)
+            logging.info(f"ban added to cache")
+
+    def get_logged_bans(self):
+        """Gets a ban from the cache"""
+        if not os.path.exists(cache_path):
+            self.create()
+        with open(cache_path) as f:
+            data = json.load(f)
+            return data.get("logged_bans", {})

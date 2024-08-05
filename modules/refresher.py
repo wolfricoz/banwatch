@@ -7,17 +7,17 @@ class refresher(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.index = 0
-        self.printer.start()
+        self.ban_update_task.start()
 
     def cog_unload(self):
-        self.printer.cancel()
+        self.ban_update_task.cancel()
 
     @tasks.loop(hours=2)
-    async def printer(self):
+    async def ban_update_task(self):
         """Updates banlist when user is unbanned"""
         print(f"[auto refresh]refreshing banlist")
         bot = self.bot
-        await Bans().update(bot)
+        await Bans().update(bot, override=True)
         print(f"[auto refresh]Bans Updated")
 
 

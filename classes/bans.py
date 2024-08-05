@@ -26,27 +26,37 @@ class Bans:
             print(f"Bans not ready: {len(self.bans)}")
             return False
 
-    async def update(self, bot):
+    async def update(self, bot, override=False):
         """Updates the ban list"""
         guild: discord.Guild
-        for guild in bot.guilds:
-            try:
-                async for entry in guild.bans():
-                    await self.add_ban(bot, guild, entry.user, entry.reason)
-            except discord.Forbidden:
-                try:
-                    await guild.owner.send("[Permission ERROR] I need the ban permission to view the server's ban list. Please give me the ban permission.")
-                except discord.Forbidden:
-                    logging.error(f"Unable to send message to {guild.owner} after trying to inform about missing permissions")
+        if not override:
+            self.bans = LongTermCache().get_logged_bans()
 
+        for guild in bot.guilds:
+            queue().add(self.add_guild_bans(bot, guild), priority=0)
+            queue().add(self.add_guild_invites(guild), priority=0)
+        LongTermCache().update_logged_bans(self.bans)
+
+
+    async def add_guild_invites(self, guild):
+        try:
+            invite: discord.Invite = (await guild.invites())[0]
+        except discord.Forbidden:
+            invite: str = "No permission"
+        except Exception as e:
+            logging.error(f"Error creating invite: {e}")
+            invite: str = "No permission/Error"
+        await self.add_invite(guild.id, invite)
+
+    async def add_guild_bans(self, bot, guild):
+        try:
+            async for entry in guild.bans():
+                await self.add_ban(bot, guild, entry.user, entry.reason)
+        except discord.Forbidden:
             try:
-                invite: discord.Invite = (await guild.invites())[0]
+                await guild.owner.send("[Permission ERROR] I need the ban permission to view the server's ban list. Please give me the ban permission.")
             except discord.Forbidden:
-                invite: str = "No permission"
-            except Exception as e:
-                logging.error(f"Error creating invite: {e}")
-                invite: str = "No permission/Error"
-            await self.add_invite(guild.id, invite)
+                logging.error(f"Unable to send message to {guild.owner} after trying to inform about missing permissions")
 
     async def add_ban(self, bot, guild, user, reason):
         """Adds a ban to the ban list"""
@@ -164,10 +174,9 @@ class Bans:
         await message.delete()
 
     async def search_messages(self, bot, channel: discord.TextChannel, banid: str, reason: str):
-        count = 0
         banid = str(banid)
         try:
-            async for message in channel.history(limit=100):
+            async for message in channel.history(limit=100, oldest_first=True):
                 if message.author.id != bot.user.id:
                     continue
                 if len(message.embeds) < 1:
@@ -177,14 +186,14 @@ class Bans:
                     queue().add(self.delete_message(message))
                     queue().add(channel.send(f"Revoked ban `{embed.title}`! Reason: \n"
                                              f"{reason}"))
-                    count += 1
+                    print(f"[revoke_ban] Queued deletion of {message.id} in {channel.name} ({channel.guild.name})")
+                    logging.info(f"[revoke_ban] Queued deletion of {message.id} in {channel.name} ({channel.guild.name})")
+                    break
         except discord.Forbidden:
             await channel.guild.owner.send(
                     f"Banwatch does not have permission to view chat history or access to the channel in {channel.name} ({channel.guild}). Please give Banwatch the necessary permissions to revoke bans. This is to ensure that"
                     f" the correct information is shared and bans with false information can be removed.")
             logging.error(f"Missing permissions to search messages in {channel.name} ({channel.guild})")
-        print(f"[revoke_ban] deleted {count} messages in {channel.name} ({channel.guild.name})")
-        logging.info(f"[revoke_ban] Deleted {count} messages in {channel.name} ({channel.guild.name})")
 
     async def revoke_bans(self, bot, banid, reason):
         for guild in bot.guilds:
@@ -192,6 +201,6 @@ class Bans:
             channel = bot.get_channel(int(modchannel))
             if channel is None:
                 continue
-            queue().add(self.search_messages(bot, channel, banid, reason))
+            queue().add(self.search_messages(bot, channel, banid, reason), priority=2)
         channel = bot.get_channel(bot.APPROVALCHANNEL)
-        queue().add(self.search_messages(bot, channel, banid, reason))
+        queue().add(self.search_messages(bot, channel, banid, reason), priority=2)
