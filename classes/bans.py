@@ -35,7 +35,7 @@ class Bans:
         for guild in bot.guilds:
             queue().add(self.add_guild_bans(bot, guild), priority=0)
             queue().add(self.add_guild_invites(guild), priority=0)
-            queue().add(self.store_bans(), priority=0)
+        queue().add(self.store_bans(), priority=0)
 
     async def store_bans(self):
         """Stores the bans in the cache"""
