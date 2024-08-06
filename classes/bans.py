@@ -10,8 +10,9 @@ from classes.queue import queue
 
 
 class Bans:
-    bans = {}
-    guildinvites = {}
+    bans: dict = {}
+    old_bans: dict = {}
+    guildinvites: dict = {}
 
     def __init__(self):
         pass
@@ -20,23 +21,25 @@ class Bans:
         """Checks if the ban list is ready"""
         # print(self.bans)
         if len(self.bans) > 0:
-            print("Bans ready")
             return True
         else:
-            print(f"Bans not ready: {len(self.bans)}")
             return False
 
     async def update(self, bot, override=False):
         """Updates the ban list"""
         guild: discord.Guild
-        if not override:
-            self.bans = LongTermCache().get_logged_bans()
-
+        self.old_bans = self.bans
+        self.bans = LongTermCache().get_logged_bans()
+        if override:
+            self.bans = {}
         for guild in bot.guilds:
             queue().add(self.add_guild_bans(bot, guild), priority=0)
             queue().add(self.add_guild_invites(guild), priority=0)
-        LongTermCache().update_logged_bans(self.bans)
+            queue().add(self.store_bans(), priority=0)
 
+    async def store_bans(self):
+        """Stores the bans in the cache"""
+        LongTermCache().update_logged_bans(self.bans)
 
     async def add_guild_invites(self, guild):
         try:
@@ -75,32 +78,35 @@ class Bans:
             self.bans[f"{user.id}"][f"{guild.id}"]['reason'] = reason
             self.bans[f"{user.id}"]['name'] = user.name
 
-
     async def add_invite(self, guildid, invite):
         """Adds a server invite to the invite list"""
         self.guildinvites[f"{guildid}"] = invite
 
-    async def check(self, bot: commands.Bot, memberid: int):
+    async def check(self, bot: commands.Bot, memberid: int) -> str or None:
         """checks if user is in banlist"""
         if f"{memberid}" in self.bans:
-            reasons = []
-            count = 0
-            for ban in self.bans[f"{memberid}"]:
-                if ban == "name":
-                    continue
-                guild = bot.get_guild(int(ban))
-                try:
-                    print(f"guild: {guild}")
-                    invite = self.guildinvites[f"{guild.id}"]
-                except KeyError:
-                    invite = "No permission"
-                reasons.append(f"\n{guild}: {self.bans[f'{memberid}'][f'{ban}']['reason']}"
-                               f"\nOwner: `{guild.owner}` Server: `{guild.name}` Invite: `{invite}`\n")
-                count += 1
-
-            sr = "".join(reasons)
-
+            sr = await self.search(bot, memberid)
             return sr
+        if f"{memberid}" in self.old_bans:
+            sr = await self.search(bot, memberid)
+            return sr
+        return None
+
+    async def search(self, bot, memberid):
+        reasons = []
+        for ban in self.bans[f"{memberid}"]:
+            if ban == "name":
+                continue
+            guild = bot.get_guild(int(ban))
+            try:
+                print(f"guild: {guild}")
+                invite = self.guildinvites[f"{guild.id}"]
+            except KeyError:
+                invite = "No permission"
+            reasons.append(f"\n{guild}: {self.bans[f'{memberid}'][f'{ban}']['reason']}"
+                           f"\nOwner: `{guild.owner}` Server: `{guild.name}` Invite: `{invite}`\n")
+        sr = "".join(reasons)
+        return sr
 
     async def send_to_channel(self, channel: discord.TextChannel, sr, memberid: int):
         characters = 0

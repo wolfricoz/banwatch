@@ -78,7 +78,8 @@ async def on_guild_join(guild):
     await bot.tree.sync()
     # Updates ban list
     logging.info(f"{guild} joined, refreshing ban list")
-    await Bans().update(bot)
+    await Bans().add_guild_bans(guild, bot)
+    await Bans().add_guild_invites(guild)
 
 
 @bot.event

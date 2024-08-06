@@ -40,7 +40,9 @@ class queue():
             self.task_finished = False
             try:
                 task = self.process()
+
                 await task
+
             except Exception as e:
                 print(e)
             self.task_finished = True

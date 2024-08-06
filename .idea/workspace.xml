@@ -4,11 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Bug fix: Bot now loads bans back in to the bot, it failed to do so before.">
+    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Bug fix: Upgraded the queue with a priority system.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/classes/bans.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/bans.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/cacher.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/cacher.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/classes/queue.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/queue.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/queuetask.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/queuetask.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/refresher.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/refresher.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -81,7 +82,7 @@
       <recent name="C:\Users\ricoi\PycharmProjects\banbot" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.queue-test">
+  <component name="RunManager" selected="Python.main">
     <configuration name="checkword" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="banbot" />
       <option name="ENV_FILES" value="" />
@@ -150,8 +151,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.queue-test" />
         <item itemvalue="Python.main" />
+        <item itemvalue="Python.queue-test" />
         <item itemvalue="Python.checkword" />
       </list>
     </recent_temporary>
@@ -516,7 +517,15 @@
       <option name="project" value="LOCAL" />
       <updated>1722895406007</updated>
     </task>
-    <option name="localTasksCounter" value="44" />
+    <task id="LOCAL-00044" summary="Bug fix: Upgraded the queue with a priority system.">
+      <option name="closed" value="true" />
+      <created>1722898282552</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1722898282552</updated>
+    </task>
+    <option name="localTasksCounter" value="45" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -531,7 +540,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="added ID to message" />
     <MESSAGE value="Fixing rate limits" />
     <MESSAGE value="Removed the database requirements from banwatch; it does not need it as it checks based on permissions." />
     <MESSAGE value="Bug fix: failed to get the invite, causing errors" />
@@ -556,7 +564,8 @@
     <MESSAGE value="Added ban revoking, a developer command and on unban." />
     <MESSAGE value="Live testing" />
     <MESSAGE value="Bug fix: Bot now loads bans back in to the bot, it failed to do so before." />
-    <option name="LAST_COMMIT_MESSAGE" value="Bug fix: Bot now loads bans back in to the bot, it failed to do so before." />
+    <MESSAGE value="Bug fix: Upgraded the queue with a priority system." />
+    <option name="LAST_COMMIT_MESSAGE" value="Bug fix: Upgraded the queue with a priority system." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
