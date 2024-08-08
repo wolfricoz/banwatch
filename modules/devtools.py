@@ -247,17 +247,8 @@ class dev(commands.GroupCog, name="dev"):
     @in_guild()
     async def getembed(self, interaction: discord.Interaction, banid: str, reason: str):
         message = await interaction.response.send_message("Queueing the search for the embed")
-        # await Bans().revoke_bans(self.bot, banid, reason)
-        bot = self.bot
-        for guild in bot.guilds:
-            modchannel = await Configer.get(guild.id, "modchannel")
-            channel = bot.get_channel(int(modchannel))
-            if channel is None:
-                continue
+        await Bans().revoke_bans(self.bot, banid, reason)
 
-            await Bans().search_messages(bot, channel, banid, reason)
-        channel = bot.get_channel(bot.APPROVALCHANNEL)
-        await Bans().search_messages(bot, channel, banid, reason)
 
 
 async def setup(bot: commands.Bot):

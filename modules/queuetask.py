@@ -6,7 +6,6 @@ from classes.queue import queue
 class queueTask(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.index = 0
         self.queue.start()
 
     def cog_unload(self):

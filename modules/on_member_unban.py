@@ -1,18 +1,14 @@
 import logging
 
-import discord
 from discord.ext import commands
 
 from classes.bans import Bans
-from classes.configer import Configer
-from view.buttons.banapproval import BanApproval
 
 
 class UnBanEvents(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-
 
     @commands.Cog.listener("on_member_unban")
     async def on_member_unban(self, guild, user):
