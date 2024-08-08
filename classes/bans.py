@@ -184,12 +184,14 @@ class Bans:
         print(f"checking {channel.name} ({channel.guild.name})")
         try:
             async for message in channel.history(limit=100):
-                print(f"checking {message.id} in {channel.name} ({channel.guild.name})")
                 if message.author.id != bot.user.id:
                     continue
                 if len(message.embeds) < 1:
                     continue
                 embed = message.embeds[0]
+                if embed.footer.text:
+                    print(f"checking {message.id} in {channel.name} ({channel.guild.name}) with footer: {embed.footer.text}")
+
                 if embed.footer.text and banid in embed.footer.text:
                     print(f"Found {message.id} in {channel.name} ({channel.guild.name})")
                     queue().add(self.delete_message(message))
