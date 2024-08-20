@@ -255,20 +255,28 @@ class dev(commands.GroupCog, name="dev"):
     @in_guild()
     async def pendingbans(self, interaction: discord.Interaction):
         bans: dict = LongTermCache().get_bans()
-        user_id = None
-        guild_id = None
-        wait_id = None
         for ban in bans:
+            print(bans[ban])
+            print(bans[ban]['user'])
             user = self.bot.get_user(int(bans[ban]['user']))
             guild = self.bot.get_guild(int(bans[ban]['guild']))
             reason = bans[ban]['reason']
             channel = self.bot.get_channel(self.bot.BANCHANNEL)
             wait_id = ban
             print(f"attempting to send approval in {channel.name}")
+            if user is None or guild is None or reason is None:
+                print("user, guild or reason is none")
+                continue
             embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
                                   description=f"{reason}")
             embed.set_footer(text=f"/approve_ban {wait_id}")
             queue().add(channel.send(embed=embed, view=BanApproval(self.bot, wait_id, True)), priority=2)
+
+    @app_commands.command(name="refreshbans", description="[DEV] Refreshes the bans")
+    @in_guild()
+    async def refreshbans(self, interaction: discord.Interaction):
+        await Bans().update(self.bot, override=True)
+        await interaction.response.send_message("Bans refresh queued", ephemeral=True)
 
 
 async def setup(bot: commands.Bot):

@@ -8,8 +8,15 @@ from classes.cacher import LongTermCache
 from classes.configer import Configer
 from classes.queue import queue
 
+class Singleton(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
 
-class Bans:
+
+class Bans(metaclass=Singleton):
     bans: dict = {}
     old_bans: dict = {}
     guildinvites: dict = {}
@@ -20,22 +27,27 @@ class Bans:
     def is_ready(self):
         """Checks if the ban list is ready"""
         # print(self.bans)
+        print(f"bans: {self.bans}")
         if len(self.bans) > 0:
+            print("ready")
             return True
         else:
+            print("not ready")
             return False
 
     async def update(self, bot, override=False):
         """Updates the ban list"""
         guild: discord.Guild
         self.old_bans = self.bans
-        self.bans = LongTermCache().get_logged_bans()
+        Bans().bans = LongTermCache().get_logged_bans()
         if override:
             self.bans = {}
+            pass
         for guild in bot.guilds:
-            queue().add(self.add_guild_bans(bot, guild), priority=0)
-            queue().add(self.add_guild_invites(guild), priority=0)
-        queue().add(self.store_bans(), priority=0)
+            queue().add(Bans().add_guild_bans(bot, guild), priority=0)
+            queue().add(Bans().add_guild_invites(guild), priority=0)
+        queue().add(Bans().store_bans(), priority=0)
+
 
     async def store_bans(self):
         """Stores the bans in the cache"""
@@ -65,6 +77,10 @@ class Bans:
         """Adds a ban to the ban list"""
         if reason is None or reason == "" or reason.lower == "none" or str(reason).lower().startswith('[hidden]'):
             return
+
+        if str(user.id) in Bans().bans and Bans().bans[f"{user.id}"][f"{guild.id}"]['reason'] == reason:
+            return  # Skip if the ban is already in the list
+
         if str(user.id) in self.bans:
             self.bans[f"{user.id}"][f"{guild.id}"] = {}
             self.bans[f"{user.id}"][f"{guild.id}"]["name"] = guild.name
@@ -77,6 +93,8 @@ class Bans:
             self.bans[f"{user.id}"][f"{guild.id}"]["name"] = guild.name
             self.bans[f"{user.id}"][f"{guild.id}"]['reason'] = reason
             self.bans[f"{user.id}"]['name'] = user.name
+
+        print(f"Added {user.name} to ban list")
 
     async def add_invite(self, guildid, invite):
         """Adds a server invite to the invite list"""
@@ -165,7 +183,6 @@ class Bans:
         await thread.send(f"Please provide the proof of the ban here {guild_owner.mention}")
         await guild_owner.send(
                 f"Your ban for {user.name} has been approved and has been broadcasted, please provide the proof of the ban in the thread {thread.mention} in our support server. Not in our support server? Do the /support command to get the link!")
-
 
     async def create_invite(self, guild: discord.Guild):
         try:

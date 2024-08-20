@@ -4,14 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Refactoring">
+    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="added queue to new dev command">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/classes/bans.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/bans.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/cacher.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/cacher.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/devtools.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/devtools.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/on_member_ban.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/on_member_ban.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/tools.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/view/buttons/banapproval.py" beforeDir="false" afterPath="$PROJECT_DIR$/view/buttons/banapproval.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/memberlookup.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/memberlookup.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,6 +39,9 @@
     &quot;accountId&quot;: &quot;ded91ffe-2f8d-40e7-8676-ed4110ad4551&quot;
   }
 }</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$USER_HOME$/AppData/Local/JetBrains/PyCharmCE2024.2/python_stubs/-324742695/builtins.py" root0="SKIP_INSPECTION" />
+  </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -173,22 +174,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1669860831804</updated>
-    </task>
-    <task id="LOCAL-00002" summary="added ID to message">
-      <option name="closed" value="true" />
-      <created>1712511518117</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1712511518117</updated>
-    </task>
-    <task id="LOCAL-00003" summary="Fixing rate limits">
-      <option name="closed" value="true" />
-      <created>1712769048819</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1712769048819</updated>
     </task>
     <task id="LOCAL-00004" summary="Fixing rate limits">
       <option name="closed" value="true" />
@@ -566,7 +551,23 @@
       <option name="project" value="LOCAL" />
       <updated>1723125940082</updated>
     </task>
-    <option name="localTasksCounter" value="51" />
+    <task id="LOCAL-00051" summary="Refactoring, added a new button to the approvals, updated caching, and fixed some minor bugs">
+      <option name="closed" value="true" />
+      <created>1724112565861</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1724112565861</updated>
+    </task>
+    <task id="LOCAL-00052" summary="added queue to new dev command">
+      <option name="closed" value="true" />
+      <created>1724112627620</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1724112627620</updated>
+    </task>
+    <option name="localTasksCounter" value="53" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -581,8 +582,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Bug fix: failed to get the invite, causing errors" />
-    <MESSAGE value="More error handling" />
     <MESSAGE value="Added a blacklist" />
     <MESSAGE value="fix for blacklist" />
     <MESSAGE value="Bug Fixes" />
@@ -606,7 +605,9 @@
     <MESSAGE value="Bug fix: Upgraded the queue with a priority system." />
     <MESSAGE value="Refactoring, updating the way bans are handled, added long-term ban storage and now stores correctly. Reduced time between tasks to 1 second; this will be observed." />
     <MESSAGE value="Refactoring" />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactoring" />
+    <MESSAGE value="Refactoring, added a new button to the approvals, updated caching, and fixed some minor bugs" />
+    <MESSAGE value="added queue to new dev command" />
+    <option name="LAST_COMMIT_MESSAGE" value="added queue to new dev command" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

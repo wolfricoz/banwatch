@@ -17,7 +17,7 @@ class refresher(commands.Cog):
         """Updates banlist when user is unbanned"""
         print(f"[auto refresh]refreshing banlist")
         bot = self.bot
-        await Bans().update(bot, override=True)
+        await Bans().update(bot)
         print(f"[auto refresh]Bans Updated")
 
 
