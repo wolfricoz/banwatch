@@ -268,7 +268,7 @@ class dev(commands.GroupCog, name="dev"):
             embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
                                   description=f"{reason}")
             embed.set_footer(text=f"/approve_ban {wait_id}")
-            await channel.send(embed=embed, view=BanApproval(self.bot, wait_id, True))
+            queue().add(channel.send(embed=embed, view=BanApproval(self.bot, wait_id, True)), priority=2)
 
 
 async def setup(bot: commands.Bot):
