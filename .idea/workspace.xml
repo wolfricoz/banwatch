@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="removed some debug statements">
+    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="live testing">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/devtools.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/devtools.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/refresher.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/refresher.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/logs.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/logs.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -172,14 +172,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1669860831804</updated>
-    </task>
-    <task id="LOCAL-00006" summary="Removed the database requirements from banwatch; it does not need it as it checks based on permissions.">
-      <option name="closed" value="true" />
-      <created>1713628483611</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1713628483611</updated>
     </task>
     <task id="LOCAL-00007" summary="Removed the database requirements from banwatch; it does not need it as it checks based on permissions.">
       <option name="closed" value="true" />
@@ -565,7 +557,15 @@
       <option name="project" value="LOCAL" />
       <updated>1724115641064</updated>
     </task>
-    <option name="localTasksCounter" value="55" />
+    <task id="LOCAL-00055" summary="live testing">
+      <option name="closed" value="true" />
+      <created>1724117154745</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1724117154745</updated>
+    </task>
+    <option name="localTasksCounter" value="56" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -580,7 +580,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Bug Fixes" />
     <MESSAGE value="added the function to appeal bans" />
     <MESSAGE value="Fixed logging and removed intent members" />
     <MESSAGE value="minor fixes: updated docs and fixes the support command" />
@@ -605,7 +604,8 @@
     <MESSAGE value="added queue to new dev command" />
     <MESSAGE value="Made the bans class a singleton to ensure bans are always loaded properly, previously it would load into the wrong class." />
     <MESSAGE value="removed some debug statements" />
-    <option name="LAST_COMMIT_MESSAGE" value="removed some debug statements" />
+    <MESSAGE value="live testing" />
+    <option name="LAST_COMMIT_MESSAGE" value="live testing" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -256,19 +256,11 @@ class dev(commands.GroupCog, name="dev"):
     async def pendingbans(self, interaction: discord.Interaction):
         bans: dict = LongTermCache().get_bans()
         for ban in bans:
-            print(bans[ban])
-            print(bans[ban]['user'])
-
             reason = bans[ban]['reason']
             channel = self.bot.get_channel(self.bot.BANCHANNEL)
             wait_id = ban
-            print(f"attempting to send approval in {channel.name}")
-            # If the user is not found in the cache, fetch from the API
-            # Ensure the IDs are correct and exist in the bot's cache
             user_id = int(bans[ban]['user'])
             guild_id = int(bans[ban]['guild'])
-
-            # Try to get the user and guild from the cache
             user = self.bot.get_user(user_id)
             guild = self.bot.get_guild(guild_id)
 
@@ -296,7 +288,6 @@ class dev(commands.GroupCog, name="dev"):
             if user is None or guild is None or reason is None:
                 print(f"Error: {user} {guild} {reason}")
                 continue
-            print(f"Found {user} {guild} {reason}")
             try:
                 embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
                                       description=f"{reason}")

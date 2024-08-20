@@ -115,6 +115,8 @@ class Logging(commands.Cog):
         elif isinstance(error, commands.MemberNotFound):
             await self.on_fail_message(interaction, "User not found.")
             return
+        elif isinstance(error, discord.app_commands.errors.TransformerError):
+            await self.on_fail_message(interaction, "Failed to transform given input to member, please select the user from the list, or use the user's ID.")
 
         with open('error.txt', 'w', encoding='utf-8') as file:
             file.write(traceback.format_exc())
