@@ -5,7 +5,7 @@ from abc import ABC
 
 import discord
 from discord import app_commands
-from discord.app_commands import Choice
+from discord.app_commands import Choice, guilds
 from discord.ext import commands
 
 from classes.bans import Bans
@@ -75,7 +75,7 @@ def in_guild():
 
 class dev(commands.GroupCog, name="dev"):
 
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     async def inform_server(self, guilds, banembed):
@@ -258,19 +258,53 @@ class dev(commands.GroupCog, name="dev"):
         for ban in bans:
             print(bans[ban])
             print(bans[ban]['user'])
-            user = self.bot.get_user(int(bans[ban]['user']))
-            guild = self.bot.get_guild(int(bans[ban]['guild']))
+
             reason = bans[ban]['reason']
             channel = self.bot.get_channel(self.bot.BANCHANNEL)
             wait_id = ban
             print(f"attempting to send approval in {channel.name}")
+            # If the user is not found in the cache, fetch from the API
+            # Ensure the IDs are correct and exist in the bot's cache
+            user_id = int(bans[ban]['user'])
+            guild_id = int(bans[ban]['guild'])
+
+            # Try to get the user and guild from the cache
+            user = self.bot.get_user(user_id)
+            guild = self.bot.get_guild(guild_id)
+
+            # If the user is not found in the cache, fetch from the API
+            if user is None:
+                print(f"User with ID {user_id} not found in cache.")
+                try:
+                    user = await self.bot.fetch_user(user_id)
+                except discord.NotFound:
+                    print(f"User with ID {user_id} not found.")
+                except discord.HTTPException as e:
+                    print(f"Failed to fetch user with ID {user_id}: {e}")
+
+            # If the guild is not found in the cache, fetch from the API
+            if guild is None:
+                print(f"Guild with ID {guild_id} not found in cache.")
+                try:
+                    guild = await self.bot.fetch_guild(guild_id)
+                except discord.NotFound:
+                    print(f"Guild with ID {guild_id} not found.")
+                except discord.HTTPException as e:
+                    print(f"Failed to fetch guild with ID {guild_id}: {e}")
+
+
             if user is None or guild is None or reason is None:
-                print("user, guild or reason is none")
+                print(f"Error: {user} {guild} {reason}")
                 continue
-            embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
-                                  description=f"{reason}")
-            embed.set_footer(text=f"/approve_ban {wait_id}")
-            queue().add(channel.send(embed=embed, view=BanApproval(self.bot, wait_id, True)), priority=2)
+            print(f"Found {user} {guild} {reason}")
+            try:
+                embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
+                                      description=f"{reason}")
+                embed.set_footer(text=f"/approve_ban {wait_id}")
+                queue().add(channel.send(embed=embed, view=BanApproval(self.bot, wait_id, True)), priority=2)
+            except Exception as e:
+                print(f"Error: {e}")
+
 
     @app_commands.command(name="refreshbans", description="[DEV] Refreshes the bans")
     @in_guild()
