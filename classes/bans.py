@@ -26,8 +26,6 @@ class Bans(metaclass=Singleton):
 
     def is_ready(self):
         """Checks if the ban list is ready"""
-        # print(self.bans)
-        print(f"bans: {self.bans}")
         if len(self.bans) > 0:
             print("ready")
             return True
