@@ -154,6 +154,9 @@ class Bans:
         await Bans().announce_remove(wait_id)
         if interaction is not None:
             await interaction.message.delete()
+        queue().add(self.send_to_ban_channel(approved_channel, banembed, guild, user, open_thread))
+
+    async def send_to_ban_channel(self, approved_channel, banembed, guild, user, open_thread):
         approved_message = await approved_channel.send(embed=banembed)
         if not open_thread:
             return
@@ -162,6 +165,7 @@ class Bans:
         await thread.send(f"Please provide the proof of the ban here {guild_owner.mention}")
         await guild_owner.send(
                 f"Your ban for {user.name} has been approved and has been broadcasted, please provide the proof of the ban in the thread {thread.mention} in our support server. Not in our support server? Do the /support command to get the link!")
+
 
     async def create_invite(self, guild: discord.Guild):
         try:
@@ -189,14 +193,14 @@ class Bans:
                 if len(message.embeds) < 1:
                     continue
                 embed = message.embeds[0]
-                if embed.footer.text:
-                    print(f"checking {message.id} in {channel.name} ({channel.guild.name}) with footer: {embed.footer.text}")
+                # if embed.footer.text:
+                #     print(f"checking {message.id} in {channel.name} ({channel.guild.name}) with footer: {embed.footer.text}")
 
                 if embed.footer.text and banid in embed.footer.text:
                     print(f"Found {message.id} in {channel.name} ({channel.guild.name})")
-                    queue().add(self.delete_message(message))
+                    queue().add(self.delete_message(message), priority=2)
                     queue().add(channel.send(f"Revoked ban `{embed.title}`! Reason: \n"
-                                             f"{reason}"))
+                                             f"{reason}"), priority=2)
                     print(f"[revoke_ban] Queued deletion of {message.id} in {channel.name} ({channel.guild.name})")
                     logging.info(f"[revoke_ban] Queued deletion of {message.id} in {channel.name} ({channel.guild.name})")
                     break

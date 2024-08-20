@@ -4,10 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Refactoring, updating the way bans are handled, added long-term ban storage and now stores correctly. Reduced time between tasks to 1 second; this will be observed.">
+    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Refactoring">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/on_member_unban.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/on_member_unban.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/queuetask.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/queuetask.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/bans.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/bans.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/cacher.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/cacher.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/devtools.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/devtools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/on_member_ban.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/on_member_ban.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/tools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/view/buttons/banapproval.py" beforeDir="false" afterPath="$PROJECT_DIR$/view/buttons/banapproval.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -157,7 +161,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-5b207ade9991-746f403e7f0c-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-241.17890.14" />
+        <option value="bundled-python-sdk-ce3d9afa04ac-ba05f1cad1b1-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-242.20224.347" />
       </set>
     </attachedChunks>
   </component>
@@ -169,14 +173,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1669860831804</updated>
-    </task>
-    <task id="LOCAL-00001" summary="Banwatch">
-      <option name="closed" value="true" />
-      <created>1709938143940</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1709938143940</updated>
     </task>
     <task id="LOCAL-00002" summary="added ID to message">
       <option name="closed" value="true" />
@@ -538,7 +534,39 @@
       <option name="project" value="LOCAL" />
       <updated>1722903954490</updated>
     </task>
-    <option name="localTasksCounter" value="47" />
+    <task id="LOCAL-00047" summary="Refactoring">
+      <option name="closed" value="true" />
+      <created>1723125146256</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1723125146257</updated>
+    </task>
+    <task id="LOCAL-00048" summary="Refactoring">
+      <option name="closed" value="true" />
+      <created>1723125568447</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1723125568447</updated>
+    </task>
+    <task id="LOCAL-00049" summary="Refactoring">
+      <option name="closed" value="true" />
+      <created>1723125878080</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1723125878080</updated>
+    </task>
+    <task id="LOCAL-00050" summary="Refactoring">
+      <option name="closed" value="true" />
+      <created>1723125940082</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1723125940082</updated>
+    </task>
+    <option name="localTasksCounter" value="51" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -553,7 +581,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Removed the database requirements from banwatch; it does not need it as it checks based on permissions." />
     <MESSAGE value="Bug fix: failed to get the invite, causing errors" />
     <MESSAGE value="More error handling" />
     <MESSAGE value="Added a blacklist" />
@@ -578,14 +605,15 @@
     <MESSAGE value="Bug fix: Bot now loads bans back in to the bot, it failed to do so before." />
     <MESSAGE value="Bug fix: Upgraded the queue with a priority system." />
     <MESSAGE value="Refactoring, updating the way bans are handled, added long-term ban storage and now stores correctly. Reduced time between tasks to 1 second; this will be observed." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactoring, updating the way bans are handled, added long-term ban storage and now stores correctly. Reduced time between tasks to 1 second; this will be observed." />
+    <MESSAGE value="Refactoring" />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactoring" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/modules/devtools.py</url>
-          <line>76</line>
+          <line>78</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
       </breakpoints>

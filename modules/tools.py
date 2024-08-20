@@ -31,7 +31,7 @@ class Tools(commands.Cog):
         reason = f"{ban_type}{reason_modal}"
         await interaction.guild.ban(user, reason=reason)
         # await interaction.channel.send(f"DEBUG: BAN FUNCTION DISABLED FOR TESTING.`")
-        embed = discord.Embed(title=f"{user.name}", description=f"{reason}", color=discord.Color.red())
+        embed = discord.Embed(title=f"{user.name} ({user.id}) banned!", description=f"{reason}", color=discord.Color.red())
         await interaction.channel.send(embed=embed)
         if ban_type == "[silent]" or ban_type == "[hidden]":
             return

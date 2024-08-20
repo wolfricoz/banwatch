@@ -9,8 +9,10 @@ from discord.app_commands import Choice
 from discord.ext import commands
 
 from classes.bans import Bans
+from classes.cacher import LongTermCache
 from classes.configer import Configer
 from classes.queue import queue
+from view.buttons.banapproval import BanApproval
 from view.modals.inputmodal import send_modal
 
 
@@ -249,6 +251,24 @@ class dev(commands.GroupCog, name="dev"):
         message = await interaction.response.send_message("Queueing the search for the embed")
         await Bans().revoke_bans(self.bot, banid, reason)
 
+    @app_commands.command(name="pendingbans", description="[DEV] Lists all pending bans")
+    @in_guild()
+    async def pendingbans(self, interaction: discord.Interaction):
+        bans: dict = LongTermCache().get_bans()
+        user_id = None
+        guild_id = None
+        wait_id = None
+        for ban in bans:
+            user = self.bot.get_user(int(bans[ban]['user']))
+            guild = self.bot.get_guild(int(bans[ban]['guild']))
+            reason = bans[ban]['reason']
+            channel = self.bot.get_channel(self.bot.BANCHANNEL)
+            wait_id = ban
+            print(f"attempting to send approval in {channel.name}")
+            embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
+                                  description=f"{reason}")
+            embed.set_footer(text=f"/approve_ban {wait_id}")
+            await channel.send(embed=embed, view=BanApproval(self.bot, wait_id, True))
 
 
 async def setup(bot: commands.Bot):

@@ -64,6 +64,14 @@ class LongTermCache():
                 return False
             return data["bans"][waitid]
 
+    def get_bans(self):
+        """Gets a ban from the cache"""
+        if not os.path.exists(cache_path):
+            self.create()
+        with open(cache_path) as f:
+            data = json.load(f)
+            return data.get("bans", {})
+
     def remove_ban(self, waitid):
         """Removes a ban from the cache"""
         waitid = str(waitid)
