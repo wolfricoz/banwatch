@@ -1,4 +1,4 @@
-"This class generates the ban list, with functions to update it, and to check for similar names"
+"""This class generates the ban list, with functions to update it, and to check for similar names"""
 import logging
 
 import discord
@@ -8,8 +8,10 @@ from classes.cacher import LongTermCache
 from classes.configer import Configer
 from classes.queue import queue
 
+
 class Singleton(type):
     _instances = {}
+
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
@@ -46,7 +48,6 @@ class Bans(metaclass=Singleton):
             queue().add(Bans().add_guild_invites(guild), priority=0)
         queue().add(Bans().store_bans(), priority=0)
 
-
     async def store_bans(self):
         """Stores the bans in the cache"""
         LongTermCache().update_logged_bans(self.bans)
@@ -62,6 +63,8 @@ class Bans(metaclass=Singleton):
         await self.add_invite(guild.id, invite)
 
     async def add_guild_bans(self, bot, guild):
+        """Adds the bans from a guild to the ban list"""
+        print(f"Adding bans from {guild.name}")
         try:
             async for entry in guild.bans():
                 await self.add_ban(bot, guild, entry.user, entry.reason)
@@ -75,22 +78,29 @@ class Bans(metaclass=Singleton):
         """Adds a ban to the ban list"""
         if reason is None or reason == "" or reason.lower == "none" or str(reason).lower().startswith('[hidden]'):
             return
-
-        if str(user.id) in Bans().bans and Bans().bans[f"{user.id}"][f"{guild.id}"]['reason'] == reason:
-            return  # Skip if the ban is already in the list
+        try:
+            if (str(user.id) in self.bans
+                    and guild.id in self.bans[f"{user.id}"]
+                    and 'reason' in self.bans[f"{user.id}"][f"{guild.id}"]
+                    and self.bans[f"{user.id}"][f"{guild.id}"]['reason'] == reason):
+                """If the ban is already in the list, do nothing"""
+                return
+        except KeyError:
+            pass
 
         if str(user.id) in self.bans:
+            """If the user is already in the list, add the new ban to the user"""
             self.bans[f"{user.id}"][f"{guild.id}"] = {}
             self.bans[f"{user.id}"][f"{guild.id}"]["name"] = guild.name
             self.bans[f"{user.id}"][f"{guild.id}"]['reason'] = reason
             self.bans[f"{user.id}"]['name'] = user.name
-        else:
+            return
 
-            self.bans[f"{user.id}"] = {}
-            self.bans[f"{user.id}"][f"{guild.id}"] = {}
-            self.bans[f"{user.id}"][f"{guild.id}"]["name"] = guild.name
-            self.bans[f"{user.id}"][f"{guild.id}"]['reason'] = reason
-            self.bans[f"{user.id}"]['name'] = user.name
+        self.bans[f"{user.id}"] = {}
+        self.bans[f"{user.id}"][f"{guild.id}"] = {}
+        self.bans[f"{user.id}"][f"{guild.id}"]["name"] = guild.name
+        self.bans[f"{user.id}"][f"{guild.id}"]['reason'] = reason
+        self.bans[f"{user.id}"]['name'] = user.name
 
         print(f"Added {user.name} to ban list")
 
@@ -202,7 +212,7 @@ class Bans(metaclass=Singleton):
         banid = str(banid)
         print(f"checking {channel.name} ({channel.guild.name})")
         try:
-            async for message in channel.history(limit=100):
+            async for message in channel.history():
                 if message.author.id != bot.user.id:
                     continue
                 if len(message.embeds) < 1:
