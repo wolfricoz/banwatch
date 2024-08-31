@@ -22,6 +22,15 @@ os.environ['TZ'] = 'America/New_York'
 if platform == "linux" or platform == "linux2":
     time.tzset()
 logfile = f"logs/log-{time.strftime('%m-%d-%Y')}.txt"
+removeafter = datetime.now() + timedelta(days=-7)
+def extract_datetime_from_logfile(filename):
+    # Split the filename by '-'
+    parts = filename.split('-')
+    if len(parts) >= 3:
+        # Extract the date part
+        date_part = parts[1] + '-' + parts[2] + '-' + parts[3].split('.')[0]
+        return datetime.strptime(date_part, '%m-%d-%Y')
+    return None
 
 if os.path.exists('logs') is False:
     print("Making logd directory")
@@ -31,23 +40,27 @@ if os.path.exists(logfile) is False:
     with open(logfile, 'w') as f:
         f.write("logging started")
 
+for file in os.listdir('logs'):
+    date = extract_datetime_from_logfile(file)
+    if date is not None and date < removeafter:
+        logging.info(f"Removing old log file: {file}")
+        os.remove(f'logs/{file}')
+
 with open(logfile, 'a') as f:
     f.write(f"\n\n----------------------------------------------------"
             f"\nbot started at: {time.strftime('%c %Z')}\n"
             f"----------------------------------------------------\n\n")
 
+handlers = [logging.FileHandler(filename=logfile, encoding='utf-8', mode='a'), logging.StreamHandler()]
+logging.basicConfig(handlers=handlers, level=logging.INFO, format='%(asctime)s:%(name)s: %(message)s')
+
+
 logger = logging.getLogger('discord')
 logger.setLevel(logging.WARN)
-handler = logging.FileHandler(filename=logfile, encoding='utf-8', mode='a')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logger.addHandler(handler)
-alogger = logging.getLogger('sqlalchemy')
-alogger.setLevel(logging.WARN)
-handler2 = logging.FileHandler(filename=logfile, encoding='utf-8', mode='a')
-handler2.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logging.basicConfig(filename=logfile, encoding='utf-8', level=logging.DEBUG, filemode='a')
+logger2 = logging.getLogger('sqlalchemy')
+logger2.setLevel(logging.WARN)
 
-alogger.addHandler(handler2)
+
 
 
 class Logging(commands.Cog):
