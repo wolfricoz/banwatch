@@ -27,13 +27,17 @@ class Tools(commands.Cog):
         if user.id == interaction.guild.owner_id:
             await interaction.channel.send("You can't ban the owner of the server")
             return
+        if ban_type == "[silent]" or ban_type == "[hidden]":
+            inform = False
+
 
         reason = f"{ban_type}{reason_modal}"
         await interaction.guild.ban(user, reason=reason)
         # await interaction.channel.send(f"DEBUG: BAN FUNCTION DISABLED FOR TESTING.`")
         embed = discord.Embed(title=f"{user.name} ({user.id}) banned!", description=f"{reason}", color=discord.Color.red())
+        embed.set_footer(text=f"Moderator: {interaction.user.name}, wwas the user informed? {'Yes' if inform else 'No'}")
         await interaction.channel.send(embed=embed)
-        if ban_type == "[silent]" or ban_type == "[hidden]" or not inform:
+        if not inform:
             return
         await self.dm_user(interaction, reason_modal, user)
 
@@ -43,19 +47,19 @@ class Tools(commands.Cog):
         except discord.errors.Forbidden:
             pass
 
-    @app_commands.command(name="ban", description="Bans a user from the server")
+    @app_commands.command(name="ban", description="Bans a user from the server, by default informs the user.")
     @app_commands.checks.has_permissions(ban_members=True)
     @app_commands.choices(ban_type=[
         Choice(name="Normal", value=""),
         Choice(name="Silent", value="[silent]"),
         Choice(name="Hidden", value="[hidden]")
     ])
-    async def ban(self, interaction: discord.Interaction, user: discord.User, ban_type: Choice[str] = ""):
+    async def ban(self, interaction: discord.Interaction, user: discord.User, ban_type: Choice[str] = "", inform: bool = True):
         """Bans a user from the server"""
         if isinstance(ban_type, Choice):
             ban_type = ban_type.value
         reason_modal = await send_modal(interaction, "What is the reason for the ban?", "Ban Reason")
-        await self.ban_user(interaction, user, ban_type, reason_modal)
+        await self.ban_user(interaction, user, ban_type, reason_modal, inform=inform)
 
     @app_commands.command(name="mass_ban", description="bans multiple users, separated by a space")
     @app_commands.checks.has_permissions(ban_members=True)
@@ -64,7 +68,7 @@ class Tools(commands.Cog):
         Choice(name="Silent", value="[silent]"),
         Choice(name="Hidden", value="[hidden]")
     ])
-    async def mass_ban(self, interaction: discord.Interaction, users: str, ban_type: Choice[str] = ""):
+    async def mass_ban(self, interaction: discord.Interaction, users: str, ban_type: Choice[str] = "", inform: bool = True):
         """Bans a user from the server"""
         if isinstance(ban_type, Choice):
             ban_type = ban_type.value
@@ -80,7 +84,7 @@ class Tools(commands.Cog):
             except:
                 await interaction.channel.send(f"An error occurred while fetching user with id {user_id}, please ban them manually")
                 continue
-            await self.ban_user(interaction, user, ban_type, reason_modal)
+            await self.ban_user(interaction, user, ban_type, reason_modal, inform=inform)
 
     @app_commands.command(name="unban", description="Unbans a user from the server")
     @app_commands.checks.has_permissions(ban_members=True)
@@ -103,7 +107,7 @@ class Tools(commands.Cog):
             except discord.errors.NotFound:
                 await interaction.channel.send(f"User with id {user_id} not found")
                 continue
-            except:
+            except Exception:
                 await interaction.channel.send(f"An error occurred while fetching user with id {user_id}, please unban them manually")
                 continue
             try:
@@ -114,7 +118,7 @@ class Tools(commands.Cog):
             embed = discord.Embed(title=f"{user.name} unbanned", color=discord.Color.green())
             await interaction.channel.send(embed=embed)
 
-    @app_commands.command(name="reban", description="unbans and rebans a user to update the reason")
+    @app_commands.command(name="reban", description="unbans and rebans a user to update the reason. This does not inform the user.")
     @app_commands.checks.has_permissions(ban_members=True)
     @app_commands.choices(ban_type=[
         Choice(name="Normal", value=""),
