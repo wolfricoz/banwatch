@@ -6,6 +6,7 @@ from discord.ext import commands
 from classes.bans import Bans
 from classes.configer import Configer
 from classes.queue import queue
+from classes.support.discord_tools import send_message
 from view.buttons.banapproval import BanApproval
 
 
@@ -46,8 +47,8 @@ class BanEvents(commands.Cog):
             await self.status(bot, guild, user)
             return
 
-        await self.status(bot, guild, user, "waiting_approval", ban.reason, word = found)
-        await channel.send(embed=embed, view=BanApproval(bot, wait_id, True))
+        await self.status(bot, guild, user, "waiting_approval", ban.reason, word=found)
+        await send_message(channel, embed=embed, view=BanApproval(bot, wait_id, True))
         return
 
     async def verification_notification(self, banreason, bot, guild, user, word):
@@ -56,13 +57,12 @@ class BanEvents(commands.Cog):
         supportguild = bot.get_guild(bot.SUPPORTGUILD)
         support_invite = await Bans().create_invite(supportguild)
         verembed = discord.Embed(title=f"ban for {user}({user.id}) was flagged for review",
-                              description=f"{banreason}\n\n"
-                                          f"Flagged word: {word}. We review bans with serious accusations to ensure they are legitimate.")
+                                 description=f"{banreason}\n\n"
+                                             f"Flagged word: {word}. We review bans with serious accusations to ensure they are legitimate.")
         verembed.set_footer(text=f"Please supply evidence if you have any to the support server or to the dev: ricostryker")
+        await send_message(modchannel, f"-# You can join our support server by [clicking here to join]({support_invite}).", embed=verembed)
 
-        await modchannel.send(f"-# You can join our support server by [clicking here to join]({support_invite}).", embed=verembed)
-
-    async def status(self, bot, guild, user: discord.User, status="queued", banreason = None, word = None):
+    async def status(self, bot, guild, user: discord.User, status="queued", banreason=None, word=None):
         """informs user is the ban has been approved or is in queue"""
         modchannel = await Configer.get(guild.id, "modchannel")
         channel = bot.get_channel(int(modchannel))
