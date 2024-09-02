@@ -14,7 +14,7 @@ class Tools(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    async def ban_user(self, interaction: discord.Interaction, user: discord.User, ban_type, reason_modal):
+    async def ban_user(self, interaction: discord.Interaction, user: discord.User, ban_type, reason_modal, inform = True):
         if interaction.guild is None:
             await interaction.channel.send("This command can only be used in a server")
             return
@@ -33,7 +33,7 @@ class Tools(commands.Cog):
         # await interaction.channel.send(f"DEBUG: BAN FUNCTION DISABLED FOR TESTING.`")
         embed = discord.Embed(title=f"{user.name} ({user.id}) banned!", description=f"{reason}", color=discord.Color.red())
         await interaction.channel.send(embed=embed)
-        if ban_type == "[silent]" or ban_type == "[hidden]":
+        if ban_type == "[silent]" or ban_type == "[hidden]" or not inform:
             return
         await self.dm_user(interaction, reason_modal, user)
 
@@ -130,7 +130,7 @@ class Tools(commands.Cog):
             await interaction.guild.unban(user)
         except discord.errors.NotFound:
             pass
-        await self.ban_user(interaction, user, ban_type, reason_modal)
+        await self.ban_user(interaction, user, ban_type, reason_modal, inform=False)
 
     @app_commands.command(name="kick", description="Kicks a user from the server and informs them with a DM. you can also choose to reinvite them.")
     @app_commands.checks.has_permissions(kick_members=True)
