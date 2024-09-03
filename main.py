@@ -1,5 +1,6 @@
 import logging
 import os
+from time import sleep
 
 import discord
 from discord.ext import commands
@@ -38,6 +39,7 @@ bot.DEV = DEV
 
 @bot.event
 async def on_ready():
+    sleep(5)
     devroom = bot.get_channel(DEV)
     # CREATES A COUNTER TO KEEP TRACK OF HOW MANY GUILDS / SERVERS THE BOT IS CONNECTED TO.
     guild_count = 0
@@ -51,14 +53,14 @@ async def on_ready():
         # add invites
         # logging.info THE SERVER'S ID AND NAME.
         guilds.append(f"- {guild.id} (name: {guild.name})")
-        queue().add(Configer.create(guild.id, guild.name))
+        await Configer.create(guild.id, guild.name)
         if await blacklist_check(guild, devroom):
             continue
         # INCREMENTS THE GUILD COUNTER.
         guild_count += 1
     # formguilds = "\n".join(guilds)
     queue().add(bot.tree.sync(), priority=2)
-    await devroom.send(f"Banwatch is in {guild_count} guilds. Version 2.1.2")
+    queue().add(devroom.send(f"Banwatch is in {guild_count} guilds. Version 2.1.2"), priority=2)
 
 
 @bot.event
