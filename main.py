@@ -43,25 +43,22 @@ async def on_ready():
     guild_count = 0
     guilds = []
     # LOOPS THROUGH ALL THE GUILD / SERVERS THAT THE BOT IS ASSOCIATED WITH.
-    await Bans().update(bot)
+    queue().add(Bans().update(bot))
+    queue().add(Configer.create_bot_config(), priority=2)
+    queue().add(Configer.create_appeals(), priority=2)
+    LongTermCache().create()
     for guild in bot.guilds:
         # add invites
         # logging.info THE SERVER'S ID AND NAME.
         guilds.append(f"- {guild.id} (name: {guild.name})")
-        await Configer.create(guild.id, guild.name)
-        await Configer.create_bot_config()
-        await Configer.create_appeals()
-        LongTermCache().create()
+        queue().add(Configer.create(guild.id, guild.name))
         if await blacklist_check(guild, devroom):
             continue
         # INCREMENTS THE GUILD COUNTER.
         guild_count += 1
-    # logging.infoS HOW MANY GUILDS / SERVERS THE BOT IS IN.
     # formguilds = "\n".join(guilds)
-
-    await bot.tree.sync()
+    queue().add(bot.tree.sync(), priority=2)
     await devroom.send(f"Banwatch is in {guild_count} guilds. Version 2.1.2")
-    return guilds
 
 
 @bot.event
