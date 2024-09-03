@@ -21,6 +21,7 @@ class Tasks(commands.Cog):
     async def check_blacklist(self):
         if self.check_blacklist.current_loop == 0:
             return
+        print(f"[blacklist check]Checking for blacklisted servers")
         dev = self.bot.get_channel(int(self.bot.DEV))
         for guild in self.bot.guilds:
             if guild.id == self.bot.SUPPORTGUILD:
@@ -30,6 +31,8 @@ class Tasks(commands.Cog):
 
     @tasks.loop(hours=24)
     async def check_pending_bans(self):
+        if self.check_pending_bans.current_loop == 0:
+            return
         await pending_bans(self.bot)
 
     @check_pending_bans.before_loop
