@@ -7,6 +7,7 @@ from discord.ext import commands
 from classes.cacher import LongTermCache
 from classes.configer import Configer
 from classes.queue import queue
+from classes.support.discord_tools import send_message
 
 
 class Singleton(type):
@@ -138,7 +139,7 @@ class Bans(metaclass=Singleton):
         characters = 0
         while characters < len(sr):
             message = f"{Bans().bans[f'{memberid}']['name']}({memberid}) is banned in: {sr}"
-            await channel.send(message[characters:characters + 1800])
+            await send_message(channel, message[characters:characters + 1800])
             characters += 1800
 
     async def announce_add(self, guildid, userid, reason):
