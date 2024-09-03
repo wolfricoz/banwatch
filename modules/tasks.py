@@ -6,6 +6,7 @@ from classes.blacklist import blacklist_check
 from classes.configer import Configer
 from classes.queue import queue
 from classes.support.discord_tools import send_message
+from classes.tasks import pending_bans
 
 
 class Tasks(commands.Cog):
@@ -29,7 +30,7 @@ class Tasks(commands.Cog):
 
     @tasks.loop(hours=24)
     async def check_pending_bans(self):
-        await Bans().pending_bans(self.bot)
+        await pending_bans(self.bot)
 
     @check_pending_bans.before_loop
     async def before_check_pending_bans(self):

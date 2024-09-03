@@ -14,6 +14,7 @@ from classes.cacher import LongTermCache
 from classes.configer import Configer
 from classes.queue import queue
 from classes.support.discord_tools import send_response
+from classes.tasks import pending_bans
 from view.buttons.banapproval import BanApproval
 from view.modals.inputmodal import send_modal
 
@@ -282,7 +283,7 @@ class dev(commands.GroupCog, name="dev"):
     @app_commands.command(name="pendingbans", description="[DEV] Lists all pending bans")
     @in_guild()
     async def pendingbans(self, interaction: discord.Interaction):
-        await Bans().pending_bans(self.bot)
+        await pending_bans(self.bot)
         await send_response(interaction, "Checking for pending bans", ephemeral=True)
 
 
