@@ -14,7 +14,7 @@ class Tools(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    async def ban_user(self, interaction: discord.Interaction, user: discord.User, ban_type, reason_modal, inform = True):
+    async def ban_user(self, interaction: discord.Interaction, user: discord.User, ban_type, reason_modal, inform = True, clean = False):
         if interaction.guild is None:
             await interaction.channel.send("This command can only be used in a server")
             return
@@ -32,7 +32,7 @@ class Tools(commands.Cog):
 
 
         reason = f"{ban_type}{reason_modal}"
-        await interaction.guild.ban(user, reason=reason)
+        await interaction.guild.ban(user, reason=reason, delete_message_days=1 if clean else 0)
         # await interaction.channel.send(f"DEBUG: BAN FUNCTION DISABLED FOR TESTING.`")
         embed = discord.Embed(title=f"{user.name} ({user.id}) banned!", description=f"{reason}", color=discord.Color.red())
         embed.set_footer(text=f"Moderator: {interaction.user.name}, wwas the user informed? {'Yes' if inform else 'No'}")
@@ -54,12 +54,12 @@ class Tools(commands.Cog):
         Choice(name="Silent", value="[silent]"),
         Choice(name="Hidden", value="[hidden]")
     ])
-    async def ban(self, interaction: discord.Interaction, user: discord.User, ban_type: Choice[str] = "", inform: bool = True):
+    async def ban(self, interaction: discord.Interaction, user: discord.User, ban_type: Choice[str] = "", inform: bool = True, clean: bool = False):
         """Bans a user from the server"""
         if isinstance(ban_type, Choice):
             ban_type = ban_type.value
         reason_modal = await send_modal(interaction, "What is the reason for the ban?", "Ban Reason")
-        await self.ban_user(interaction, user, ban_type, reason_modal, inform=inform)
+        await self.ban_user(interaction, user, ban_type, reason_modal, inform=inform, clean=clean)
 
     @app_commands.command(name="mass_ban", description="bans multiple users, separated by a space")
     @app_commands.checks.has_permissions(ban_members=True)
@@ -68,7 +68,7 @@ class Tools(commands.Cog):
         Choice(name="Silent", value="[silent]"),
         Choice(name="Hidden", value="[hidden]")
     ])
-    async def mass_ban(self, interaction: discord.Interaction, users: str, ban_type: Choice[str] = "", inform: bool = True):
+    async def mass_ban(self, interaction: discord.Interaction, users: str, ban_type: Choice[str] = "", inform: bool = True, clean: bool = False):
         """Bans a user from the server"""
         if isinstance(ban_type, Choice):
             ban_type = ban_type.value
@@ -84,7 +84,7 @@ class Tools(commands.Cog):
             except:
                 await interaction.channel.send(f"An error occurred while fetching user with id {user_id}, please ban them manually")
                 continue
-            await self.ban_user(interaction, user, ban_type, reason_modal, inform=inform)
+            await self.ban_user(interaction, user, ban_type, reason_modal, inform=inform, clean=clean)
 
     @app_commands.command(name="unban", description="Unbans a user from the server")
     @app_commands.checks.has_permissions(ban_members=True)
