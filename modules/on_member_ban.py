@@ -70,7 +70,7 @@ class BanEvents(commands.Cog):
             await self.verification_notification(banreason, bot, guild, user, word=word)
             return
         message: discord.Message = await channel.send(f"Your ban for {user.mention} is currently: {status}.")
-        queue().add(message.edit(content="Your ban has been successfully broadcasted to other servers."), priority=0)
+        queue().add(message.edit(content=f"Your ban for {user.mention} has been successfully broadcasted to other servers."), priority=0)
 
 
 async def setup(bot):
