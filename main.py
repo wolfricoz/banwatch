@@ -39,7 +39,7 @@ bot.DEV = DEV
 
 @bot.event
 async def on_ready():
-    sleep(5)
+    logging.info("Bot is starting")
     devroom = bot.get_channel(DEV)
     # CREATES A COUNTER TO KEEP TRACK OF HOW MANY GUILDS / SERVERS THE BOT IS CONNECTED TO.
     guild_count = 0
@@ -49,16 +49,18 @@ async def on_ready():
     queue().add(Configer.create_bot_config(), priority=2)
     queue().add(Configer.create_appeals(), priority=2)
     LongTermCache().create()
+    logging.info("Configs and cache created")
     for guild in bot.guilds:
         # add invites
         # logging.info THE SERVER'S ID AND NAME.
-        guilds.append(f"- {guild.id} (name: {guild.name})")
+        guilds.append(f"- {guild.id} (name: {guild.name}, owner: {guild.owner}({guild.owner.id}))")
         await Configer.create(guild.id, guild.name)
         if await blacklist_check(guild, devroom):
             continue
         # INCREMENTS THE GUILD COUNTER.
         guild_count += 1
-    # formguilds = "\n".join(guilds)
+    formguilds = "\n".join(guilds)
+    logging.info(f"Bot is in {guild_count} guilds:\n{formguilds}")
     queue().add(bot.tree.sync(), priority=2)
     queue().add(devroom.send(f"Banwatch is in {guild_count} guilds. Version 2.1.2"), priority=2)
 
