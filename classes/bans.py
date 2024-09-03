@@ -66,7 +66,7 @@ class Bans(metaclass=Singleton):
 
     async def add_guild_bans(self, bot, guild):
         """Adds the bans from a guild to the ban list"""
-        print(f"Adding bans from {guild.name}")
+        print(f"Adding bans from {guild}")
         try:
             async for entry in guild.bans():
                 await self.add_ban(bot, guild, entry.user, entry.reason)
