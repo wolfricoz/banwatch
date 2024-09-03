@@ -156,9 +156,10 @@ class dev(commands.GroupCog, name="dev"):
 
     @app_commands.command(name="blacklist_server", description="[DEV] Blacklist a server")
     @in_guild()
-    async def blacklist_server(self, interaction: discord.Interaction, guildid: int):
+    async def blacklist_server(self, interaction: discord.Interaction, guildid: str):
         if interaction.user.id != 188647277181665280:
             return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
+        guildid = int(guildid)
         guild = self.bot.get_guild(guildid)
         await Configer.add_to_blacklist(guildid)
         await guild.leave()
@@ -166,9 +167,10 @@ class dev(commands.GroupCog, name="dev"):
 
     @app_commands.command(name="unblacklist_server", description="[DEV] Remove a server from the blacklist")
     @in_guild()
-    async def unblacklist_server(self, interaction: discord.Interaction, guildid: int):
+    async def unblacklist_server(self, interaction: discord.Interaction, guildid: str):
         if interaction.user.id != 188647277181665280:
             return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
+        guildid = int(guildid)
         await Configer.remove_from_blacklist(guildid)
         await interaction.response.send_message(f"Unblacklisted {guildid}")
 
