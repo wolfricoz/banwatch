@@ -7,11 +7,13 @@ import discord
 from discord import app_commands
 from discord.app_commands import Choice, guilds
 from discord.ext import commands
+from sqlalchemy.testing.plugin.plugin_base import logging
 
 from classes.bans import Bans
 from classes.cacher import LongTermCache
 from classes.configer import Configer
 from classes.queue import queue
+from classes.support.discord_tools import send_response
 from view.buttons.banapproval import BanApproval
 from view.modals.inputmodal import send_modal
 
@@ -173,6 +175,30 @@ class dev(commands.GroupCog, name="dev"):
         guildid = int(guildid)
         await Configer.remove_from_blacklist(guildid)
         await interaction.response.send_message(f"Unblacklisted {guildid}")
+
+    # blacklist user goes here
+    @app_commands.command(name="blacklist_user", description="[DEV] Blacklist a user")
+    @in_guild()
+    async def blacklist_user(self, interaction: discord.Interaction, userid: str):
+        if interaction.user.id != 188647277181665280:
+            logging.info(f"{interaction.user.name}({interaction.user.id}) tried to blacklist a user")
+            return await send_response(interaction, "You are not allowed to use this command.", ephemeral=True)
+
+            return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
+        userid = int(userid)
+        await Configer.add_to_user_blacklist(userid)
+        await send_response(interaction, f"Blacklisted {userid}")
+
+    @app_commands.command(name="unblacklist_user", description="[DEV] Remove a user from the blacklist")
+    @in_guild()
+    async def unblacklist_user(self, interaction: discord.Interaction, userid: str):
+        if interaction.user.id != 188647277181665280:
+            logging.info(f"{interaction.user.name}({interaction.user.id}) tried to unblacklist a user")
+            return await send_response(interaction, "You are not allowed to use this command.", ephemeral=True)
+        userid = int(userid)
+        await Configer.remove_from_user_blacklist(userid)
+        await send_response(interaction, f"Unblacklisted {userid}")
+
 
     @app_commands.command(name="approve_ban", description="Approve a ban")
     @in_guild()

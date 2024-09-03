@@ -43,6 +43,7 @@ class Configer(ABC):
             with open(config_path) as f:
                 data = json.load(f)
                 dictionary = {
+                    "user_blacklist": data.get("user_blacklist", []),
                     "blacklist": data.get("blacklist", []),
                     "checklist": data.get("checklist", [])
                 }
@@ -86,7 +87,7 @@ class Configer(ABC):
 
 
 
-
+    # appeals start here
     @staticmethod
     @abstractmethod
     async def get_all_appeals():
@@ -124,6 +125,7 @@ class Configer(ABC):
             json.dump(data, f, indent=4)
             logging.info(f"{guildid} changed to {status}")
 
+    # config editing starts hee
     @staticmethod
     @abstractmethod
     async def change(guildid, interaction, channelid, key):
@@ -145,6 +147,7 @@ class Configer(ABC):
                 data = json.load(f)
                 return data.get(key, None)
 
+    # blacklist starts here
     @staticmethod
     @abstractmethod
     async def add_to_blacklist(guildid):
@@ -183,6 +186,49 @@ class Configer(ABC):
                 if guildid in data["blacklist"]:
                     return True
 
+    # user blacklist starts here
+    @staticmethod
+    @abstractmethod
+    async def add_to_user_blacklist(userid):
+        """Adds a user to the user blacklist"""
+        if os.path.exists(config_path):
+            with open(config_path) as f:
+                data = json.load(f)
+                data["user_blacklist"].append(userid)
+            with open(config_path, 'w') as f:
+                json.dump(data, f, indent=4)
+                logging.info(f"{userid} added to user blacklist")
+        else:
+            logging.warning("No blacklist found")
+
+    @staticmethod
+    @abstractmethod
+    async def remove_from_user_blacklist(userid):
+        """Removes a user from the user blacklist"""
+        if os.path.exists(config_path):
+            with open(config_path) as f:
+                data = json.load(f)
+                data["user_blacklist"].remove(userid)
+            with open(config_path, 'w') as f:
+                json.dump(data, f, indent=4)
+                logging.info(f"{userid} removed from user blacklist")
+        else:
+            logging.warning("No blacklist found")
+
+    @staticmethod
+    @abstractmethod
+    async def is_user_blacklisted(userid):
+        """Checks if a user is blacklisted"""
+        if os.path.exists(config_path):
+            with open(config_path) as f:
+                data = json.load(f)
+                if userid in data["user_blacklist"]:
+                    return True
+
+
+
+
+    # Checklist starts here
     @staticmethod
     @abstractmethod
     async def add_checklist(word:str):

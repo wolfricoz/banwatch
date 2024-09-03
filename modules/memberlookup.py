@@ -9,7 +9,6 @@ from discord.ext import commands
 
 from classes.bans import Bans
 from classes.support.discord_tools import send_message, send_response
-from modules.logs import logger
 
 
 class BanCheck(ABC):

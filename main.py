@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 # IMPORT LOAD_DOTENV FUNCTION FROM DOTENV MODULE.
 from dotenv import load_dotenv
+from sqlalchemy.util.queue import Queue
 
 from classes.bans import Bans
 from classes.cacher import LongTermCache
@@ -31,6 +32,7 @@ bot.DENIALCHANNEL = int(os.getenv('DENIED'))
 bot.APPROVALCHANNEL = int(os.getenv('APPROVED'))
 bot.DEV = DEV
 
+
 # EVENT LISTENER FOR WHEN THE BOT HAS SWITCHED FROM OFFLINE TO ONLINE.
 
 @bot.event
@@ -51,6 +53,13 @@ async def on_ready():
         LongTermCache().create()
         if await Configer.is_blacklisted(guild.id):
             logging.info(f"Leaving {guild.name} because it is blacklisted")
+            await send_message(devroom, f"Leaving {guild}({guild.id}) because it is blacklisted")
+            await guild.leave()
+            continue
+        if await Configer.is_user_blacklisted(guild.owner.id):
+            logging.info(f"Leaving {guild}({guild.id}) because the {guild.owner.name}({guild.owner.id}) is blacklisted")
+            await send_message(devroom, f"Leaving {guild}({guild.id}) because the {guild.owner.name}({guild.owner.id}) is blacklisted")
+            await Configer.add_to_blacklist(guild.id)
             await guild.leave()
             continue
         # INCREMENTS THE GUILD COUNTER.
@@ -68,17 +77,18 @@ async def on_guild_join(guild: discord.Guild):
     """When the bot it creates a config and sends a DM to the owner with instructions."""
     # adds user to database
     log = bot.get_channel(DEV)
+    if await Configer.is_blacklisted(guild.id):
+        logging.info(f"Leaving {guild.name} because it is blacklisted")
+        queue().add(send_message(log, f"Leaving {guild}({guild.id}) because it is blacklisted"))
+        await guild.leave()
+        return
     if await Configer.is_user_blacklisted(guild.owner.id):
-        logging.info(f"Leaving {guild.name} because the owner is blacklisted")
-        await send_message(log, f"Leaving {guild.name} because the {guild.owner.name}({guild.owner.id}) is blacklisted")
+        logging.info(f"Leaving {guild.name} because the {guild.owner.name}({guild.owner.id}) is blacklisted")
+        queue().add(send_message(log, f"Leaving {guild}({guild.id}) because the {guild.owner.name}({guild.owner.id}) is blacklisted"))
         await Configer.add_to_blacklist(guild.id)
         await guild.leave()
         return
-    if await Configer.is_blacklisted(guild.id):
-        logging.info(f"Leaving {guild.name} because it is blacklisted")
-        await send_message(log, f"Leaving {guild.name} because it is blacklisted")
-        await guild.leave()
-        return
+
     await Configer.create(guild.id, guild.name)
     logging.info("sending DM now")
     await guild.owner.send("Thank you for inviting **ban watch**, please read https://wolfricoz.github.io/banwatch/ to set up the bot")
