@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 from classes.bans import Bans
 from classes.cacher import LongTermCache
 from classes.configer import Configer
+from classes.queue import queue
+from classes.support.discord_tools import send_message
 
 # LOADS THE .ENV FILE THAT RESIDES ON THE SAME LEVEL AS THE SCRIPT.
 load_dotenv('main.env')
@@ -62,24 +64,31 @@ async def on_ready():
 
 
 @bot.event
-async def on_guild_join(guild):
+async def on_guild_join(guild: discord.Guild):
     """When the bot it creates a config and sends a DM to the owner with instructions."""
     # adds user to database
+    log = bot.get_channel(DEV)
+    if await Configer.is_user_blacklisted(guild.owner.id):
+        logging.info(f"Leaving {guild.name} because the owner is blacklisted")
+        await send_message(log, f"Leaving {guild.name} because the {guild.owner.name}({guild.owner.id}) is blacklisted")
+        await Configer.add_to_blacklist(guild.id)
+        await guild.leave()
+        return
     if await Configer.is_blacklisted(guild.id):
         logging.info(f"Leaving {guild.name} because it is blacklisted")
+        await send_message(log, f"Leaving {guild.name} because it is blacklisted")
         await guild.leave()
         return
     await Configer.create(guild.id, guild.name)
     logging.info("sending DM now")
     await guild.owner.send("Thank you for inviting **ban watch**, please read https://wolfricoz.github.io/banwatch/ to set up the bot")
-    log = bot.get_channel(DEV)
     await log.send(f"Joined {guild}({guild.id}). Ban watch is now in {len(bot.guilds)}")
     # SYNCS COMMANDS
     await bot.tree.sync()
     # Updates ban list
     logging.info(f"{guild} joined, refreshing ban list")
-    await Bans().add_guild_bans(guild, bot)
-    await Bans().add_guild_invites(guild)
+    queue().add(Bans().add_guild_bans(guild, bot))
+    queue().add(Bans().add_guild_invites(guild))
 
 
 @bot.event
