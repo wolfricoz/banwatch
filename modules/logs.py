@@ -130,6 +130,10 @@ class Logging(commands.Cog):
             return
         if isinstance(error, NoMessagePermission):
             pass
+        if isinstance(error, app_commands.TransformerError):
+            await self.on_fail_message(interaction, "Failed to transform given input to member, please select the user from the list, or use the user's ID.")
+            return
+
         elif isinstance(error, commands.MemberNotFound):
             await self.on_fail_message(interaction, "User not found.")
             return
