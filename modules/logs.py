@@ -128,12 +128,11 @@ class Logging(commands.Cog):
         if isinstance(error, CheckFailure):
             await self.on_fail_message(interaction, "You do not have permission.")
             return
-        if isinstance(error, NoMessagePermission):
+        if isinstance(error.original, NoMessagePermission):
             pass
         if isinstance(error, app_commands.TransformerError):
             await self.on_fail_message(interaction, "Failed to transform given input to member, please select the user from the list, or use the user's ID.")
             return
-
         elif isinstance(error, commands.MemberNotFound):
             await self.on_fail_message(interaction, "User not found.")
             return
