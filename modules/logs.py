@@ -12,6 +12,8 @@ from discord.app_commands import AppCommandError, command, CheckFailure
 from discord.ext import commands
 from dotenv import load_dotenv
 
+from classes.support.discord_tools import NoMessagePermission
+
 load_dotenv('main.env')
 channels72 = os.getenv('channels72')
 spec = os.getenv('spec')
@@ -126,6 +128,8 @@ class Logging(commands.Cog):
         if isinstance(error, CheckFailure):
             await self.on_fail_message(interaction, "You do not have permission.")
             return
+        if isinstance(error, NoMessagePermission):
+            pass
         elif isinstance(error, commands.MemberNotFound):
             await self.on_fail_message(interaction, "User not found.")
             return
