@@ -5,17 +5,15 @@ from abc import ABC
 
 import discord
 from discord import app_commands
-from discord.app_commands import Choice, guilds
+from discord.app_commands import Choice
 from discord.ext import commands
 from sqlalchemy.testing.plugin.plugin_base import logging
 
 from classes.bans import Bans
-from classes.cacher import LongTermCache
 from classes.configer import Configer
 from classes.queue import queue
 from classes.support.discord_tools import send_response, send_message, get_all_threads
 from classes.tasks import pending_bans
-from view.buttons.banapproval import BanApproval
 from view.modals.inputmodal import send_modal
 
 
@@ -200,7 +198,6 @@ class dev(commands.GroupCog, name="dev"):
         await Configer.remove_from_user_blacklist(userid)
         await send_response(interaction, f"Unblacklisted {userid}")
 
-
     @app_commands.command(name="approve_ban", description="Approve a ban")
     @in_guild()
     async def approve_ban(self, interaction: discord.Interaction, wait_id: str):
@@ -286,8 +283,6 @@ class dev(commands.GroupCog, name="dev"):
         await pending_bans(self.bot)
         await send_response(interaction, "Checking for pending bans", ephemeral=True)
 
-
-
     @app_commands.command(name="refreshbans", description="[DEV] Refreshes the bans")
     @in_guild()
     async def refreshbans(self, interaction: discord.Interaction):
@@ -298,7 +293,7 @@ class dev(commands.GroupCog, name="dev"):
     @in_guild()
     async def rpseclookup(self, interaction: discord.Interaction, id: str):
         print("testing!")
-        message = await send_response(interaction, f"Checking threads", ephemeral=True)
+        await send_response(interaction, f"Checking threads", ephemeral=True)
         dev_guild: discord.Guild = self.bot.get_guild(self.bot.SUPPORTGUILD)
         all_threads = await get_all_threads(dev_guild)
         for thread in all_threads:
@@ -306,15 +301,7 @@ class dev(commands.GroupCog, name="dev"):
                 if id in message.content:
                     await interaction.followup.send(f"Found in {thread.mention}: {message.jump_url}")
                     return
-        try:
-            await message.edit(content="Not found")
-        except discord.errors.NotFound:
-            pass
-        except discord.Forbidden:
-            await send_message(interaction.channel, "Not found")
-
-
-
+        await send_message(interaction.channel, "Not found")
 
 
 async def setup(bot: commands.Bot):

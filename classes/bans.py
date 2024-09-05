@@ -37,11 +37,15 @@ class Bans(metaclass=Singleton):
             print("not ready")
             return False
 
+    def load_bans(self):
+        """Loads the bans from the cache"""
+        self.bans = LongTermCache().get_logged_bans()
+
     async def update(self, bot, override=False):
         """Updates the ban list"""
         guild: discord.Guild
         self.old_bans = self.bans
-        Bans().bans = LongTermCache().get_logged_bans()
+        self.load_bans()
         if override:
             self.bans = {}
             pass
