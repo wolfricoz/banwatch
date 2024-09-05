@@ -297,8 +297,8 @@ class dev(commands.GroupCog, name="dev"):
         dev_guild: discord.Guild = self.bot.get_guild(self.bot.SUPPORTGUILD)
         all_threads = await get_all_threads(dev_guild)
         for thread in all_threads:
-            print(thread)
-            async for message in thread.history(limit=1, oldest_first=True):
+            print(f"checking {thread} in {thread.parent.name}")
+            async for message in thread.history(limit=5, oldest_first=True):
                 print(message.content)
                 if id in message.content:
                     await interaction.followup.send(f"Found in {thread.mention}: {message.jump_url}")

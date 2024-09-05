@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Added a task to check for pending bans that may have been missed">
+    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="[Bug Fix] Permission error fixed">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -51,19 +51,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.checkword.executor": "Run",
-    "Python.main.executor": "Run",
-    "Python.queue-test.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "C:/Users/ricoi/PycharmProjects/banbot/modules",
-    "run.code.analysis.last.selected.profile": "aDefault",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.checkword.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.queue-test.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/ricoi/PycharmProjects/banbot/modules&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\ricoi\PycharmProjects\banbot\modules" />
@@ -170,126 +170,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1669860831804</updated>
-    </task>
-    <task id="LOCAL-00024" summary="enabled start up message">
-      <option name="closed" value="true" />
-      <created>1718824405574</created>
-      <option name="number" value="00024" />
-      <option name="presentableId" value="LOCAL-00024" />
-      <option name="project" value="LOCAL" />
-      <updated>1718824405574</updated>
-    </task>
-    <task id="LOCAL-00025" summary="Bug fix: Removed the owner from the messages, cant be shown due to missing intents.">
-      <option name="closed" value="true" />
-      <created>1718924203848</created>
-      <option name="number" value="00025" />
-      <option name="presentableId" value="LOCAL-00025" />
-      <option name="project" value="LOCAL" />
-      <updated>1718924203848</updated>
-    </task>
-    <task id="LOCAL-00026" summary="Bugfix: Errored on getting invites from array, fixed.">
-      <option name="closed" value="true" />
-      <created>1718924273701</created>
-      <option name="number" value="00026" />
-      <option name="presentableId" value="LOCAL-00026" />
-      <option name="project" value="LOCAL" />
-      <updated>1718924273701</updated>
-    </task>
-    <task id="LOCAL-00027" summary="Refactor: Removed print statements, and moved on_ready ban update to tasks.">
-      <option name="closed" value="true" />
-      <created>1718924702762</created>
-      <option name="number" value="00027" />
-      <option name="presentableId" value="LOCAL-00027" />
-      <option name="project" value="LOCAL" />
-      <updated>1718924702762</updated>
-    </task>
-    <task id="LOCAL-00028" summary="Added a check if the banlist is filled">
-      <option name="closed" value="true" />
-      <created>1718924933405</created>
-      <option name="number" value="00028" />
-      <option name="presentableId" value="LOCAL-00028" />
-      <option name="project" value="LOCAL" />
-      <updated>1718924933405</updated>
-    </task>
-    <task id="LOCAL-00029" summary="Changed dev tools to app commands, and added a check in there.">
-      <option name="closed" value="true" />
-      <created>1719064784387</created>
-      <option name="number" value="00029" />
-      <option name="presentableId" value="LOCAL-00029" />
-      <option name="project" value="LOCAL" />
-      <updated>1719064784387</updated>
-    </task>
-    <task id="LOCAL-00030" summary="Adding a checklist: added to config">
-      <option name="closed" value="true" />
-      <created>1719064806931</created>
-      <option name="number" value="00030" />
-      <option name="presentableId" value="LOCAL-00030" />
-      <option name="project" value="LOCAL" />
-      <updated>1719064806931</updated>
-    </task>
-    <task id="LOCAL-00031" summary="Adding a checklist: added to config">
-      <option name="closed" value="true" />
-      <created>1719064864448</created>
-      <option name="number" value="00031" />
-      <option name="presentableId" value="LOCAL-00031" />
-      <option name="project" value="LOCAL" />
-      <updated>1719064864448</updated>
-    </task>
-    <task id="LOCAL-00032" summary="fixing bug">
-      <option name="closed" value="true" />
-      <created>1719129847722</created>
-      <option name="number" value="00032" />
-      <option name="presentableId" value="LOCAL-00032" />
-      <option name="project" value="LOCAL" />
-      <updated>1719129847722</updated>
-    </task>
-    <task id="LOCAL-00033" summary="fixing bug">
-      <option name="closed" value="true" />
-      <created>1719130014215</created>
-      <option name="number" value="00033" />
-      <option name="presentableId" value="LOCAL-00033" />
-      <option name="project" value="LOCAL" />
-      <updated>1719130014215</updated>
-    </task>
-    <task id="LOCAL-00034" summary="Enabling dev tools">
-      <option name="closed" value="true" />
-      <created>1719609755427</created>
-      <option name="number" value="00034" />
-      <option name="presentableId" value="LOCAL-00034" />
-      <option name="project" value="LOCAL" />
-      <updated>1719609755427</updated>
-    </task>
-    <task id="LOCAL-00035" summary="added migration, reduced queue task, and added a print statement that keeps track of the queue">
-      <option name="closed" value="true" />
-      <created>1721436316418</created>
-      <option name="number" value="00035" />
-      <option name="presentableId" value="LOCAL-00035" />
-      <option name="project" value="LOCAL" />
-      <updated>1721436316418</updated>
-    </task>
-    <task id="LOCAL-00036" summary="added migration, reduced queue task, and added a print statement that keeps track of the queue">
-      <option name="closed" value="true" />
-      <created>1721437578888</created>
-      <option name="number" value="00036" />
-      <option name="presentableId" value="LOCAL-00036" />
-      <option name="project" value="LOCAL" />
-      <updated>1721437578888</updated>
-    </task>
-    <task id="LOCAL-00037" summary="Added ban revoking, a developer command and on unban.">
-      <option name="closed" value="true" />
-      <created>1722524671646</created>
-      <option name="number" value="00037" />
-      <option name="presentableId" value="LOCAL-00037" />
-      <option name="project" value="LOCAL" />
-      <updated>1722524671646</updated>
-    </task>
-    <task id="LOCAL-00038" summary="Live testing">
-      <option name="closed" value="true" />
-      <created>1722893300776</created>
-      <option name="number" value="00038" />
-      <option name="presentableId" value="LOCAL-00038" />
-      <option name="project" value="LOCAL" />
-      <updated>1722893300776</updated>
     </task>
     <task id="LOCAL-00039" summary="Live testing">
       <option name="closed" value="true" />
@@ -563,7 +443,127 @@
       <option name="project" value="LOCAL" />
       <updated>1725401561493</updated>
     </task>
-    <option name="localTasksCounter" value="73" />
+    <task id="LOCAL-00073" summary="Bug fix: error when joining a guild due to variables being the wrong away around.">
+      <option name="closed" value="true" />
+      <created>1725402104862</created>
+      <option name="number" value="00073" />
+      <option name="presentableId" value="LOCAL-00073" />
+      <option name="project" value="LOCAL" />
+      <updated>1725402104862</updated>
+    </task>
+    <task id="LOCAL-00074" summary="Bug fix: Fixed circular import. woops!">
+      <option name="closed" value="true" />
+      <created>1725402464150</created>
+      <option name="number" value="00074" />
+      <option name="presentableId" value="LOCAL-00074" />
+      <option name="project" value="LOCAL" />
+      <updated>1725402464150</updated>
+    </task>
+    <task id="LOCAL-00075" summary="Performance: Trying to improve start-up speed.">
+      <option name="closed" value="true" />
+      <created>1725403172001</created>
+      <option name="number" value="00075" />
+      <option name="presentableId" value="LOCAL-00075" />
+      <option name="project" value="LOCAL" />
+      <updated>1725403172001</updated>
+    </task>
+    <task id="LOCAL-00076" summary="Performance: Trying to improve start-up speed.">
+      <option name="closed" value="true" />
+      <created>1725403262509</created>
+      <option name="number" value="00076" />
+      <option name="presentableId" value="LOCAL-00076" />
+      <option name="project" value="LOCAL" />
+      <updated>1725403262509</updated>
+    </task>
+    <task id="LOCAL-00077" summary="Dev Mode for leaving disabled, attempting optimizations.">
+      <option name="closed" value="true" />
+      <created>1725403561339</created>
+      <option name="number" value="00077" />
+      <option name="presentableId" value="LOCAL-00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1725403561339</updated>
+    </task>
+    <task id="LOCAL-00078" summary="Enabling dev mode for leaving (live testing)">
+      <option name="closed" value="true" />
+      <created>1725404023441</created>
+      <option name="number" value="00078" />
+      <option name="presentableId" value="LOCAL-00078" />
+      <option name="project" value="LOCAL" />
+      <updated>1725404023441</updated>
+    </task>
+    <task id="LOCAL-00079" summary="Testing to find bottleneck (live)">
+      <option name="closed" value="true" />
+      <created>1725404417615</created>
+      <option name="number" value="00079" />
+      <option name="presentableId" value="LOCAL-00079" />
+      <option name="project" value="LOCAL" />
+      <updated>1725404417615</updated>
+    </task>
+    <task id="LOCAL-00080" summary="Enabling server leaving, finalizing optimization.">
+      <option name="closed" value="true" />
+      <created>1725404844824</created>
+      <option name="number" value="00080" />
+      <option name="presentableId" value="LOCAL-00080" />
+      <option name="project" value="LOCAL" />
+      <updated>1725404844824</updated>
+    </task>
+    <task id="LOCAL-00081" summary="[Beta] Banwatch will now look if there is a Rp Security Bot entry.">
+      <option name="closed" value="true" />
+      <created>1725502882592</created>
+      <option name="number" value="00081" />
+      <option name="presentableId" value="LOCAL-00081" />
+      <option name="project" value="LOCAL" />
+      <updated>1725502882592</updated>
+    </task>
+    <task id="LOCAL-00082" summary="Added a dev tool to test">
+      <option name="closed" value="true" />
+      <created>1725503026263</created>
+      <option name="number" value="00082" />
+      <option name="presentableId" value="LOCAL-00082" />
+      <option name="project" value="LOCAL" />
+      <updated>1725503026263</updated>
+    </task>
+    <task id="LOCAL-00083" summary="Added a dev tool to test">
+      <option name="closed" value="true" />
+      <created>1725503305364</created>
+      <option name="number" value="00083" />
+      <option name="presentableId" value="LOCAL-00083" />
+      <option name="project" value="LOCAL" />
+      <updated>1725503305364</updated>
+    </task>
+    <task id="LOCAL-00084" summary="Fix for RPSEC search">
+      <option name="closed" value="true" />
+      <created>1725533447381</created>
+      <option name="number" value="00084" />
+      <option name="presentableId" value="LOCAL-00084" />
+      <option name="project" value="LOCAL" />
+      <updated>1725533447381</updated>
+    </task>
+    <task id="LOCAL-00085" summary="Events should wait until the bot is ready, and now they will.">
+      <option name="closed" value="true" />
+      <created>1725533549649</created>
+      <option name="number" value="00085" />
+      <option name="presentableId" value="LOCAL-00085" />
+      <option name="project" value="LOCAL" />
+      <updated>1725533549649</updated>
+    </task>
+    <task id="LOCAL-00086" summary="[Bug Fix] Permission error fixed">
+      <option name="closed" value="true" />
+      <created>1725533844420</created>
+      <option name="number" value="00086" />
+      <option name="presentableId" value="LOCAL-00086" />
+      <option name="project" value="LOCAL" />
+      <updated>1725533844420</updated>
+    </task>
+    <task id="LOCAL-00087" summary="[Bug Fix] Permission error fixed">
+      <option name="closed" value="true" />
+      <created>1725534223254</created>
+      <option name="number" value="00087" />
+      <option name="presentableId" value="LOCAL-00087" />
+      <option name="project" value="LOCAL" />
+      <updated>1725534223254</updated>
+    </task>
+    <option name="localTasksCounter" value="88" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -578,18 +578,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="added migration, reduced queue task, and added a print statement that keeps track of the queue" />
-    <MESSAGE value="Added ban revoking, a developer command and on unban." />
-    <MESSAGE value="Live testing" />
-    <MESSAGE value="Bug fix: Bot now loads bans back in to the bot, it failed to do so before." />
-    <MESSAGE value="Bug fix: Upgraded the queue with a priority system." />
-    <MESSAGE value="Refactoring, updating the way bans are handled, added long-term ban storage and now stores correctly. Reduced time between tasks to 1 second; this will be observed." />
-    <MESSAGE value="Refactoring" />
-    <MESSAGE value="Refactoring, added a new button to the approvals, updated caching, and fixed some minor bugs" />
-    <MESSAGE value="added queue to new dev command" />
-    <MESSAGE value="Made the bans class a singleton to ensure bans are always loaded properly, previously it would load into the wrong class." />
-    <MESSAGE value="removed some debug statements" />
-    <MESSAGE value="live testing" />
     <MESSAGE value="Added more error handling" />
     <MESSAGE value="fixing a bug which prevents bans from being added and notified." />
     <MESSAGE value="Logging updated" />
@@ -603,14 +591,26 @@
     <MESSAGE value="Cleaning up on ban can now be toggled!" />
     <MESSAGE value="Added the name of the user to the finished broadcast message" />
     <MESSAGE value="Added a task to check for pending bans that may have been missed" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added a task to check for pending bans that may have been missed" />
+    <MESSAGE value="Bug fix: error when joining a guild due to variables being the wrong away around." />
+    <MESSAGE value="Bug fix: Fixed circular import. woops!" />
+    <MESSAGE value="Performance: Trying to improve start-up speed." />
+    <MESSAGE value="Dev Mode for leaving disabled, attempting optimizations." />
+    <MESSAGE value="Enabling dev mode for leaving (live testing)" />
+    <MESSAGE value="Testing to find bottleneck (live)" />
+    <MESSAGE value="Enabling server leaving, finalizing optimization." />
+    <MESSAGE value="[Beta] Banwatch will now look if there is a Rp Security Bot entry." />
+    <MESSAGE value="Added a dev tool to test" />
+    <MESSAGE value="Fix for RPSEC search" />
+    <MESSAGE value="Events should wait until the bot is ready, and now they will." />
+    <MESSAGE value="[Bug Fix] Permission error fixed" />
+    <option name="LAST_COMMIT_MESSAGE" value="[Bug Fix] Permission error fixed" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/modules/devtools.py</url>
-          <line>80</line>
+          <line>79</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
       </breakpoints>

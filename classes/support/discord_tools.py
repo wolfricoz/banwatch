@@ -73,5 +73,5 @@ async def get_all_threads(guild: discord.Guild):
             async for athread in channel.archived_threads():
                 all_threads.append(athread)
         except discord.errors.Forbidden:
-            logging.error(f"Missing permission to view archived threads in {channel.mention} in {channel.guild.name}")
+            logging.error(f"Missing permission to view archived threads in {channel.mention}({channel.name}) in {channel.guild.name}")
     return all_threads
