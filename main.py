@@ -62,7 +62,7 @@ async def on_ready():
     formguilds = "\n".join(guilds)
     logging.info(f"Bot is in {guild_count} guilds:\n{formguilds}")
     queue().add(bot.tree.sync(), priority=2)
-    queue().add(devroom.send(f"Banwatch is in {guild_count} guilds. Version 2.1.2"), priority=2)
+    queue().add(devroom.send(f"Banwatch is in {guild_count} guilds. Version 2.1.4"), priority=2)
 
 
 @bot.event
