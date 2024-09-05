@@ -22,6 +22,10 @@ class refresher(commands.Cog):
         await Bans().update(bot)
         print(f"[auto refresh]Bans Updated")
 
+    @ban_update_task.before_loop
+    async def before_ban_update_task(self):
+        await self.bot.wait_until_ready()
+
 
 async def setup(bot):
     await bot.add_cog(refresher(bot))

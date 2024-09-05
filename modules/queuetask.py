@@ -15,6 +15,10 @@ class queueTask(commands.Cog):
     async def queue(self):
         await queue().start()
 
+    @queue.before_loop
+    async def before_queue(self):
+        await self.bot.wait_until_ready()
+
 
 
 async def setup(bot):

@@ -39,6 +39,10 @@ class Tasks(commands.Cog):
     async def before_check_pending_bans(self):
         await self.bot.wait_until_ready()
 
+    @check_blacklist.before_loop
+    async def before_check_blacklist(self):
+        await self.bot.wait_until_ready()
+
 
 
 async def setup(bot):
