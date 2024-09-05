@@ -26,17 +26,18 @@ async def check_missing_permissions(channel: discord.TextChannel, required_permi
     return missing_permissions
 
 
-async def send_message(channel: discord.TextChannel, message=None, embed=None, view=None) -> None:
+async def send_message(channel: discord.TextChannel, message=None, embed=None, view=None) -> discord.Message:
     """Send a message to a channel, if there is no permission it will send an error message to the owner"""
+    last_message = None
     try:
-        logging.debug(f"Sending message to {channel.name}")
         length = 0
         if message is None:
-            await channel.send(embed=embed, view=view)
-            return
+            return await channel.send(embed=embed, view=view)
         while length < len(message):
-            await channel.send(message[length:length + max_length], embed=embed, view=view)
+            last_message = await channel.send(message[length:length + max_length], embed=embed, view=view)
             length += max_length
+        else:
+            return last_message
     except discord.errors.Forbidden:
         required_perms = ['view_channel', 'send_messages', 'embed_links', 'attach_files']
         missing_perms = await check_missing_permissions(channel, required_perms)
@@ -49,7 +50,7 @@ async def send_message(channel: discord.TextChannel, message=None, embed=None, v
 async def send_response(interaction: discord.Interaction, response, ephemeral=False):
     """Send a response to an interaction"""
     try:
-        await interaction.response.send_message(response, ephemeral=ephemeral)
+        return await interaction.response.send_message(response, ephemeral=ephemeral)
     except discord.errors.Forbidden:
         required_perms = ['view_channel', 'send_messages', 'embed_links', 'attach_files']
         missing_perms = await check_missing_permissions(interaction.channel, required_perms)
@@ -61,3 +62,13 @@ async def send_response(interaction: discord.Interaction, response, ephemeral=Fa
                 response,
                 ephemeral=ephemeral
         )
+
+async def get_all_threads(guild: discord.Guild):
+    """Get all threads in a guild"""
+    all_threads = []
+    for thread in guild.threads:
+        all_threads.append(thread)
+    for channel in guild.text_channels:
+        async for athread in channel.archived_threads():
+            all_threads.append(athread)
+    return all_threads

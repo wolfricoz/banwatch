@@ -8,7 +8,7 @@ from discord.ext import commands
 from classes.cacher import LongTermCache
 from classes.configer import Configer
 from classes.queue import queue
-from classes.support.discord_tools import send_message
+from classes.support.discord_tools import send_message, get_all_threads
 
 
 class Singleton(type):
@@ -193,7 +193,8 @@ class Bans(metaclass=Singleton):
     async def open_thread(self, user, guild, approved_message, dev_guild, open_thread):
         thread = None
         await asyncio.sleep(10)
-        for thread in dev_guild.threads:
+        all_threads = await get_all_threads(dev_guild)
+        for thread in all_threads:
             async for message in thread.history(limit=1, oldest_first=True):
                 if str(user.id) in message.content:
                     thread = await approved_message.create_thread(name=f"Rp Security entry for {user.name}")

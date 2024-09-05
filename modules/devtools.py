@@ -13,7 +13,7 @@ from classes.bans import Bans
 from classes.cacher import LongTermCache
 from classes.configer import Configer
 from classes.queue import queue
-from classes.support.discord_tools import send_response
+from classes.support.discord_tools import send_response, send_message, get_all_threads
 from classes.tasks import pending_bans
 from view.buttons.banapproval import BanApproval
 from view.modals.inputmodal import send_modal
@@ -296,15 +296,22 @@ class dev(commands.GroupCog, name="dev"):
 
     @app_commands.command(name="rpsecentrysearch", description="[DEV] Searches the rp security threads for a specific entry")
     @in_guild()
-    async def test(self, interaction: discord.Interaction, id: str):
+    async def rpseclookup(self, interaction: discord.Interaction, id: str):
         print("testing!")
-        await send_response(interaction, f"Checking threads", ephemeral=True)
+        message = await send_response(interaction, f"Checking threads", ephemeral=True)
         dev_guild: discord.Guild = self.bot.get_guild(self.bot.SUPPORTGUILD)
-        for thread in dev_guild.threads:
+        all_threads = await get_all_threads(dev_guild)
+        for thread in all_threads:
             async for message in thread.history(limit=1, oldest_first=True):
                 if id in message.content:
-                    await interaction.followup.send(f"Found in {thread.name}({thread.id})")
+                    await interaction.followup.send(f"Found in {thread.mention}: {message.jump_url}")
                     return
+        try:
+            await message.edit(content="Not found")
+        except discord.errors.NotFound:
+            pass
+        except discord.Forbidden:
+            await send_message(interaction.channel, "Not found")
 
 
 
