@@ -294,6 +294,18 @@ class dev(commands.GroupCog, name="dev"):
         await Bans().update(self.bot, override=True)
         await interaction.response.send_message("Bans refresh queued", ephemeral=True)
 
+    @app_commands.command(name="test")
+    @in_guild()
+    async def test(self, interaction: discord.Interaction, id: str):
+        print("testing!")
+        dev_guild: discord.Guild = self.bot.get_guild(self.bot.SUPPORTGUILD)
+        for thread in dev_guild.threads:
+            async for message in thread.history(limit=1, oldest_first=True):
+                if id in message.content:
+                    print(message.content)
+
+
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(dev(bot))

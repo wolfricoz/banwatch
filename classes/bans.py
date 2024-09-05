@@ -1,4 +1,5 @@
 """This class generates the ban list, with functions to update it, and to check for similar names"""
+import asyncio
 import logging
 
 import discord
@@ -181,14 +182,27 @@ class Bans(metaclass=Singleton):
         await Bans().announce_remove(wait_id)
         if interaction is not None:
             await interaction.message.delete()
-        queue().add(self.send_to_ban_channel(approved_channel, banembed, guild, user, open_thread))
+        queue().add(self.send_to_ban_channel(approved_channel, banembed, guild, user, open_thread, bot))
 
-    async def send_to_ban_channel(self, approved_channel, banembed, guild, user, open_thread):
+    async def send_to_ban_channel(self, approved_channel, banembed, guild, user, open_thread, bot: commands.Bot):
         approved_message = await approved_channel.send(embed=banembed)
+        dev_guild: discord.Guild = bot.get_guild(bot.SUPPORTGUILD)
+        queue().add(self.open_thread(user, guild, approved_message, dev_guild, open_thread), priority=0)
+
+
+    async def open_thread(self, user, guild, approved_message, dev_guild, open_thread):
+        thread = None
+        await asyncio.sleep(10)
+        for thread in dev_guild.threads:
+            async for message in thread.history(limit=1, oldest_first=True):
+                if str(user.id) in message.content:
+                    thread = await approved_message.create_thread(name=f"Rp Security entry for {user.name}")
+                    thread.send(f"Rp Security Entry: {message.jump_url}")
         if not open_thread:
             return
         guild_owner = guild.owner
-        thread = await approved_message.create_thread(name=f"Ban approval for {user.name}")
+        if not thread:
+            thread = await approved_message.create_thread(name=f"Ban approval for {user.name}")
         await thread.send(f"Please provide the proof of the ban here {guild_owner.mention}")
         await guild_owner.send(
                 f"Your ban for {user.name} has been approved and has been broadcasted, please provide the proof of the ban in the thread {thread.mention} in our support server. Not in our support server? Do the /support command to get the link!")
@@ -245,4 +259,3 @@ class Bans(metaclass=Singleton):
             queue().add(self.search_messages(bot, channel, banid, reason), priority=2)
         channel = bot.get_channel(bot.APPROVALCHANNEL)
         queue().add(self.search_messages(bot, channel, banid, reason), priority=2)
-
