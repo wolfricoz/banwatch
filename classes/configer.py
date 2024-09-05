@@ -18,6 +18,8 @@ class Configer(ABC):
             "modchannel": 0,
         }
         json_object = json.dumps(dictionary, indent=4)
+        if not os.path.isdir('configs'):
+            os.mkdir('configs')
         if os.path.exists(f"configs/{guildid}.json"):
             with open(f"configs/template.json", "w") as outfile:
                 outfile.write(json_object)
@@ -62,6 +64,8 @@ class Configer(ABC):
 
         }
         json_object = json.dumps(dictionary, indent=4)
+        if not os.path.isdir('settings'):
+            os.mkdir('settings')
         if os.path.exists(appeals_path):
             return
         with open(appeals_path, "w") as outfile:

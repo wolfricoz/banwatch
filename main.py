@@ -45,9 +45,9 @@ async def on_ready():
     guild_count = 0
     guilds = []
     # LOOPS THROUGH ALL THE GUILD / SERVERS THAT THE BOT IS ASSOCIATED WITH.
+    await Configer.create_appeals()
+    await Configer.create_bot_config()
     Bans().load_bans()
-    queue().add(Configer.create_bot_config(), priority=2)
-    queue().add(Configer.create_appeals(), priority=2)
     LongTermCache().create()
     logging.info("Configs and cache created")
     for guild in bot.guilds:

@@ -81,11 +81,6 @@ class Logging(commands.Cog):
             await ctx.send("You do not have permission")
         elif isinstance(error, commands.MemberNotFound):
             await ctx.send("User not found")
-        # elif isinstance(error, commands.CommandInvokeError):
-        #     await ctx.send("Command failed: See log.")
-        #     await ctx.send(error)
-        #     logging.warning(error)
-        #     raise error
         else:
             logger.warning(f"\n{ctx.guild.name} {ctx.guild.id} {ctx.command.name}: {error}")
             channel = self.bot.get_channel(self.bot.DEV)
