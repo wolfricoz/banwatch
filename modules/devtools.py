@@ -298,11 +298,14 @@ class dev(commands.GroupCog, name="dev"):
     @in_guild()
     async def test(self, interaction: discord.Interaction, id: str):
         print("testing!")
+        await send_response(interaction, f"Checking threads", ephemeral=True)
         dev_guild: discord.Guild = self.bot.get_guild(self.bot.SUPPORTGUILD)
         for thread in dev_guild.threads:
             async for message in thread.history(limit=1, oldest_first=True):
                 if id in message.content:
-                    await send_response(interaction, f"Found in {thread.name}", ephemeral=True)
+                    await interaction.followup.send(f"Found in {thread.name}({thread.id})")
+                    return
+
 
 
 
