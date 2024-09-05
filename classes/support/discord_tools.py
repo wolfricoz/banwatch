@@ -69,6 +69,9 @@ async def get_all_threads(guild: discord.Guild):
     for thread in guild.threads:
         all_threads.append(thread)
     for channel in guild.text_channels:
-        async for athread in channel.archived_threads():
-            all_threads.append(athread)
+        try:
+            async for athread in channel.archived_threads():
+                all_threads.append(athread)
+        except discord.errors.Forbidden:
+            pass
     return all_threads
