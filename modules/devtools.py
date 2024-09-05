@@ -294,7 +294,7 @@ class dev(commands.GroupCog, name="dev"):
         await Bans().update(self.bot, override=True)
         await interaction.response.send_message("Bans refresh queued", ephemeral=True)
 
-    @app_commands.command(name="test")
+    @app_commands.command(name="rpsecentrysearch", description="[DEV] Searches the rp security threads for a specific entry")
     @in_guild()
     async def test(self, interaction: discord.Interaction, id: str):
         print("testing!")
@@ -302,7 +302,7 @@ class dev(commands.GroupCog, name="dev"):
         for thread in dev_guild.threads:
             async for message in thread.history(limit=1, oldest_first=True):
                 if id in message.content:
-                    print(message.content)
+                    await send_response(interaction, f"Found in {thread.name}", ephemeral=True)
 
 
 
