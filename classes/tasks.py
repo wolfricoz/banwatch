@@ -1,6 +1,7 @@
 import discord
 
 from classes.cacher import LongTermCache
+from classes.queue import queue
 from view.buttons.banapproval import BanApproval
 
 
