@@ -4,8 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="[Bug Fix] Permission error fixed">
+    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="fix to task: pending_bans">
+      <change afterPath="$PROJECT_DIR$/modules/evidence.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/bans.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/bans.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/tools.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,16 +65,16 @@
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Users/ricoi/PycharmProjects/banbot/modules&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\ricoi\PycharmProjects\banbot\modules" />
+      <recent name="C:\Users\ricoi\PycharmProjects\banbot\docs" />
       <recent name="C:\Users\ricoi\PycharmProjects\banbot\classes\support" />
       <recent name="C:\Users\ricoi\PycharmProjects\banbot\classes" />
       <recent name="C:\Users\ricoi\PycharmProjects\banbot\view\buttons" />
-      <recent name="C:\Users\ricoi\PycharmProjects\banbot\view\modals" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\ricoi\PycharmProjects\banbot\settings" />
@@ -170,38 +174,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1669860831804</updated>
-    </task>
-    <task id="LOCAL-00039" summary="Live testing">
-      <option name="closed" value="true" />
-      <created>1722893749573</created>
-      <option name="number" value="00039" />
-      <option name="presentableId" value="LOCAL-00039" />
-      <option name="project" value="LOCAL" />
-      <updated>1722893749573</updated>
-    </task>
-    <task id="LOCAL-00040" summary="Live testing">
-      <option name="closed" value="true" />
-      <created>1722894128269</created>
-      <option name="number" value="00040" />
-      <option name="presentableId" value="LOCAL-00040" />
-      <option name="project" value="LOCAL" />
-      <updated>1722894128269</updated>
-    </task>
-    <task id="LOCAL-00041" summary="Live testing">
-      <option name="closed" value="true" />
-      <created>1722894934351</created>
-      <option name="number" value="00041" />
-      <option name="presentableId" value="LOCAL-00041" />
-      <option name="project" value="LOCAL" />
-      <updated>1722894934351</updated>
-    </task>
-    <task id="LOCAL-00042" summary="Bug fix: Bot now loads bans back in to the bot, it failed to do so before.">
-      <option name="closed" value="true" />
-      <created>1722895372494</created>
-      <option name="number" value="00042" />
-      <option name="presentableId" value="LOCAL-00042" />
-      <option name="project" value="LOCAL" />
-      <updated>1722895372494</updated>
     </task>
     <task id="LOCAL-00043" summary="Bug fix: Bot now loads bans back in to the bot, it failed to do so before.">
       <option name="closed" value="true" />
@@ -563,7 +535,39 @@
       <option name="project" value="LOCAL" />
       <updated>1725534223254</updated>
     </task>
-    <option name="localTasksCounter" value="88" />
+    <task id="LOCAL-00088" summary="Live test">
+      <option name="closed" value="true" />
+      <created>1725579021889</created>
+      <option name="number" value="00088" />
+      <option name="presentableId" value="LOCAL-00088" />
+      <option name="project" value="LOCAL" />
+      <updated>1725579021889</updated>
+    </task>
+    <task id="LOCAL-00089" summary="More logging">
+      <option name="closed" value="true" />
+      <created>1725579239449</created>
+      <option name="number" value="00089" />
+      <option name="presentableId" value="LOCAL-00089" />
+      <option name="project" value="LOCAL" />
+      <updated>1725579239449</updated>
+    </task>
+    <task id="LOCAL-00090" summary="Added a privacy policy">
+      <option name="closed" value="true" />
+      <created>1725662322260</created>
+      <option name="number" value="00090" />
+      <option name="presentableId" value="LOCAL-00090" />
+      <option name="project" value="LOCAL" />
+      <updated>1725662322260</updated>
+    </task>
+    <task id="LOCAL-00091" summary="fix to task: pending_bans">
+      <option name="closed" value="true" />
+      <created>1726582562626</created>
+      <option name="number" value="00091" />
+      <option name="presentableId" value="LOCAL-00091" />
+      <option name="project" value="LOCAL" />
+      <updated>1726582562626</updated>
+    </task>
+    <option name="localTasksCounter" value="92" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -578,10 +582,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Added more error handling" />
-    <MESSAGE value="fixing a bug which prevents bans from being added and notified." />
-    <MESSAGE value="Logging updated" />
-    <MESSAGE value="updated the reban command so it no longer informs, this reduces awkward moments. Also added the ability to toggle if a user will be informed upon ban" />
     <MESSAGE value="implementation of permission checking started; will be added over the course of the coming month as needed." />
     <MESSAGE value="Fix to the dev command 'blacklist_server'" />
     <MESSAGE value="Added additional permission checking and logging to the check commands" />
@@ -603,7 +603,11 @@
     <MESSAGE value="Fix for RPSEC search" />
     <MESSAGE value="Events should wait until the bot is ready, and now they will." />
     <MESSAGE value="[Bug Fix] Permission error fixed" />
-    <option name="LAST_COMMIT_MESSAGE" value="[Bug Fix] Permission error fixed" />
+    <MESSAGE value="Live test" />
+    <MESSAGE value="More logging" />
+    <MESSAGE value="Added a privacy policy" />
+    <MESSAGE value="fix to task: pending_bans" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix to task: pending_bans" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

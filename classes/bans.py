@@ -193,7 +193,6 @@ class Bans(metaclass=Singleton):
         dev_guild: discord.Guild = bot.get_guild(bot.SUPPORTGUILD)
         queue().add(self.open_thread(user, guild, approved_message, dev_guild, open_thread), priority=0)
 
-
     async def open_thread(self, user, guild, approved_message, dev_guild, open_thread):
         thread = None
         await asyncio.sleep(10)
@@ -206,6 +205,7 @@ class Bans(metaclass=Singleton):
         if not open_thread:
             return
         guild_owner = guild.owner
+        print(thread)
         if not thread:
             thread = await approved_message.create_thread(name=f"Ban approval for {user.name}")
         await thread.send(f"Please provide the proof of the ban here {guild_owner.mention}")
@@ -228,32 +228,38 @@ class Bans(metaclass=Singleton):
         print(f"deleting {message.id}")
         await message.delete()
 
+    async def find_ban_record(self, bot, banid, channel=None):
+        if channel is None:
+            channel = bot.get_channel(bot.APPROVALCHANNEL)
+        async for message in channel.history():
+            if message.author.id != bot.user.id:
+                continue
+            if len(message.embeds) < 1:
+                continue
+            embed = message.embeds[0]
+            if embed.footer.text and str(banid) in embed.footer.text:
+                print(f"Found {message.id} in {channel.name} ({channel.guild.name})")
+                return message, embed
+        return None, None
+
     async def search_messages(self, bot, channel: discord.TextChannel, banid: str, reason: str):
         banid = str(banid)
         print(f"checking {channel.name} ({channel.guild.name})")
         try:
-            async for message in channel.history():
-                if message.author.id != bot.user.id:
-                    continue
-                if len(message.embeds) < 1:
-                    continue
-                embed = message.embeds[0]
-                # if embed.footer.text:
-                #     print(f"checking {message.id} in {channel.name} ({channel.guild.name}) with footer: {embed.footer.text}")
-
-                if embed.footer.text and banid in embed.footer.text:
-                    print(f"Found {message.id} in {channel.name} ({channel.guild.name})")
-                    queue().add(self.delete_message(message), priority=2)
-                    queue().add(channel.send(f"Revoked ban `{embed.title}`! Reason: \n"
-                                             f"{reason}"), priority=2)
-                    print(f"[revoke_ban] Queued deletion of {message.id} in {channel.name} ({channel.guild.name})")
-                    logging.info(f"[revoke_ban] Queued deletion of {message.id} in {channel.name} ({channel.guild.name})")
-                    break
+            message, embed = await self.find_ban_record(bot, banid, channel)
         except discord.Forbidden:
             await channel.guild.owner.send(
-                    f"Banwatch does not have permission to view chat history or access to the channel in {channel.name} ({channel.guild}). Please give Banwatch the necessary permissions to revoke bans. This is to ensure that"
+                    f"Banwatch does not have permission to view chat history or access to the channel in {channel.name} ({channel.guild}). Please give Banwatch the necessary permissions to revoke bans from the channel. This is to ensure that"
                     f" the correct information is shared and bans with false information can be removed.")
             logging.error(f"Missing permissions to search messages in {channel.name} ({channel.guild})")
+            return
+        if message is None:
+            return
+        queue().add(self.delete_message(message), priority=2)
+        queue().add(channel.send(f"Revoked ban `{embed.title}`! Reason: \n"
+                                 f"{reason}"), priority=2)
+        print(f"[revoke_ban] Queued deletion of {message.id} in {channel.name} ({channel.guild.name})")
+        logging.info(f"[revoke_ban] Queued deletion of {message.id} in {channel.name} ({channel.guild.name})")
 
     async def revoke_bans(self, bot, banid, reason):
         for guild in bot.guilds:
