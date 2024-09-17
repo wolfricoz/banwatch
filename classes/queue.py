@@ -1,3 +1,4 @@
+import logging
 class queue():
     high_priority_queue = []
     normal_priority_queue = []
@@ -44,6 +45,6 @@ class queue():
                 await task
 
             except Exception as e:
-                print(e)
+                logging.error(f"Error in queue: {e}")
             self.task_finished = True
             print(f"Remaining queue: High: {len(self.high_priority_queue)} Normal: {len(self.normal_priority_queue)} Low: {len(self.low_priority_queue)}")
