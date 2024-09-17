@@ -197,15 +197,14 @@ class Bans(metaclass=Singleton):
         thread = None
         await asyncio.sleep(10)
         all_threads = await get_all_threads(dev_guild)
-        for thread in all_threads:
-            async for message in thread.history(limit=1, oldest_first=True):
+        for thread_check in all_threads:
+            async for message in thread_check.history(limit=1, oldest_first=True):
                 if str(user.id) in message.content:
                     thread = await approved_message.create_thread(name=f"Rp Security entry for {user.name}")
-                    thread.send(f"Rp Security Entry: {message.jump_url}")
+                    await thread.send(f"Rp Security Entry: {message.jump_url}")
         if not open_thread:
             return
         guild_owner = guild.owner
-        print(thread)
         if not thread:
             thread = await approved_message.create_thread(name=f"Ban approval for {user.name}")
         await thread.send(f"Please provide the proof of the ban here {guild_owner.mention}")

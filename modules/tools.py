@@ -6,6 +6,7 @@ from discord.app_commands import Choice
 from discord.ext import commands
 
 from classes.bans import Bans
+from classes.support.discord_tools import send_message, send_response
 from view.modals.inputmodal import send_modal
 
 
@@ -35,7 +36,7 @@ class Tools(commands.Cog):
         await interaction.guild.ban(user, reason=reason, delete_message_days=1 if clean else 0)
         # await interaction.channel.send(f"DEBUG: BAN FUNCTION DISABLED FOR TESTING.`")
         embed = discord.Embed(title=f"{user.name} ({user.id}) banned!", description=f"{reason}", color=discord.Color.red())
-        embed.set_footer(text=f"Moderator: {interaction.user.name}, wwas the user informed? {'Yes' if inform else 'No'}")
+        embed.set_footer(text=f"Moderator: {interaction.user.name}, was the user informed? {'Yes' if inform else 'No'}")
         await interaction.channel.send(embed=embed)
         if not inform:
             return
@@ -125,16 +126,19 @@ class Tools(commands.Cog):
         Choice(name="Silent", value="[silent]"),
         Choice(name="Hidden", value="[hidden]")
     ])
-    async def reban(self, interaction: discord.Interaction, user: discord.User, ban_type: Choice[str] = ""):
+    async def reban(self, interaction: discord.Interaction, user: discord.User, ban_type: Choice[str] = "", reason: str = "Ban being updated using /reban"):
         """Bans a user from the server"""
         if isinstance(ban_type, Choice):
             ban_type = ban_type.value
         reason_modal = await send_modal(interaction, "What is the reason for the ban?", "Ban Reason")
         try:
-            await interaction.guild.unban(user)
+            await interaction.guild.unban(user, reason=reason)
         except discord.errors.NotFound:
             pass
-        await self.ban_user(interaction, user, ban_type, reason_modal, inform=False)
+        try:
+            await self.ban_user(interaction, user, ban_type, reason_modal, inform=False)
+        except discord.Forbidden:
+            await send_response(interaction, "I don't have permission to ban this user")
 
     @app_commands.command(name="kick", description="Kicks a user from the server and informs them with a DM. you can also choose to reinvite them.")
     @app_commands.checks.has_permissions(kick_members=True)

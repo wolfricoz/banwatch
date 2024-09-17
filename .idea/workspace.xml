@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="fix to task: pending_bans">
-      <change afterPath="$PROJECT_DIR$/modules/evidence.py" afterDir="false" />
+    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Added logging to debug threads not opening">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/bans.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/bans.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/on_member_unban.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/on_member_unban.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/tools.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -174,14 +172,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1669860831804</updated>
-    </task>
-    <task id="LOCAL-00043" summary="Bug fix: Bot now loads bans back in to the bot, it failed to do so before.">
-      <option name="closed" value="true" />
-      <created>1722895406007</created>
-      <option name="number" value="00043" />
-      <option name="presentableId" value="LOCAL-00043" />
-      <option name="project" value="LOCAL" />
-      <updated>1722895406007</updated>
     </task>
     <task id="LOCAL-00044" summary="Bug fix: Upgraded the queue with a priority system.">
       <option name="closed" value="true" />
@@ -567,7 +557,15 @@
       <option name="project" value="LOCAL" />
       <updated>1726582562626</updated>
     </task>
-    <option name="localTasksCounter" value="92" />
+    <task id="LOCAL-00092" summary="Added logging to debug threads not opening">
+      <option name="closed" value="true" />
+      <created>1726582893379</created>
+      <option name="number" value="00092" />
+      <option name="presentableId" value="LOCAL-00092" />
+      <option name="project" value="LOCAL" />
+      <updated>1726582893379</updated>
+    </task>
+    <option name="localTasksCounter" value="93" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -582,7 +580,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="implementation of permission checking started; will be added over the course of the coming month as needed." />
     <MESSAGE value="Fix to the dev command 'blacklist_server'" />
     <MESSAGE value="Added additional permission checking and logging to the check commands" />
     <MESSAGE value="Performance improvement: new servers now use the queue system to be added." />
@@ -607,7 +604,8 @@
     <MESSAGE value="More logging" />
     <MESSAGE value="Added a privacy policy" />
     <MESSAGE value="fix to task: pending_bans" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix to task: pending_bans" />
+    <MESSAGE value="Added logging to debug threads not opening" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added logging to debug threads not opening" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
