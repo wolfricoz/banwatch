@@ -91,7 +91,11 @@ class Tools(commands.Cog):
     @app_commands.checks.has_permissions(ban_members=True)
     async def unban(self, interaction: discord.Interaction, user: discord.User):
         """Unbans a user from the server"""
-        await interaction.guild.unban(user)
+
+        try:
+            await interaction.guild.unban(user)
+        except discord.NotFound:
+            return await send_message(interaction.channel, "User is not banned/cannot be found")
         embed = discord.Embed(title=f"{user.name} unbanned", color=discord.Color.green())
         await interaction.channel.send(embed=embed)
 
