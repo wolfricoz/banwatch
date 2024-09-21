@@ -22,7 +22,7 @@ class Evidence(commands.GroupCog , name="evidence"):
         """Adds evidence to a user's record"""
         ban_entry: discord.Message
         ban_id = interaction.guild.id + user.id
-        await send_response(interaction, f"Please send a message with the evidence you would like to add to {user.name}'s record, this will be added to the ban ID {ban_id} in our support server. \n Type `cancel` to cancel.")
+        await send_response(interaction, f"Please send a message with the evidence you would like to add to {user.name}'s record, this will be added to the ban ID {ban_id} in our support server. \n Type `cancel` to cancel.\n -# By responding to this message you agree to the evidence being stored in our support server.")
         evidence = await self.bot.wait_for('message', check=lambda m: m.author == interaction.user, timeout=600)
         if evidence.content.lower() == "cancel":
             return
