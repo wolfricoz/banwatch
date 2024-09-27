@@ -77,7 +77,7 @@ async def on_guild_join(guild: discord.Guild) -> None:
         await guild.owner.send("[SECURITY ALERT] Banwatch has left your server due to low member count. Please ensure your server has at least 25 members to use the bot.")
         await log.send(f"Left {guild}({guild.id}) due to low member count ({membercount})")
         await guild.leave()
-
+        return
     await Configer.create(guild.id, guild.name)
     logging.info("sending DM now")
     await guild.owner.send("Thank you for inviting **ban watch**, please read https://wolfricoz.github.io/banwatch/ to set up the bot")
