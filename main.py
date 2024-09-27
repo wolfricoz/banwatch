@@ -70,12 +70,25 @@ async def on_guild_join(guild: discord.Guild) -> None:
     """When the bot it creates a config and sends a DM to the owner with instructions."""
     # adds user to database
     log = bot.get_channel(DEV)
+    membercount = len([m for m in guild.members if not m.bot])
+    logging.info(f"Server Info: {guild}({guild.id}) has {membercount} members, it's owner is {guild.owner}({guild.owner.id}) and it was created at {guild.created_at}. This server has {len(guild.channels)} channels and {len(guild.roles)} roles.")
+
+
     if await blacklist_check(guild, log):
         return
+    if membercount < 25:
+        await guild.owner.send("[SECURITY ALERT] Banwatch has left your server due to low member count. Please ensure your server has at least 25 members to use the bot.")
+        await log.send(f"Left {guild}({guild.id}) due to low member count ({membercount})")
+        await guild.leave()
+
     await Configer.create(guild.id, guild.name)
     logging.info("sending DM now")
     await guild.owner.send("Thank you for inviting **ban watch**, please read https://wolfricoz.github.io/banwatch/ to set up the bot")
-    await log.send(f"Joined {guild}({guild.id}). Ban watch is now in {len(bot.guilds)}")
+    await log.send(f"Ban watch is now in {len(bot.guilds)}! It just joined:"
+                   f"\nGuild: {guild}({guild.id})"
+                   f"\nOwner: {guild.owner}({guild.owner.id})"
+                   f"\nMember count: {membercount}"
+                   f"\n\nWelcome to the Banwatch collective!")
     # SYNCS COMMANDS
     await bot.tree.sync()
     # Updates ban list
