@@ -224,7 +224,7 @@ class Bans(metaclass=Singleton):
                 await p.delete()
 
         await guild_owner.send(
-                f"Your ban for {user.name} has been approved and has been broadcasted, please provide the proof of the ban in the thread {thread.mention} in our support server. Not in our support server? Do the /support command to get the link!")
+                f"Your ban for {user.name} has been approved and has been broadcasted, please provide the proof of the ban in the thread {thread.mention} in our support server. You can provide the proof by using the /evidence add command in the thread, or by joining our support server (18+).")
 
     async def check_previous_bans(self, original_message, dev_guild: discord.Guild, user_id):
         ban_channel: discord.TextChannel = dev_guild.get_channel(int(os.getenv("APPROVED")))

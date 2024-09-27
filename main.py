@@ -1,19 +1,16 @@
 import logging
 import os
-from time import sleep
 
 import discord
 from discord.ext import commands
 # IMPORT LOAD_DOTENV FUNCTION FROM DOTENV MODULE.
 from dotenv import load_dotenv
-from sqlalchemy.util.queue import Queue
 
 from classes.bans import Bans
 from classes.blacklist import blacklist_check
 from classes.cacher import LongTermCache
 from classes.configer import Configer
 from classes.queue import queue
-from classes.support.discord_tools import send_message
 
 # LOADS THE .ENV FILE THAT RESIDES ON THE SAME LEVEL AS THE SCRIPT.
 load_dotenv('main.env')
@@ -62,7 +59,7 @@ async def on_ready():
     formguilds = "\n".join(guilds)
     logging.info(f"Bot is in {guild_count} guilds:\n{formguilds}")
     queue().add(bot.tree.sync(), priority=2)
-    queue().add(devroom.send(f"Banwatch is in {guild_count} guilds. Version 2.1.4"), priority=2)
+    queue().add(devroom.send(f"Banwatch is in {guild_count} guilds. Version 2.1.5"), priority=2)
 
 
 @bot.event
@@ -71,8 +68,8 @@ async def on_guild_join(guild: discord.Guild) -> None:
     # adds user to database
     log = bot.get_channel(DEV)
     membercount = len([m for m in guild.members if not m.bot])
-    logging.info(f"Server Info: {guild}({guild.id}) has {membercount} members, it's owner is {guild.owner}({guild.owner.id}) and it was created at {guild.created_at}. This server has {len(guild.channels)} channels and {len(guild.roles)} roles.")
-
+    logging.info(
+        f"Server Info: {guild}({guild.id}) has {membercount} members, it's owner is {guild.owner}({guild.owner.id}) and it was created at {guild.created_at}. This server has {len(guild.channels)} channels and {len(guild.roles)} roles.")
 
     if await blacklist_check(guild, log):
         return

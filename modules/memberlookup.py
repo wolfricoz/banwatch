@@ -72,6 +72,11 @@ class User(commands.GroupCog, name="user"):
         await interaction.response.defer(ephemeral=True)
         if Bans().is_ready() is False:
             return await interaction.followup.send("Bans not ready, please wait a moment - this usually takes 2 minutes.", ephemeral=True)
+        # if interaction.user.id == member.id and not interaction.guild.id == self.bot.SUPPORTGUILD:
+        #     logging.warning(f"{interaction.user} tried to look up themselves")
+        #     return await send_response(interaction, "You can not look up yourself!",
+        #                                ephemeral=True)
+
         sr = await Bans().check(self.bot, member.id)
         if sr is None:
             await send_message(interaction.channel, f"<@{member.id}> is not banned in any servers the bot is in.")
@@ -82,6 +87,10 @@ class User(commands.GroupCog, name="user"):
     @app_commands.checks.has_permissions(ban_members=True)
     async def lookupid(self, interaction: discord.Interaction, memberid: str):
         logging.info(f"{interaction.user} from {interaction.guild.name} is looking up {memberid}")
+        # if interaction.user.id == memberid and not interaction.guild.id == self.bot.SUPPORTGUILD:
+        #     logging.warning(f"{interaction.user} tried to look up themselves")
+        #     return await send_response(interaction, "You can not look up yourself!",
+        #                                ephemeral=True)
         if BanCheck().member_count_check(interaction.guild, self.bot) is False:
             await send_message(interaction.channel, "This command can only be used in servers with 50 or more members, to prevent abuse.")
             return
