@@ -1,6 +1,6 @@
 """This class generates the ban list, with functions to update it, and to check for similar names"""
-import asyncio
 import logging
+import os
 
 import discord
 from discord.ext import commands
@@ -8,7 +8,8 @@ from discord.ext import commands
 from classes.cacher import LongTermCache
 from classes.configer import Configer
 from classes.queue import queue
-from classes.support.discord_tools import send_message, get_all_threads
+from classes.rpsec import RpSec
+from classes.support.discord_tools import send_message
 
 
 class Singleton(type):
@@ -191,25 +192,37 @@ class Bans(metaclass=Singleton):
     async def send_to_ban_channel(self, approved_channel, banembed, guild, user, open_thread, bot: commands.Bot):
         approved_message = await approved_channel.send(embed=banembed)
         dev_guild: discord.Guild = bot.get_guild(bot.SUPPORTGUILD)
-        queue().add(self.open_thread(user, guild, approved_message, dev_guild, open_thread), priority=0)
+        queue().add(self.open_thread(user, guild, approved_message, dev_guild, open_thread))
 
-    async def open_thread(self, user, guild, approved_message, dev_guild, open_thread):
-        thread = None
-        await asyncio.sleep(10)
-        all_threads = await get_all_threads(dev_guild)
-        for thread_check in all_threads:
-            async for message in thread_check.history(limit=1, oldest_first=True):
-                if str(user.id) in message.content:
-                    thread = await approved_message.create_thread(name=f"Rp Security entry for {user.name}")
-                    await thread.send(f"Rp Security Entry: {message.jump_url}")
-        if not open_thread:
+    async def open_thread(self, user, guild, approved_message, dev_guild: discord.Guild, provide_proof):
+        rpsec = dev_guild.get_thread(RpSec.get_user(user.id))
+        thread = await approved_message.create_thread(name=f"Ban Information for {user.name}")
+        if rpsec is not None:
+            await send_message(thread, f"User's RP Security thread: {rpsec.mention}")
+        prev_bans = await self.check_previous_bans(approved_message, dev_guild, user.id)
+        if prev_bans:
+            text_bans = '\n'.join([f"{ban.jump_url}" for ban in prev_bans])
+            await send_message(thread, f"Previous bans for {user.name}:"
+                              f"\n{text_bans}")
+        if not provide_proof:
             return
         guild_owner = guild.owner
-        if not thread:
-            thread = await approved_message.create_thread(name=f"Ban approval for {user.name}")
-        await thread.send(f"Please provide the proof of the ban here {guild_owner.mention}")
+        await send_message(thread, f"Please provide the proof of the ban here {guild_owner.mention}")
         await guild_owner.send(
                 f"Your ban for {user.name} has been approved and has been broadcasted, please provide the proof of the ban in the thread {thread.mention} in our support server. Not in our support server? Do the /support command to get the link!")
+
+    async def check_previous_bans(self, original_message, dev_guild: discord.Guild, user_id):
+        ban_channel: discord.TextChannel = dev_guild.get_channel(int(os.getenv("APPROVED")))
+        bans = []
+        async for message in ban_channel.history(limit=10000):
+            if message.id == original_message.id:
+                continue
+            if len(message.embeds) < 1:
+                continue
+            embed = message.embeds[0]
+            if embed.title and str(user_id) in embed.title:
+                bans.append(message)
+        return bans
 
     async def create_invite(self, guild: discord.Guild):
         try:

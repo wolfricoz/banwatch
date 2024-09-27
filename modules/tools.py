@@ -15,7 +15,7 @@ class Tools(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    async def ban_user(self, interaction: discord.Interaction, user: discord.User, ban_type, reason_modal, inform = True, clean = False):
+    async def ban_user(self, interaction: discord.Interaction, user: discord.User, ban_type, reason_modal, inform=True, clean=False):
         if interaction.guild is None:
             await send_message(interaction.channel, "This command can only be used in a server")
             return
@@ -30,7 +30,6 @@ class Tools(commands.Cog):
             return
         if ban_type == "[silent]" or ban_type == "[hidden]":
             inform = False
-
 
         reason = f"{ban_type}{reason_modal}"
         await interaction.guild.ban(user, reason=reason, delete_message_days=1 if clean else 0)
@@ -159,8 +158,6 @@ class Tools(commands.Cog):
         await self.dm_user(interaction, reason, user)
         embed = discord.Embed(title=f"{user.name} kicked", description=reason, color=discord.Color.green())
         await interaction.channel.send(embed=embed)
-
-
 
 
 async def setup(bot: commands.Bot):
