@@ -33,7 +33,7 @@ async def check_missing_permissions(channel: discord.TextChannel, required_permi
     return missing_permissions
 
 
-async def send_message(channel: discord.TextChannel, message=None, embed=None, view=None) -> discord.Message:
+async def send_message(channel: discord.TextChannel, message=None, embed=None, view=None, files=None) -> discord.Message:
     """Send a message to a channel, if there is no permission it will send an error message to the owner"""
     last_message = None
     if channel is None:
@@ -41,9 +41,9 @@ async def send_message(channel: discord.TextChannel, message=None, embed=None, v
     try:
         length = 0
         if message is None:
-            return await channel.send(embed=embed, view=view)
+            return await channel.send(embed=embed, view=view, files=files)
         while length < len(message):
-            last_message = await channel.send(message[length:length + max_length], embed=embed, view=view)
+            last_message = await channel.send(message[length:length + max_length], embed=embed, view=view, files=files)
             length += max_length
         else:
             return last_message
@@ -67,11 +67,13 @@ async def send_response(interaction: discord.Interaction, response, ephemeral=Fa
         await interaction.guild.owner.send(f"Missing permission to send message to {channel.name}. Check permissions: {', '.join(missing_perms)}", )
         raise NoMessagePermissionException(missing_permissions=missing_perms)
     except discord.errors.NotFound:
-        await interaction.followup.send(
+        try:
+            await interaction.followup.send(
                 response,
                 ephemeral=ephemeral
-        )
-
+            )
+        except discord.errors.NotFound:
+            await send_message(interaction.channel, response)
 
 async def get_all_threads(guild: discord.Guild):
     """Get all threads in a guild"""

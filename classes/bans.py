@@ -194,10 +194,13 @@ class Bans(metaclass=Singleton):
     async def send_to_ban_channel(self, approved_channel, banembed, guild, user, open_thread, bot: commands.Bot):
         approved_message = await approved_channel.send(embed=banembed)
         dev_guild: discord.Guild = bot.get_guild(bot.SUPPORTGUILD)
-        queue().add(self.open_thread(user, guild, approved_message, dev_guild, open_thread))
+        queue().add(self.open_thread(user, guild, approved_message, dev_guild, open_thread, bot))
 
-    async def open_thread(self, user, guild, approved_message, dev_guild: discord.Guild, provide_proof):
+    async def open_thread(self, user, guild, approved_message, dev_guild: discord.Guild, provide_proof, bot):
         rpsec = dev_guild.get_thread(RpSec.get_user(user.id))
+        evidence_channel = bot.get_channel(bot.BANCHANNEL)
+        wait_id = guild.id + user.id
+
         thread = await approved_message.create_thread(name=f"Ban Information for {user.name}")
         if rpsec is not None:
             await send_message(thread, f"User's RP Security thread: {rpsec.mention}")
@@ -205,11 +208,16 @@ class Bans(metaclass=Singleton):
         if prev_bans:
             text_bans = '\n'.join([f"{ban.jump_url}" for ban in prev_bans])
             await send_message(thread, f"Previous bans for {user.name}:"
-                              f"\n{text_bans}")
+                                       f"\n{text_bans}")
         if not provide_proof:
             return
         guild_owner = guild.owner
         await send_message(thread, f"Please provide the proof of the ban here {guild_owner.mention}")
+        async for p in evidence_channel.history(limit=1000):
+            if str(wait_id) in p.content:
+                await send_message(thread, p.content, files=[await a.to_file() for a in p.attachments])
+                await p.delete()
+
         await guild_owner.send(
                 f"Your ban for {user.name} has been approved and has been broadcasted, please provide the proof of the ban in the thread {thread.mention} in our support server. Not in our support server? Do the /support command to get the link!")
 
