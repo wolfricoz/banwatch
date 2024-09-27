@@ -17,16 +17,16 @@ class Tools(commands.Cog):
 
     async def ban_user(self, interaction: discord.Interaction, user: discord.User, ban_type, reason_modal, inform = True, clean = False):
         if interaction.guild is None:
-            await interaction.channel.send("This command can only be used in a server")
+            await send_message(interaction.channel, "This command can only be used in a server")
             return
         if user.id == interaction.user.id:
-            await interaction.channel.send("You can't ban yourself")
+            await send_message(interaction.channel, "You can't ban yourself")
             return
         if user.id == self.bot.user.id:
-            await interaction.channel.send("I can't ban myself")
+            await send_message(interaction.channel, "I can't ban myself")
             return
         if user.id == interaction.guild.owner_id:
-            await interaction.channel.send("You can't ban the owner of the server")
+            await send_message(interaction.channel, "You can't ban the owner of the server")
             return
         if ban_type == "[silent]" or ban_type == "[hidden]":
             inform = False
@@ -37,7 +37,7 @@ class Tools(commands.Cog):
         # await interaction.channel.send(f"DEBUG: BAN FUNCTION DISABLED FOR TESTING.`")
         embed = discord.Embed(title=f"{user.name} ({user.id}) banned!", description=f"{reason}", color=discord.Color.red())
         embed.set_footer(text=f"Moderator: {interaction.user.name}, was the user informed? {'Yes' if inform else 'No'}")
-        await interaction.channel.send(embed=embed)
+        await send_message(interaction.channel, embed=embed)
         if not inform:
             return
         await self.dm_user(interaction, reason_modal, user)

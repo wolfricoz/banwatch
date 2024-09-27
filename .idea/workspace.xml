@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Added logging to debug threads not opening">
+    <list default="true" id="502bb424-c76c-4b17-acde-24d3efc63f47" name="Changes" comment="Updated the privacy policy as well as added a note to the commands that use the message intent.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/on_member_unban.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/on_member_unban.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/tools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,6 +57,7 @@
     &quot;Python.checkword.executor&quot;: &quot;Run&quot;,
     &quot;Python.main.executor&quot;: &quot;Run&quot;,
     &quot;Python.queue-test.executor&quot;: &quot;Run&quot;,
+    &quot;Python.rpsectest.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
@@ -82,7 +82,7 @@
       <recent name="C:\Users\ricoi\PycharmProjects\banbot" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.main">
+  <component name="RunManager" selected="Python.rpsectest">
     <configuration name="checkword" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="banbot" />
       <option name="ENV_FILES" value="" />
@@ -149,8 +149,31 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="rpsectest" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="banbot" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test/rpsectest.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.rpsectest" />
         <item itemvalue="Python.main" />
         <item itemvalue="Python.queue-test" />
         <item itemvalue="Python.checkword" />
@@ -172,46 +195,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1669860831804</updated>
-    </task>
-    <task id="LOCAL-00044" summary="Bug fix: Upgraded the queue with a priority system.">
-      <option name="closed" value="true" />
-      <created>1722898282552</created>
-      <option name="number" value="00044" />
-      <option name="presentableId" value="LOCAL-00044" />
-      <option name="project" value="LOCAL" />
-      <updated>1722898282552</updated>
-    </task>
-    <task id="LOCAL-00045" summary="Refactoring, updating the way bans are handled, added long-term ban storage and now stores correctly. Reduced time between tasks to 1 second; this will be observed.">
-      <option name="closed" value="true" />
-      <created>1722903811488</created>
-      <option name="number" value="00045" />
-      <option name="presentableId" value="LOCAL-00045" />
-      <option name="project" value="LOCAL" />
-      <updated>1722903811488</updated>
-    </task>
-    <task id="LOCAL-00046" summary="Refactoring, updating the way bans are handled, added long-term ban storage and now stores correctly. Reduced time between tasks to 1 second; this will be observed.">
-      <option name="closed" value="true" />
-      <created>1722903954490</created>
-      <option name="number" value="00046" />
-      <option name="presentableId" value="LOCAL-00046" />
-      <option name="project" value="LOCAL" />
-      <updated>1722903954490</updated>
-    </task>
-    <task id="LOCAL-00047" summary="Refactoring">
-      <option name="closed" value="true" />
-      <created>1723125146256</created>
-      <option name="number" value="00047" />
-      <option name="presentableId" value="LOCAL-00047" />
-      <option name="project" value="LOCAL" />
-      <updated>1723125146257</updated>
-    </task>
-    <task id="LOCAL-00048" summary="Refactoring">
-      <option name="closed" value="true" />
-      <created>1723125568447</created>
-      <option name="number" value="00048" />
-      <option name="presentableId" value="LOCAL-00048" />
-      <option name="project" value="LOCAL" />
-      <updated>1723125568447</updated>
     </task>
     <task id="LOCAL-00049" summary="Refactoring">
       <option name="closed" value="true" />
@@ -565,7 +548,47 @@
       <option name="project" value="LOCAL" />
       <updated>1726582893379</updated>
     </task>
-    <option name="localTasksCounter" value="93" />
+    <task id="LOCAL-00093" summary="Fix for proof thread not opening">
+      <option name="closed" value="true" />
+      <created>1726583729166</created>
+      <option name="number" value="00093" />
+      <option name="presentableId" value="LOCAL-00093" />
+      <option name="project" value="LOCAL" />
+      <updated>1726583729166</updated>
+    </task>
+    <task id="LOCAL-00094" summary="Fix for proof thread not opening">
+      <option name="closed" value="true" />
+      <created>1726583853887</created>
+      <option name="number" value="00094" />
+      <option name="presentableId" value="LOCAL-00094" />
+      <option name="project" value="LOCAL" />
+      <updated>1726583853887</updated>
+    </task>
+    <task id="LOCAL-00095" summary="tiny update to error handling in the queue">
+      <option name="closed" value="true" />
+      <created>1726584221534</created>
+      <option name="number" value="00095" />
+      <option name="presentableId" value="LOCAL-00095" />
+      <option name="project" value="LOCAL" />
+      <updated>1726584221534</updated>
+    </task>
+    <task id="LOCAL-00096" summary="Added error handling for unbanning if the user is not banned">
+      <option name="closed" value="true" />
+      <created>1726921920582</created>
+      <option name="number" value="00096" />
+      <option name="presentableId" value="LOCAL-00096" />
+      <option name="project" value="LOCAL" />
+      <updated>1726921920582</updated>
+    </task>
+    <task id="LOCAL-00097" summary="Updated the privacy policy as well as added a note to the commands that use the message intent.">
+      <option name="closed" value="true" />
+      <created>1726925144929</created>
+      <option name="number" value="00097" />
+      <option name="presentableId" value="LOCAL-00097" />
+      <option name="project" value="LOCAL" />
+      <updated>1726925144929</updated>
+    </task>
+    <option name="localTasksCounter" value="98" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -580,10 +603,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Fix to the dev command 'blacklist_server'" />
-    <MESSAGE value="Added additional permission checking and logging to the check commands" />
-    <MESSAGE value="Performance improvement: new servers now use the queue system to be added." />
-    <MESSAGE value="Added a user blacklist, if the owner of a server is blacklisted - the server will be blacklisted." />
     <MESSAGE value="Temporarily disabled as a safety precaution for live testing." />
     <MESSAGE value="Cleaning up on ban can now be toggled!" />
     <MESSAGE value="Added the name of the user to the finished broadcast message" />
@@ -605,7 +624,11 @@
     <MESSAGE value="Added a privacy policy" />
     <MESSAGE value="fix to task: pending_bans" />
     <MESSAGE value="Added logging to debug threads not opening" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added logging to debug threads not opening" />
+    <MESSAGE value="Fix for proof thread not opening" />
+    <MESSAGE value="tiny update to error handling in the queue" />
+    <MESSAGE value="Added error handling for unbanning if the user is not banned" />
+    <MESSAGE value="Updated the privacy policy as well as added a note to the commands that use the message intent." />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated the privacy policy as well as added a note to the commands that use the message intent." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
