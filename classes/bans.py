@@ -10,6 +10,7 @@ from classes.configer import Configer
 from classes.queue import queue
 from classes.rpsec import RpSec
 from classes.support.discord_tools import send_message
+from modules.logs import Logging
 
 
 class Singleton(type):
@@ -202,14 +203,18 @@ class Bans(metaclass=Singleton):
         wait_id = guild.id + user.id
 
         thread = await approved_message.create_thread(name=f"Ban Information for {user.name}")
+        logging.info(f"Created thread {thread.name} in {thread.guild.name}")
         if rpsec is not None:
+            logging.info(f"User's RP Security thread: {rpsec.name}")
             await send_message(thread, f"User's RP Security thread: {rpsec.mention}")
         prev_bans = await self.check_previous_bans(approved_message, dev_guild, user.id)
         if prev_bans:
+            logging.info(f"Previous bans for {user.name}: {prev_bans}")
             text_bans = '\n'.join([f"{ban.jump_url}" for ban in prev_bans])
             await send_message(thread, f"Previous bans for {user.name}:"
                                        f"\n{text_bans}")
         if not provide_proof:
+            logging.info(f"Approved without proof for {user.name}")
             return
         guild_owner = guild.owner
         await send_message(thread, f"Please provide the proof of the ban here {guild_owner.mention}")

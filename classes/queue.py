@@ -1,3 +1,4 @@
+import asyncio
 import logging
 class queue():
     high_priority_queue = []
@@ -41,9 +42,8 @@ class queue():
             self.task_finished = False
             try:
                 task = self.process()
-
+                logging.info(f"Processing task: {task.__name__}")
                 await task
-
             except Exception as e:
                 logging.error(f"Error in queue: {e}")
             self.task_finished = True
