@@ -59,7 +59,7 @@ class BanEvents(commands.Cog):
         verembed = discord.Embed(title=f"ban for {user}({user.id}) was flagged for review",
                                  description=f"{banreason}\n\n"
                                              f"Flagged word: {word}. We review bans with serious accusations to ensure they are legitimate.")
-        verembed.set_footer(text=f"Please supply evidence if you have any to the support server or to the dev: ricostryker")
+        verembed.set_footer(text=f"Please supply evidence by using the /evidence add commmand, or by joining our support server (18+).")
         await send_message(modchannel, f"-# You can join our support server by [clicking here to join]({support_invite}).", embed=verembed)
 
     async def status(self, bot, guild, user: discord.User, status="queued", banreason=None, word=None):
