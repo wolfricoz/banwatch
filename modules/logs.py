@@ -12,7 +12,7 @@ from discord.app_commands import AppCommandError, command, CheckFailure
 from discord.ext import commands
 from dotenv import load_dotenv
 
-from classes.support.discord_tools import NoMessagePermission
+from classes.support.discord_tools import NoMessagePermissionException, NoChannelException
 
 load_dotenv('main.env')
 channels72 = os.getenv('channels72')
@@ -123,8 +123,11 @@ class Logging(commands.Cog):
         if isinstance(error, CheckFailure):
             await self.on_fail_message(interaction, "You do not have permission.")
             return
-        if isinstance(error.original, NoMessagePermission):
+        if isinstance(error.original, NoMessagePermissionException):
             pass
+        if isinstance(error.original, NoChannelException):
+            await self.on_fail_message(interaction, "No channel set or does not exist, check the config or fill in the required arguments.")
+
         if isinstance(error, app_commands.TransformerError):
             await self.on_fail_message(interaction, "Failed to transform given input to member, please select the user from the list, or use the user's ID.")
             return

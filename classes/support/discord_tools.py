@@ -5,12 +5,19 @@ import discord
 max_length = 1800
 
 
-class NoMessagePermission(Exception):
+class NoMessagePermissionException(Exception):
     """Raised when the bot does not have permission to send a message"""
 
     def __init__(self, message="Missing permission to send message: ", missing_permissions: list = ()):
         self.message = message
         super().__init__(self.message + ", ".join(missing_permissions))
+
+
+class NoChannelException(Exception):
+    """Raised when the server does not have a channel set to send a message"""
+
+    def __init__(self, message="No channel set or does not exist, check the config or fill in the required arguments."):
+        self.message = message
 
 
 async def check_missing_permissions(channel: discord.TextChannel, required_permissions: list) -> list:
@@ -29,6 +36,8 @@ async def check_missing_permissions(channel: discord.TextChannel, required_permi
 async def send_message(channel: discord.TextChannel, message=None, embed=None, view=None) -> discord.Message:
     """Send a message to a channel, if there is no permission it will send an error message to the owner"""
     last_message = None
+    if channel is None:
+        raise NoChannelException
     try:
         length = 0
         if message is None:
@@ -43,7 +52,7 @@ async def send_message(channel: discord.TextChannel, message=None, embed=None, v
         missing_perms = await check_missing_permissions(channel, required_perms)
         logging.error(f"Missing permission to send message to {channel.mention} in {channel.guild.name}")
         await channel.guild.owner.send(f"Missing permission to send message to {channel.name}. Check permissions: {', '.join(missing_perms)}", )
-        raise NoMessagePermission(missing_permissions=missing_perms)
+        raise NoMessagePermissionException(missing_permissions=missing_perms)
 
 
 # noinspection PyUnresolvedReferences
@@ -56,12 +65,13 @@ async def send_response(interaction: discord.Interaction, response, ephemeral=Fa
         missing_perms = await check_missing_permissions(interaction.channel, required_perms)
         logging.error(f"Missing permission to send message to {channel.name}")
         await interaction.guild.owner.send(f"Missing permission to send message to {channel.name}. Check permissions: {', '.join(missing_perms)}", )
-        raise NoMessagePermission(missing_permissions=missing_perms)
+        raise NoMessagePermissionException(missing_permissions=missing_perms)
     except discord.errors.NotFound:
         await interaction.followup.send(
                 response,
                 ephemeral=ephemeral
         )
+
 
 async def get_all_threads(guild: discord.Guild):
     """Get all threads in a guild"""
