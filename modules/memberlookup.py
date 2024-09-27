@@ -83,7 +83,7 @@ class User(commands.GroupCog, name="user"):
     async def lookupid(self, interaction: discord.Interaction, memberid: str):
         logging.info(f"{interaction.user} from {interaction.guild.name} is looking up {memberid}")
         if BanCheck().member_count_check(interaction.guild, self.bot) is False:
-            await interaction.channel.send("This command can only be used in servers with 50 or more members, to prevent abuse.")
+            await send_message(interaction.channel, "This command can only be used in servers with 50 or more members, to prevent abuse.")
             return
         if Bans().is_ready() is False:
             return await send_response(interaction, "Bans not ready, please wait a moment - this usually takes 2 minutes.", ephemeral=True)

@@ -131,6 +131,8 @@ class Bans(metaclass=Singleton):
             if ban == "name":
                 continue
             guild = bot.get_guild(int(ban))
+            if guild is None:
+                continue
             try:
                 print(f"guild: {guild}")
                 invite = self.guildinvites[f"{guild.id}"]
