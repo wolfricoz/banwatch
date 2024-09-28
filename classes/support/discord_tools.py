@@ -87,3 +87,12 @@ async def get_all_threads(guild: discord.Guild):
         except discord.errors.Forbidden:
             logging.error(f"Missing permission to view archived threads in {channel.mention}({channel.name}) in {channel.guild.name}")
     return all_threads
+
+async def ban_member(interaction, user, reason, days=1):
+    try:
+        await interaction.guild.ban(user, reason=reason, delete_message_days=days)
+    except discord.Forbidden:
+        error = f"Missing permission to ban user {user.name}({user.id}). Check permissions: ban_members or if the bot is higher in the hierarchy than the user."
+        logging.error(error)
+        await interaction.channel.send(error)
+        raise NoMessagePermissionException(missing_permissions=['ban_members'])

@@ -6,7 +6,7 @@ from discord.app_commands import Choice
 from discord.ext import commands
 
 from classes.bans import Bans
-from classes.support.discord_tools import send_message, send_response
+from classes.support.discord_tools import send_message, send_response, ban_member
 from view.modals.inputmodal import send_modal
 
 
@@ -32,7 +32,7 @@ class Tools(commands.Cog):
             inform = False
 
         reason = f"{ban_type}{reason_modal}"
-        await interaction.guild.ban(user, reason=reason, delete_message_days=1 if clean else 0)
+        await ban_member(interaction, user, reason, days=1 if clean else 0)
         # await interaction.channel.send(f"DEBUG: BAN FUNCTION DISABLED FOR TESTING.`")
         embed = discord.Embed(title=f"{user.name} ({user.id}) banned!", description=f"{reason}", color=discord.Color.red())
         embed.set_footer(text=f"Moderator: {interaction.user.name}, was the user informed? {'Yes' if inform else 'No'}")
