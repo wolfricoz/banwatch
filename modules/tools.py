@@ -159,6 +159,23 @@ class Tools(commands.Cog):
         embed = discord.Embed(title=f"{user.name} kicked", description=reason, color=discord.Color.green())
         await interaction.channel.send(embed=embed)
 
+    @app_commands.command(name="export_bans", description="Exports all guild bans to a text file and sends it to the channel.")
+    @app_commands.checks.has_permissions(ban_members=True)
+    async def export_bans(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        # Fetch all bans
+        bans = interaction.guild.bans()
+
+        # Write bans to a text file
+        with open("bans.txt", "w", encoding='utf-16') as file:
+            async for ban_entry in bans:
+                user = ban_entry.user
+                reason = ban_entry.reason if ban_entry.reason else "No reason provided"
+                file.write(f"User: {user} (ID: {user.id}) - Reason: {reason}\n")
+        # Send the file to the channel
+        await interaction.followup.send("Here are all your bans!", file=discord.File("bans.txt"))
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Tools(bot))

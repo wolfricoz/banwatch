@@ -124,5 +124,6 @@ class User(commands.GroupCog, name="user"):
         await send_message(interaction.channel, f"Check-up done, found {count} ban registries in {str(total)[0:4]} seconds")
 
 
+
 async def setup(bot: commands.Bot):
     await bot.add_cog(User(bot))
