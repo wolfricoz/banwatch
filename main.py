@@ -11,6 +11,7 @@ from classes.blacklist import blacklist_check
 from classes.cacher import LongTermCache
 from classes.configer import Configer
 from classes.queue import queue
+from database.current import create_bot_database
 
 # LOADS THE .ENV FILE THAT RESIDES ON THE SAME LEVEL AS THE SCRIPT.
 load_dotenv('main.env')
@@ -19,6 +20,8 @@ DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 PREFIX = os.getenv("PREFIX")
 DBTOKEN = os.getenv("DB")
 DEV = int(os.getenv("DEV"))
+
+create_bot_database()
 
 # declares the bots intent
 intents = discord.Intents.default()

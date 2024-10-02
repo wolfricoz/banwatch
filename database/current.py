@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from email.policy import default
 from typing import List
 
 import pymysql
@@ -28,8 +29,8 @@ class Bans(Base):
     __tablename__ = "bans"
     ban_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     uid: Mapped[int] = mapped_column(BigInteger)
-    gid: Mapped[int] = mapped_column(BigInteger, ForeignKey("servers.guild"))
-    reason: Mapped[str] = mapped_column(String(4096))
+    gid: Mapped[int] = mapped_column(BigInteger, ForeignKey("servers.id"))
+    reason: Mapped[str] = mapped_column(String(4096), default="")
     approved: Mapped[bool] = mapped_column(Boolean, default=True)
     verified: Mapped[bool] = mapped_column(Boolean, default=False)
     hidden: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -53,15 +54,15 @@ class Servers(Base):
     member_count: Mapped[int] = mapped_column(BigInteger)
     invite: Mapped[str] = mapped_column(String(256), default="")
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    active: Mapped[bool] = mapped_column(default=True)
-    bans: Mapped[List["Bans"]] = relationship("Bans", back_populates="guild")
+    deleted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=None, nullable=True)
+    bans: Mapped[List["Bans"]] = relationship("Bans", back_populates="guild", cascade="save-update, merge, delete, delete-orphan")
 
 
 def create_bot_database():
     Base.metadata.create_all(engine)
-    print("Database built")
 
 
 def drop_bot_database():
+    if os.getenv('DISCORD_TOKEN') is not None:
+        raise Exception("You cannot drop the database while the bot is in production")
     Base.metadata.drop_all(engine)
-    print("Database dropped")

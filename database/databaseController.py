@@ -1,11 +1,11 @@
 from typing import Type
 
-import database.current as db
-from database.current import *
-from sqlalchemy import Select, exists
+from sqlalchemy import Select, exists, and_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+import database.current as db
+from database.current import *
 from database.current import Servers
 
 session = Session(bind=db.engine, expire_on_commit=False)
@@ -61,37 +61,49 @@ class DatabaseTransactions():
 class ServerDbTransactions(DatabaseTransactions):
 
     def exist(self, guild_id: int):
-        return session.query(exists().where(Servers.guild == guild_id)).scalar()
+        return session.query(exists().where(Servers.id == guild_id)).scalar()
 
     def add(self, guild_id: int, owner: str, member_count: int, invite: str) -> Servers | bool:
         if self.exist(guild_id):
             # Call the update function
             return False
-        guild = Servers(guild=guild_id, owner=owner, member_count=member_count, invite=invite)
+        guild = Servers(id=guild_id, owner=owner, member_count=member_count, invite=invite)
         session.add(guild)
         self.commit(session)
         return guild
 
-    def update(self, guild_id: int, owner: str = None, member_count: int = None, invite: str = None, active: bool = None) -> Servers | bool:
-        guild = session.scalar(Select(Servers).where(Servers.guild == guild_id))
+    def update(self, guild_id: int, owner: str = None, member_count: int = None, invite: str = None, delete: bool = None) -> Servers | bool:
+        guild = session.scalar(Select(Servers).where(Servers.id == guild_id))
         if not guild:
             return False
+        deleted_at = None
+        match delete:
+            case True:
+                deleted_at = datetime.now()
+            case False:
+                deleted_at = None
+            case _:
+                deleted_at = guild.deleted_at
 
         updates = {
             'owner'       : owner,
             'member_count': member_count,
             'invite'      : invite,
-            'active'      : active
+            'deleted_at'  : datetime.now() if delete else None if delete is False else guild.deleted_at,
+            'updated_at'  : datetime.now()
         }
 
         for field, value in updates.items():
+            if field == 'deleted_at':
+                setattr(guild, field, value)
+                continue
             if value is not None:
                 setattr(guild, field, value)
         self.commit(session)
         return guild
 
     def get(self, guild_id: int) -> Type[Servers] | None:
-        return session.scalar(Select(Servers).where(Servers.guild == guild_id))
+        return session.scalar(Select(Servers).where(Servers.id == guild_id))
 
     def delete(self, guild_id: int) -> bool:
         guild = self.get(guild_id)
@@ -100,6 +112,7 @@ class ServerDbTransactions(DatabaseTransactions):
         session.delete(guild)
         DatabaseTransactions().commit(session)
         return True
+
 
 class BanDbTransactions(DatabaseTransactions):
 
@@ -117,4 +130,32 @@ class BanDbTransactions(DatabaseTransactions):
     def get(self, ban_id: int, override: bool = False) -> Type[Bans] | None:
         if override:
             return session.scalar(Select(Bans).where(Bans.ban_id == ban_id))
-        return session.scalar(Select(Bans).join(Servers).where(Bans.ban_id == ban_id and Servers.active is True))
+        return session.query(Bans).join(Servers).filter(and_(Bans.ban_id == ban_id, Servers.deleted_at.is_(None))).first()
+
+    def delete(self, ban_id: int) -> bool:
+        ban = self.get(ban_id)
+        if not ban:
+            return False
+        session.delete(ban)
+        DatabaseTransactions().commit(session)
+        return True
+
+    def update(self, ban_id: int,
+               approved: bool = None,
+               verified: bool = None,
+               hidden: bool = None
+    ) -> Type[Bans] | bool:
+        ban = self.get(ban_id)
+        if not ban:
+            return False
+        updates = {
+            'approved': approved,
+            'verified': verified,
+            'hidden'  : hidden
+        }
+
+        for field, value in updates.items():
+            if value is not None:
+                setattr(ban, field, value)
+        self.commit(session)
+        return ban

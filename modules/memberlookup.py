@@ -121,7 +121,8 @@ class User(commands.GroupCog, name="user"):
         count += await BanCheck().checkerall(interaction, self.bot)
         end = time.time()
         total = end - start
-        await send_message(interaction.channel, f"Check-up done, found {count} ban registries in {str(total)[0:4]} seconds")
+        await send_message(interaction.channel, f"Check-up done, found {count} ban registries in {str(total)[0:4]} seconds."
+                                                f"\n-# Reminder: You should reach out to the owner of the server for more information on the ban. Some of these bans may be older than the bot and have not been verified.")
 
 
 
