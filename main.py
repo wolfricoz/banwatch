@@ -6,12 +6,13 @@ from discord.ext import commands
 # IMPORT LOAD_DOTENV FUNCTION FROM DOTENV MODULE.
 from dotenv import load_dotenv
 
-from classes.bans import Bans
+from classes.bans import Bans, DatabaseBans
 from classes.blacklist import blacklist_check
 from classes.cacher import LongTermCache
 from classes.configer import Configer
 from classes.queue import queue
 from database.current import create_bot_database
+from database.databaseController import ServerDbTransactions
 
 # LOADS THE .ENV FILE THAT RESIDES ON THE SAME LEVEL AS THE SCRIPT.
 load_dotenv('main.env')
@@ -57,11 +58,15 @@ async def on_ready():
         await Configer.create(guild.id, guild.name)
         if await blacklist_check(guild, devroom):
             continue
+        ServerDbTransactions().add(guild.id, guild.owner.name, len(guild.members), "")
+        queue().add(DatabaseBans().check_guild_bans(guild), priority=0)
+
         # INCREMENTS THE GUILD COUNTER.
         guild_count += 1
+
     formguilds = "\n".join(guilds)
     logging.info(f"Bot is in {guild_count} guilds:\n{formguilds}")
-    queue().add(bot.tree.sync(), priority=2)
+    queue().add(bot.tree.sync(), priority=0)
     queue().add(devroom.send(f"Banwatch is in {guild_count} guilds. Version 2.1.5"), priority=2)
 
 

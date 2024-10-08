@@ -9,7 +9,9 @@ from classes.cacher import LongTermCache
 from classes.configer import Configer
 from classes.queue import queue
 from classes.rpsec import RpSec
+from classes.server import Server
 from classes.support.discord_tools import send_message
+from database.databaseController import BanDbTransactions
 from modules.logs import Logging
 
 
@@ -297,3 +299,48 @@ class Bans(metaclass=Singleton):
             queue().add(self.search_messages(bot, channel, banid, reason), priority=2)
         channel = bot.get_channel(bot.APPROVALCHANNEL)
         queue().add(self.search_messages(bot, channel, banid, reason), priority=2)
+
+class DatabaseBans():
+    def __init__(self):
+        pass
+
+    async def check_guild_bans(self, guild: discord.Guild):
+        count = 0
+        server = Server(guild.id)
+
+        async for banentry in guild.bans(limit=None):
+            if server.check_ban(banentry.user.id):
+                continue
+            queue().add(self.add_ban(banentry.user.id, guild.id, banentry.reason, guild.owner.name), priority=0)
+            count += 1
+        print(f"Added {count} bans for {guild.name}")
+
+
+
+    async def add_ban(self, user_id, guild_id, reason, staff):
+        """Adds a ban to the database"""
+        logging.info(f"Adding ban for {user_id} in {guild_id}")
+        hidden = False
+        if reason is None or reason == "" or reason.lower() == "none":
+            hidden = True
+            reason = "No reason given"
+
+        if reason.lower().startswith('[hidden]'):
+            hidden = True
+            reason = reason[8:]
+        BanDbTransactions().add(user_id, guild_id, reason, staff, hidden=hidden)
+
+    async def get_ban(self, ban_id):
+        pass
+
+    async def delete_ban(self, ban_id):
+        pass
+
+    async def get_guild_status_from_ban(self, ban_id):
+        pass
+
+    async def get_ban_by_user(self, user_id):
+        pass
+
+    async def get_ban_by_guild(self, guild_id):
+        pass

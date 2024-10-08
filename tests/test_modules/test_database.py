@@ -140,3 +140,23 @@ class TestDatabaseOperations(unittest.TestCase):
         self.assertTrue(ban.hidden)
 
         session.rollback()
+
+    # proof table
+    #
+    def test_add_proof(self):
+        guild_id = self.guild_id
+        user_id = self.user_id
+        server_controller = database.databaseController.ServerDbTransactions()
+        ban_controller = database.databaseController.BanDbTransactions()
+        proof_controller = database.databaseController.ProofDbTransactions()
+
+        # Ensure the guild exists in the servers table
+        server_controller.add(guild_id, "owner", 100, "invite")
+
+        # Now add the ban
+        ban = ban_controller.add(user_id, guild_id, "reason", "staff")
+        proof = proof_controller.add(ban.ban_id, "proof", ["https://google.com"])
+        self.assertEqual(proof.ban_id, ban.ban_id)
+        self.assertEqual(proof.proof, "proof")
+        self.assertEqual(proof.attachments, ["https://google.com"])
+        print(proof.attachments)

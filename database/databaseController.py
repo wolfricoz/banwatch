@@ -1,6 +1,6 @@
 from typing import Type
 
-from sqlalchemy import Select, exists, and_
+from sqlalchemy import Select, exists, and_, false
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -28,15 +28,6 @@ class CommitError(Exception):
 
 
 class KeyNotFound(Exception):
-    """config item was not found or has not been added yet."""
-
-    def __init__(self, key):
-        self.key = key
-        self.message = f"`{key}` not found in config, please add it using /config"
-        super().__init__(self.message)
-
-
-class UserNotFound(Exception):
     """config item was not found or has not been added yet."""
 
     def __init__(self, key):
@@ -76,15 +67,6 @@ class ServerDbTransactions(DatabaseTransactions):
         guild = session.scalar(Select(Servers).where(Servers.id == guild_id))
         if not guild:
             return False
-        deleted_at = None
-        match delete:
-            case True:
-                deleted_at = datetime.now()
-            case False:
-                deleted_at = None
-            case _:
-                deleted_at = guild.deleted_at
-
         updates = {
             'owner'       : owner,
             'member_count': member_count,
@@ -110,11 +92,17 @@ class ServerDbTransactions(DatabaseTransactions):
         if not guild:
             return False
         session.delete(guild)
-        DatabaseTransactions().commit(session)
+        self.commit(session)
         return True
 
+    def get_bans(self, guild_id: int, uid_only: bool = false()) -> list[type[Bans]] | list[int]:
+        if uid_only:
+            return session.scalar(Select(Bans.uid).where(Bans.gid == guild.id)).all()
 
-class BanDbTransactions(DatabaseTransactions):
+        return session.query(Bans).filter(Bans.gid == guild_id).all()
+
+
+class BanDbTransactions(DatabaseTransactions, Bans):
 
     def exist(self, ban_id: int):
         return session.scalar(Select(Bans).where(Bans.ban_id == ban_id))
@@ -137,21 +125,22 @@ class BanDbTransactions(DatabaseTransactions):
         if not ban:
             return False
         session.delete(ban)
-        DatabaseTransactions().commit(session)
+        self.commit(session)
         return True
 
     def update(self, ban_id: int,
                approved: bool = None,
                verified: bool = None,
                hidden: bool = None
-    ) -> Type[Bans] | bool:
+               ) -> Type[Bans] | bool:
         ban = self.get(ban_id)
         if not ban:
             return False
         updates = {
-            'approved': approved,
-            'verified': verified,
-            'hidden'  : hidden
+            'approved'  : approved,
+            'verified'  : verified,
+            'hidden'    : hidden,
+            'updated_at': datetime.now()
         }
 
         for field, value in updates.items():
@@ -159,3 +148,46 @@ class BanDbTransactions(DatabaseTransactions):
                 setattr(ban, field, value)
         self.commit(session)
         return ban
+
+
+class ProofDbTransactions(DatabaseTransactions):
+
+    def exist(self, ban_id: int):
+        return session.scalar(Select(Proof).where(Proof.ban_id == ban_id))
+
+    def add(self, ban_id: int, proof: str, attachments: list[str]) -> Proof | bool:
+        if self.exist(ban_id):
+            return False
+        proof = Proof(ban_id=ban_id, proof=proof, attachments=attachments)
+        session.add(proof)
+        self.commit(session)
+        return proof
+
+    def get(self, ban_id: int) -> Proof | None:
+        return session.scalar(Select(Proof).where(Proof.ban_id == ban_id))
+
+    def delete(self, ban_id: int) -> bool:
+        proof = self.get(ban_id)
+        if not proof:
+            return False
+        session.delete(proof)
+        self.commit(session)
+        return True
+
+    def update(self, ban_id: int,
+               proof: str = None,
+               attachments: list[str] = None
+               ) -> Proof | bool:
+        proof = self.get(ban_id)
+        if not proof:
+            return False
+        updates = {
+            'proof'      : proof,
+            'attachments': attachments
+        }
+
+        for field, value in updates.items():
+            if value is not None:
+                setattr(proof, field, value)
+        self.commit(session)
+        return proof
