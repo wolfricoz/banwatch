@@ -11,7 +11,7 @@ from classes.queue import queue
 from classes.rpsec import RpSec
 from classes.server import Server
 from classes.support.discord_tools import send_message
-from database.databaseController import BanDbTransactions
+from database.databaseController import BanDbTransactions, ServerDbTransactions
 from modules.logs import Logging
 
 
@@ -313,7 +313,9 @@ class DatabaseBans():
                 continue
             queue().add(self.add_ban(banentry.user.id, guild.id, banentry.reason, guild.owner.name), priority=0)
             count += 1
-        print(f"Added {count} bans for {guild.name}")
+        queue().add(server.remove_missing_ids(), priority=0)
+        logging.info(f"Found {count} new bans in {guild.name}({guild.id})")
+
 
 
 

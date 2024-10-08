@@ -103,7 +103,7 @@ class TestDatabaseOperations(unittest.TestCase):
 
         # Now add the ban
         ban = ban_controller.add(user_id, guild_id, "reason", "staff")
-        self.assertTrue(ban_controller.delete(ban.ban_id))
+        self.assertTrue(ban_controller.delete_soft(ban.ban_id))
         self.assertIsNone(ban_controller.get(ban.ban_id))
         session.rollback()
 
