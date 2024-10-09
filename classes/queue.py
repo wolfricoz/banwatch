@@ -1,6 +1,16 @@
-import asyncio
+import inspect
 import logging
-class queue():
+
+
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+class queue(metaclass=Singleton):
     high_priority_queue = []
     normal_priority_queue = []
     low_priority_queue = []
@@ -42,8 +52,24 @@ class queue():
             self.task_finished = False
             try:
                 task = self.process()
-                logging.info(f"Processing task: {task.__name__}")
+                if not task:
+                    self.low_priority_queue = [i for i in self.low_priority_queue if i is not None]
+                    self.normal_priority_queue = [i for i in self.normal_priority_queue if i is not None]
+                    self.high_priority_queue = [i for i in self.high_priority_queue if i is not None]
+                    print(f"Remaining queue: High: {len(self.high_priority_queue)} Normal: {len(self.normal_priority_queue)} Low: {len(self.low_priority_queue)}")
+                    self.task_finished = True
+                    return
+                try:
+                    logging.info(f"Processing task: {task.__name__}")
+                except:
+                    pass
+                if not inspect.iscoroutine(task):
+                    task()
+                    self.task_finished = True
+                    print(f"Remaining queue: High: {len(self.high_priority_queue)} Normal: {len(self.normal_priority_queue)} Low: {len(self.low_priority_queue)}")
+                    return
                 await task
+
             except Exception as e:
                 logging.error(f"Error in queue: {e}")
             self.task_finished = True
