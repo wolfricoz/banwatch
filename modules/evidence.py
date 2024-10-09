@@ -20,7 +20,7 @@ class Evidence(commands.GroupCog, name="evidence"):
         logging.info(f"Adding evidence to a {user.name}'s record")
         ban_entry: discord.Message
         ban_id = interaction.guild.id + user.id
-        await send_response(interaction,
+        await send_message(interaction.channel,
                             f"Please send a message with the evidence you would like to add to {user.name}'s record, this will be added to the ban ID {ban_id} in our support server. \n Type `cancel` to cancel.\n -# By responding to this message you agree to the evidence being stored in our support server.")
         evidence = await self.bot.wait_for('message', check=lambda m: m.author == interaction.user, timeout=600)
         if evidence.content.lower() == "cancel":
@@ -40,7 +40,7 @@ class Evidence(commands.GroupCog, name="evidence"):
         ban_entry, embed = await Bans().find_ban_record(self.bot, ban_id)
 
         if ban_entry is None:
-            await send_response(interaction, f"Ban ID {ban_id} not found.")
+            await send_message(interaction.channel, f"Ban ID {ban_id} not found.")
             return
         thread = await ban_entry.fetch_thread()
         if thread is None:
