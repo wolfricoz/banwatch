@@ -32,6 +32,7 @@ class Tools(commands.Cog):
             inform = False
 
         reason = f"{ban_type}{reason_modal}"
+
         await ban_member(interaction, user, reason, days=1 if clean else 0)
         # await interaction.channel.send(f"DEBUG: BAN FUNCTION DISABLED FOR TESTING.`")
         embed = discord.Embed(title=f"{user.name} ({user.id}) banned!", description=f"{reason}", color=discord.Color.red())
