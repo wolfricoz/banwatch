@@ -3,7 +3,7 @@ import logging
 import discord
 from discord.ext import commands
 
-from classes.bans import Bans
+from classes.bans import Bans, DatabaseBans
 from classes.configer import Configer
 from classes.queue import queue
 from classes.support.discord_tools import send_message
@@ -27,6 +27,7 @@ class BanEvents(commands.Cog):
 
         if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(ban.reason).lower().startswith('[silent]') or str(ban.reason).lower().startswith('[hidden]'):
             print("silent or hidden ban/no reason, not adding to list")
+            await DatabaseBans().add_ban(user.id, guild.id, "Hidden Ban", "Unknown")
             return
         channel = bot.get_channel(bot.BANCHANNEL)
         wait_id = await Bans().announce_add(guild.id, user.id, ban.reason)
@@ -34,6 +35,7 @@ class BanEvents(commands.Cog):
                               description=f"{ban.reason}")
         embed.set_footer(text=f"/approve_ban {wait_id}")
         checklist: list = await Configer.get_checklist()
+        staff_member: discord.User = await self.get_staff_member(guild, user)
         if checklist:
             for word in checklist:
                 if word.lower() in ban.reason.lower():
@@ -45,8 +47,9 @@ class BanEvents(commands.Cog):
             print(embed.to_dict())
             await Bans().check_guilds(None, bot, guild, user, embed, wait_id)
             await self.status(bot, guild, user)
+            await DatabaseBans().add_ban(user.id, guild.id, ban.reason, staff_member.name)
             return
-
+        await DatabaseBans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=False, )
         await self.status(bot, guild, user, "waiting_approval", ban.reason, word=found)
         await send_message(channel, embed=embed, view=BanApproval(bot, wait_id, True))
         return
@@ -71,6 +74,13 @@ class BanEvents(commands.Cog):
             return
         message: discord.Message = await channel.send(f"Your ban for {user.mention} is currently: {status}.")
         queue().add(message.edit(content=f"Your ban for {user.mention} has been successfully broadcasted to other servers."), priority=0)
+
+    async def get_staff_member(self, guild, user):
+        async for entry in guild.audit_logs(limit=100, action=discord.AuditLogAction.ban):
+            if entry.target.id == user.id:
+                if entry.user.bot:
+                    return guild.owner
+                return entry.user
 
 
 async def setup(bot):
