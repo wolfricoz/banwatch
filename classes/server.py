@@ -1,5 +1,6 @@
-from sqlalchemy.testing.plugin.plugin_base import logging
+import logging
 
+from classes.queue import queue
 from database.databaseController import ServerDbTransactions, BanDbTransactions
 
 
@@ -31,7 +32,10 @@ class Server():
                 missed_ids.append(user_id)
         return missed_ids
 
-    def remove_missing_ids(self) -> None:
+    async def remove_missing_ids(self) -> None:
         for user_id in self.check_missed_ids():
-            logging.info(f"Soft removing missing ban for {user_id} in {self.guild_id}")
-            BanDbTransactions().delete_soft(user_id + self.guild_id)
+            queue().add(self.soft_delete(user_id))
+
+    async def soft_delete(self, user_id: int) -> None:
+        logging.info(f"Soft removing missing ban for {user_id} in {self.guild_id}")
+        BanDbTransactions().delete_soft(user_id + self.guild_id)
