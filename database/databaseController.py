@@ -1,3 +1,4 @@
+import logging
 from typing import Type
 
 from aiohttp.web_routedef import delete
@@ -98,24 +99,25 @@ class ServerDbTransactions(DatabaseTransactions):
 
     def get_bans(self, guild_id: int, uid_only: bool = false()) -> list[type[Bans]] | list[int]:
         if uid_only:
-            return [uid[0] for uid in session.query(Bans.uid).filter(Bans.gid == guild_id).all()]
+            return [uid[0] for uid in session.query(Bans.uid).filter(and_(Bans.gid == guild_id, Bans.deleted_at.is_(None))).all()]
 
-        return session.query(Bans).filter(Bans.gid == guild_id).all()
+        return session.query(Bans).filter(and_(Bans.gid == guild_id, Bans.deleted_at.is_(None))).all()
 
 
 class BanDbTransactions(DatabaseTransactions, Bans):
 
     def exist(self, ban_id: int, remove_deleted: bool = False) -> bool:
         ban = session.scalar(Select(Bans).where(Bans.ban_id == ban_id))
-        if ban.deleted_at and remove_deleted:
+        if ban is not None and ban.deleted_at and remove_deleted:
             self.delete_permanent(ban_id)
             return False
         return session.scalar(Select(Bans).where(Bans.ban_id == ban_id))
 
     def add(self, uid: int, gid: int, reason: str, staff: str, approved: bool = False, verified: bool = False, hidden: bool = False, remove_deleted: bool = False) -> Bans | bool:
+        logging.info(f"Adding ban {uid} in {gid}")
         if self.exist(uid + gid, remove_deleted=remove_deleted):
             return False
-        ban = Bans(ban_id=uid + gid, uid=uid, gid=gid, reason=reason, approved=approved, verified=verified, hidden=hidden, staff=staff)
+        ban = Bans(ban_id=uid + gid, uid=uid, gid=gid, reason=reason, approved=approved, verified=verified, hidden=hidden, staff=staff, deleted_at=None)
         session.add(ban)
         self.commit(session)
         return ban
@@ -126,15 +128,17 @@ class BanDbTransactions(DatabaseTransactions, Bans):
         return session.query(Bans).join(Servers).filter(and_(Bans.ban_id == ban_id, Bans.deleted_at.is_(None), Servers.deleted_at.is_(None))).first()
 
     def delete_soft(self, ban_id: int) -> bool:
+        logging.info(f"Ban soft removed {ban_id}. Will be removed permanently in 7 days.")
         ban = self.get(ban_id)
-        if not ban:
+        if not ban or ban.deleted_at:
             return False
         ban.deleted_at = datetime.now()
         self.commit(session)
         return True
 
     def delete_permanent(self, ban_id: int) -> bool:
-        ban = self.get(ban_id)
+        logging.info(f"Hard removing ban {ban_id}")
+        ban = self.get(ban_id, override=True)
         if not ban:
             return False
         session.delete(ban)
@@ -163,6 +167,9 @@ class BanDbTransactions(DatabaseTransactions, Bans):
                 setattr(ban, field, value)
         self.commit(session)
         return ban
+
+    def get_deleted_bans(self) -> list[type[Bans]]:
+        return session.query(Bans).filter(Bans.deleted_at.isnot(None)).all()
 
 
 class ProofDbTransactions(DatabaseTransactions):
