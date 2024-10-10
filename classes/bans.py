@@ -319,10 +319,8 @@ class DatabaseBans():
 
 
 
-    async def add_ban(self, user_id, guild_id, reason, staff):
+    async def add_ban(self, user_id, guild_id, reason, staff, hidden = False, approved = True, remove_deleted = True):
         """Adds a ban to the database"""
-        logging.info(f"Adding ban for {user_id} in {guild_id}")
-        hidden = False
         if reason is None or reason == "" or reason.lower() == "none":
             hidden = True
             reason = "No reason given"
@@ -330,13 +328,19 @@ class DatabaseBans():
         if reason.lower().startswith('[hidden]'):
             hidden = True
             reason = reason[8:]
-        BanDbTransactions().add(user_id, guild_id, reason, staff, hidden=hidden)
+        BanDbTransactions().add(user_id, guild_id, reason, staff, hidden=hidden, approved=approved, remove_deleted=remove_deleted)
+
+
+    async def delete_ban(self, user_id, guild_id, permanent=False):
+        """Removes a ban from the database"""
+
+        if permanent:
+            BanDbTransactions().delete_permanent(user_id + guild_id)
+        BanDbTransactions().delete_soft(user_id + guild_id)
 
     async def get_ban(self, ban_id):
         pass
 
-    async def delete_ban(self, ban_id):
-        pass
 
     async def get_guild_status_from_ban(self, ban_id):
         pass
