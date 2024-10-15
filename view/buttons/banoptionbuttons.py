@@ -30,8 +30,7 @@ class BanOptionButtons(View):
 
     @button(label="Share with proof", custom_id="share_with_proof", style=discord.ButtonStyle.success)
     async def share_with_proof(self, interaction: discord.Interaction, button: button):
-        guild, user, ban = await self.get_data(interaction)
-        checklist_check = self.check_checklisted_words(ban)
+
 
         pass
 

@@ -98,3 +98,11 @@ async def ban_member(bans_class, interaction, user, reason, days=1):
         logging.error(error)
         await interaction.channel.send(error)
         raise NoMessagePermissionException(missing_permissions=['ban_members'])
+
+async def await_message(interaction, message) -> discord.Message | bool:
+    await send_response(interaction,
+                        message)
+    m = await interaction.client.wait_for('message', check=lambda m: m.author == interaction.user, timeout=600)
+    if m.content.lower() == "cancel":
+        return False
+    return m
