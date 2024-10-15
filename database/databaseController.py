@@ -1,10 +1,12 @@
+import json
 import logging
 from typing import Type
 
 from aiohttp.web_routedef import delete
-from sqlalchemy import Select, exists, and_, false
+from sqlalchemy import Select, exists, and_, false, Sequence, Row
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+from sqlalchemy.util import to_list
 
 import database.current as db
 from database.current import *
@@ -177,16 +179,18 @@ class ProofDbTransactions(DatabaseTransactions):
     def exist(self, ban_id: int):
         return session.scalar(Select(Proof).where(Proof.ban_id == ban_id))
 
-    def add(self, ban_id: int, proof: str, attachments: list[str]) -> Proof | bool:
-        if self.exist(ban_id):
-            return False
-        proof = Proof(ban_id=ban_id, proof=proof, attachments=attachments)
+    def add(self, ban_id: int, user_id: int, proof: str, attachments: list[str]) -> Proof | bool:
+        proof = Proof(ban_id=ban_id, uid=user_id, proof=proof, attachments=json.dumps(attachments))
         session.add(proof)
         self.commit(session)
         return proof
 
-    def get(self, ban_id: int) -> Proof | None:
-        return session.scalar(Select(Proof).where(Proof.ban_id == ban_id))
+    def get(self, ban_id: str|int = None, user_id: int = None) -> list | None:
+        if isinstance(ban_id, str):
+            ban_id = int(ban_id)
+        if user_id:
+            return to_list(session.scalars(Select(Proof).join(Bans).where(Proof.uid == user_id)).all())
+        return to_list(session.scalars(Select(Proof).join(Bans).where(Proof.ban_id == ban_id)).all())
 
     def delete(self, ban_id: int) -> bool:
         proof = self.get(ban_id)
@@ -196,20 +200,20 @@ class ProofDbTransactions(DatabaseTransactions):
         self.commit(session)
         return True
 
-    def update(self, ban_id: int,
-               proof: str = None,
-               attachments: list[str] = None
-               ) -> Proof | bool:
-        proof = self.get(ban_id)
-        if not proof:
-            return False
-        updates = {
-            'proof'      : proof,
-            'attachments': attachments
-        }
-
-        for field, value in updates.items():
-            if value is not None:
-                setattr(proof, field, value)
-        self.commit(session)
-        return proof
+    # def update(self, ban_id: int,
+    #            proof: str = None,
+    #            attachments: list[str] = None
+    #            ) -> Proof | bool:
+    #     proof = self.get(ban_id)
+    #     if not proof:
+    #         return False
+    #     updates = {
+    #         'proof'      : proof,
+    #         'attachments': attachments
+    #     }
+    #
+    #     for field, value in updates.items():
+    #         if value is not None:
+    #             setattr(proof, field, value)
+    #     self.commit(session)
+    #     return proof

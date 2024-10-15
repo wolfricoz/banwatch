@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime
 from typing import List
@@ -24,6 +25,12 @@ conn = engine.connect()
 class Base(DeclarativeBase):
     pass
 
+class Staff(Base):
+    __tablename__ = "staff"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    uid: Mapped[int] = mapped_column(BigInteger)
+    role: Mapped[str] = mapped_column(String(128))
+
 
 class Bans(Base):
     __tablename__ = "bans"
@@ -45,9 +52,13 @@ class Proof(Base):
     __tablename__ = "proof"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     ban_id: Mapped[int] = mapped_column(ForeignKey("bans.ban_id"))
+    uid: Mapped[int] = mapped_column(BigInteger)
     proof: Mapped[str] = mapped_column(String(4096, collation='utf8mb4_unicode_ci'))
     attachments: Mapped[str] = mapped_column(String(10000, collation='utf8mb4_unicode_ci'))
     ban: Mapped["Bans"] = relationship("Bans", back_populates="proof")
+
+    def get_attachments(self):
+        return json.loads(self.attachments)
 
 
 class Servers(Base):

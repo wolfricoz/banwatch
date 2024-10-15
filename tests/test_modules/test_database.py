@@ -1,3 +1,4 @@
+import json
 import unittest
 
 import database.databaseController
@@ -155,8 +156,12 @@ class TestDatabaseOperations(unittest.TestCase):
 
         # Now add the ban
         ban = ban_controller.add(user_id, guild_id, "reason", "staff")
-        proof = proof_controller.add(ban.ban_id, "proof", ["https://google.com"])
+        proof = proof_controller.add(ban.ban_id, self.user_id, "proof", [
+            "https://cdn.discordapp.com/attachments/1295854818589413467/1295857322576445593/23378040040df75049c1c8c0819b809e.png?ex=67102cad&is=670edb2d&hm=b78477e9b44e99243b927d206d7bb75a3a3c8a97f42a0e891f055586f1a0b97d&",
+            "https://cdn.discordapp.com/attachments/1295854818589413467/1295857330360946718/9e3da3ba884c1330c0d326ce19678a09.png?ex=67102caf&is=670edb2f&hm=e5bd9aadb63f202c8e509da2962dad66454ef7b88816074871d8df1b192d4593&"])
         self.assertEqual(proof.ban_id, ban.ban_id)
         self.assertEqual(proof.proof, "proof")
-        self.assertEqual(proof.attachments, ["https://google.com"])
+        self.assertEqual(proof.get_attachments(), [
+            "https://cdn.discordapp.com/attachments/1295854818589413467/1295857322576445593/23378040040df75049c1c8c0819b809e.png?ex=67102cad&is=670edb2d&hm=b78477e9b44e99243b927d206d7bb75a3a3c8a97f42a0e891f055586f1a0b97d&",
+            "https://cdn.discordapp.com/attachments/1295854818589413467/1295857330360946718/9e3da3ba884c1330c0d326ce19678a09.png?ex=67102caf&is=670edb2f&hm=e5bd9aadb63f202c8e509da2962dad66454ef7b88816074871d8df1b192d4593&"])
         print(proof.attachments)

@@ -67,12 +67,12 @@ async def send_response(interaction: discord.Interaction, response, ephemeral=Fa
         raise NoMessagePermissionException(missing_permissions=missing_perms)
     except discord.errors.NotFound:
         try:
-            await interaction.followup.send(
+            return await interaction.followup.send(
                     response,
                     ephemeral=ephemeral
             )
         except discord.errors.NotFound:
-            await send_message(interaction.channel, response)
+            return await send_message(interaction.channel, response)
 
 
 async def get_all_threads(guild: discord.Guild):
@@ -101,10 +101,10 @@ async def ban_member(bans_class, interaction, user, reason, days=1):
 
 
 async def await_message(interaction, message) -> discord.Message | bool:
-    msg: discord.Message = await send_response(interaction,
+    msg: discord.Message = await send_message(interaction.channel,
                                                message)
-    await msg.delete()
     m = await interaction.client.wait_for('message', check=lambda m: m.author == interaction.user, timeout=600)
+    await msg.delete()
     if m.content.lower() == "cancel":
         return False
     return m
