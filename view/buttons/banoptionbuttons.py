@@ -49,8 +49,7 @@ class BanOptionButtons(View):
 
     @button(label="Hide", custom_id="hide", style=discord.ButtonStyle.danger)
     async def hidden(self, interaction: discord.Interaction, button: button):
-        guild, user, ban = await self.get_data(interaction)
-        checklist_check = self.check_checklisted_words(ban)
+        await self.process(interaction, hidden=True)
         pass
 
     async def process(self, interaction, hidden=False, silent=False):
@@ -59,15 +58,22 @@ class BanOptionButtons(View):
         checklist_check = await self.check_checklisted_words(ban)
         staff_member: discord.User = await self.get_staff_member(guild, user)
         message: discord.Message = interaction.message
+        if hidden:
+            queue().add(DatabaseBans().add_ban(user.id, guild.id, ban.reason, staff_member.name, hidden=True))
+            await interaction.response.send_message(f"Ban for {user.mention} has been successfully hidden.", ephemeral=True)
+            await interaction.message.delete()
+            return
+
         wait_id = await Bans().announce_add(guild.id, user.id, ban.reason)
+
         if checklist_check:
             channel = interaction.client.get_channel(int(os.getenv("BANS")))
             queue().add(DatabaseBans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=False))
-            queue().add(self.status(interaction.client, guild, user, "waiting_approval", ban.reason, word=checklist_check, message=message))
+            queue().add(self.status(interaction.client, guild, user, "waiting_approval", ban.reason, word=checklist_check, message=message, silent=silent))
             embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
                                   description=f"{ban.reason}")
             embed.set_footer(text=f"invite: {guild_db.invite} To approve it manually: /approve_ban {wait_id} ")
-            queue().add(send_message(channel, embed=embed, view=BanApproval(interaction.client, wait_id, True)))
+            queue().add(send_message(channel, embed=embed, view=BanApproval(interaction.client, wait_id, True, silent=silent)))
 
         queue().add(DatabaseBans().add_ban(user.id, guild.id, ban.reason, staff_member.name))
         if silent:
@@ -119,7 +125,7 @@ class BanOptionButtons(View):
         modchannel = await Configer.get(guild.id, "modchannel")
         channel = bot.get_channel(int(modchannel))
         if status == "waiting_approval":
-            await self.verification_notification(banreason, bot, guild, user, word=word, message=message)
+            await self.verification_notification(banreason, bot, guild, user, word=word, message=message, silent=silent)
             return
         message: discord.Message = await channel.send(f"Your ban for {user.mention} is currently: {status}.")
         queue().add(message.edit(content=f"Your ban for {user.mention} has been successfully broadcasted to other servers."))
