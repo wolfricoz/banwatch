@@ -10,6 +10,7 @@ class Singleton(type):
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
+
 class queue(metaclass=Singleton):
     high_priority_queue = []
     normal_priority_queue = []
@@ -19,7 +20,7 @@ class queue(metaclass=Singleton):
     def empty(self):
         return len(self.high_priority_queue) == 0 and len(self.normal_priority_queue) == 0 and len(self.low_priority_queue) == 0
 
-    def add(self, task, priority: int = 1):
+    def add(self, task, priority: int = 1) -> float:
         """Adds a task to the queue with a priority of high(2), normal(1), or low(0)"""
         match priority:
             case 2:
@@ -30,6 +31,7 @@ class queue(metaclass=Singleton):
                 self.low_priority_queue.append(task)
             case _:
                 self.normal_priority_queue.append(task)
+        return round(self.get_queue_time() / 60, 2)
 
     def remove(self, task):
         if task in self.high_priority_queue:
@@ -59,18 +61,18 @@ class queue(metaclass=Singleton):
                     print(f"Remaining queue: High: {len(self.high_priority_queue)} Normal: {len(self.normal_priority_queue)} Low: {len(self.low_priority_queue)}")
                     self.task_finished = True
                     return
-                try:
-                    logging.info(f"Processing task: {task.__name__}")
-                except:
-                    pass
                 if not inspect.iscoroutine(task):
                     task()
                     self.task_finished = True
                     print(f"Remaining queue: High: {len(self.high_priority_queue)} Normal: {len(self.normal_priority_queue)} Low: {len(self.low_priority_queue)}")
                     return
+                logging.info(f"Processing task: {task.__name__}")
                 await task
 
             except Exception as e:
                 logging.error(f"Error in queue: {e}")
             self.task_finished = True
             print(f"Remaining queue: High: {len(self.high_priority_queue)} Normal: {len(self.normal_priority_queue)} Low: {len(self.low_priority_queue)}")
+
+    def get_queue_time(self) -> float:
+        return len(self.high_priority_queue) + len(self.normal_priority_queue) * 0.3

@@ -2,7 +2,6 @@ import logging
 
 import discord
 
-from classes.bans import DatabaseBans
 
 max_length = 1800
 
@@ -90,9 +89,9 @@ async def get_all_threads(guild: discord.Guild):
             logging.error(f"Missing permission to view archived threads in {channel.mention}({channel.name}) in {channel.guild.name}")
     return all_threads
 
-async def ban_member(interaction, user, reason, days=1):
+async def ban_member(bans_class, interaction, user, reason, days=1):
     try:
-        await DatabaseBans().add_ban(user.id, interaction.guild.id, reason, interaction.user.name)
+        await bans_class.add_ban(user.id, interaction.guild.id, reason, interaction.user.name)
         await interaction.guild.ban(user, reason=reason, delete_message_days=days)
     except discord.Forbidden:
         error = f"Missing permission to ban user {user.name}({user.id}). Check permissions: ban_members or if the bot is higher in the hierarchy than the user."

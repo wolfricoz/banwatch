@@ -11,7 +11,7 @@ class queueTask(commands.Cog):
     def cog_unload(self):
         self.queue.cancel()
 
-    @tasks.loop(seconds=0.2)
+    @tasks.loop(seconds=0.3)
     async def queue(self):
         await queue().start()
 
