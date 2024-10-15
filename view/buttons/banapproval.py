@@ -11,11 +11,12 @@ from classes.queue import queue
 class BanApproval(View):
     bot = None
 
-    def __init__(self, bot, wait_id, create_thread = False):
+    def __init__(self, bot, wait_id, create_thread = False, silent = False):
         super().__init__(timeout=None)
         self.bot = bot
         self.wait_id = wait_id
         self.create_thread = create_thread
+        self.silent = silent
 
     @discord.ui.button(label="Approve with proof", style=discord.ButtonStyle.success, custom_id="approve_broadcast")
     async def approve(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -34,7 +35,9 @@ class BanApproval(View):
                                  description=f"{reason}")
         invite = await Bans().create_invite(guild)
         banembed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} ban ID: {self.wait_id} ")
-        await interaction.followup.send("Approved with proof", ephemeral=True)
+        await interaction.followup.send(f"Approved with proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else None}", ephemeral=False)
+        if self.silent:
+            return
         await Bans().check_guilds(interaction, self.bot, guild, user, banembed, self.wait_id, self.create_thread)
 
     @discord.ui.button(label="Approve without proof", style=discord.ButtonStyle.success, custom_id="approve_no_proof_broadcast")
@@ -54,7 +57,9 @@ class BanApproval(View):
                                  description=f"{reason}")
         invite = await Bans().create_invite(guild)
         banembed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} ban ID: {self.wait_id} ")
-        await interaction.followup.send("Approved without proof", ephemeral=True)
+        await interaction.followup.send(f"Approved without proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else None}", ephemeral=False)
+        if self.silent:
+            return
         await Bans().check_guilds(interaction, self.bot, guild, user, banembed, self.wait_id, False)
 
     @discord.ui.button(label="Deny", style=discord.ButtonStyle.danger, custom_id="deny_broadcast")

@@ -43,8 +43,7 @@ class BanOptionButtons(View):
 
     @button(label="Silent", custom_id="silent", style=discord.ButtonStyle.primary)
     async def silent(self, interaction: discord.Interaction, button: button):
-        guild, user, ban = await self.get_data(interaction)
-        checklist_check = self.check_checklisted_words(ban)
+        await self.process(interaction, silent=True)
 
         pass
 
@@ -71,6 +70,8 @@ class BanOptionButtons(View):
             queue().add(send_message(channel, embed=embed, view=BanApproval(interaction.client, wait_id, True)))
 
         queue().add(DatabaseBans().add_ban(user.id, guild.id, ban.reason, staff_member.name))
+        if silent:
+            return
         embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
                               description=f"{ban.reason}")
         embed.set_footer(text=f"Server Invite: {guild_db.invite} Staff member: {staff_member} ban ID: {wait_id}")
@@ -99,7 +100,7 @@ class BanOptionButtons(View):
                     return guild.owner
                 return entry.user
 
-    async def verification_notification(self, banreason, bot, guild, user, word, message: discord.Message = None):
+    async def verification_notification(self, banreason, bot, guild, user, word, message: discord.Message = None, silent = False):
         modchannel_id = await Configer.get(guild.id, "modchannel")
         modchannel = bot.get_channel(int(modchannel_id))
         supportguild = bot.get_guild(bot.SUPPORTGUILD)
@@ -107,13 +108,13 @@ class BanOptionButtons(View):
         verembed = discord.Embed(title=f"ban for {user}({user.id}) was flagged for review",
                                  description=f"{banreason}\n\n"
                                              f"Flagged word: {word}. We review bans with serious accusations to ensure they are legitimate.")
-        verembed.set_footer(text=f"Please supply evidence by using the /evidence add commmand, or by joining our support server (18+).")
+        verembed.set_footer(text=f"Please supply evidence by using the /evidence add commmand, or by joining our support server (18+).\n\n{'This ban will not be broadcasted on approval' if silent else None}")
         if message:
             await message.edit(content=f"-# You can join our support server by [clicking here to join]({support_invite}).", embed=verembed, view=None)
             return
         await send_message(modchannel, f"-# You can join our support server by [clicking here to join]({support_invite}).", embed=verembed)
 
-    async def status(self, bot, guild, user: discord.User, status="queued", banreason=None, word=None, message=None):
+    async def status(self, bot, guild, user: discord.User, status="queued", banreason=None, word=None, message=None, silent = False):
         """informs user is the ban has been approved or is in queue"""
         modchannel = await Configer.get(guild.id, "modchannel")
         channel = bot.get_channel(int(modchannel))
