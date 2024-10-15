@@ -2,7 +2,6 @@ import logging
 
 import discord
 
-
 max_length = 1800
 
 
@@ -56,7 +55,6 @@ async def send_message(channel: discord.TextChannel, message=None, embed=None, v
         raise NoMessagePermissionException(missing_permissions=missing_perms)
 
 
-# noinspection PyUnresolvedReferences
 async def send_response(interaction: discord.Interaction, response, ephemeral=False):
     """Send a response to an interaction"""
     try:
@@ -64,17 +62,18 @@ async def send_response(interaction: discord.Interaction, response, ephemeral=Fa
     except discord.errors.Forbidden:
         required_perms = ['view_channel', 'send_messages', 'embed_links', 'attach_files']
         missing_perms = await check_missing_permissions(interaction.channel, required_perms)
-        logging.error(f"Missing permission to send message to {channel.name}")
-        await interaction.guild.owner.send(f"Missing permission to send message to {channel.name}. Check permissions: {', '.join(missing_perms)}", )
+        logging.error(f"Missing permission to send message to {interaction.channel.name}")
+        await interaction.guild.owner.send(f"Missing permission to send message to {interaction.channel.name}. Check permissions: {', '.join(missing_perms)}", )
         raise NoMessagePermissionException(missing_permissions=missing_perms)
     except discord.errors.NotFound:
         try:
             await interaction.followup.send(
-                response,
-                ephemeral=ephemeral
+                    response,
+                    ephemeral=ephemeral
             )
         except discord.errors.NotFound:
             await send_message(interaction.channel, response)
+
 
 async def get_all_threads(guild: discord.Guild):
     """Get all threads in a guild"""
@@ -89,6 +88,7 @@ async def get_all_threads(guild: discord.Guild):
             logging.error(f"Missing permission to view archived threads in {channel.mention}({channel.name}) in {channel.guild.name}")
     return all_threads
 
+
 async def ban_member(bans_class, interaction, user, reason, days=1):
     try:
         await bans_class.add_ban(user.id, interaction.guild.id, reason, interaction.user.name)
@@ -99,9 +99,11 @@ async def ban_member(bans_class, interaction, user, reason, days=1):
         await interaction.channel.send(error)
         raise NoMessagePermissionException(missing_permissions=['ban_members'])
 
+
 async def await_message(interaction, message) -> discord.Message | bool:
-    await send_response(interaction,
-                        message)
+    msg: discord.Message = await send_response(interaction,
+                                               message)
+    await msg.delete()
     m = await interaction.client.wait_for('message', check=lambda m: m.author == interaction.user, timeout=600)
     if m.content.lower() == "cancel":
         return False

@@ -1,10 +1,11 @@
+import os
+
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-from classes.bans import Bans
-from classes.cacher import LongTermCache
-from classes.support.discord_tools import send_response, send_message, await_message
+from classes.evidence import EvidenceController
+from classes.support.discord_tools import await_message
 
 
 class Evidence(commands.GroupCog, name="evidence"):
@@ -18,28 +19,10 @@ class Evidence(commands.GroupCog, name="evidence"):
         """Adds evidence to a user's record"""
         ban_entry: discord.Message
         ban_id = interaction.guild.id + user.id
-        evidence_message = f"Please send a message with the evidence you would like to add to {user.name}'s record, this will be added to the ban ID {ban_id} in our support server. \n Type `cancel` to cancel.\n -# By responding to this message you agree to the evidence being stored in our support server."
-
+        evidence_message = f"Please send a message with the evidence you would like to add to {user.name}'s record, this will be added to the ban ID {ban_id} in our support server. \n Type `cancel` to cancel.\n-# By responding to this message you agree to the evidence being stored in our support server."
         evidence = await await_message(interaction, evidence_message)
-
-        attachments = [await a.to_file() for a in evidence.attachments]
-        if LongTermCache().get_ban(ban_id):
-            approval_channel = self.bot.get_channel(self.bot.BANCHANNEL)
-            await send_message(approval_channel,
-                               f"Ban ID {ban_id} has been updated with new evidence:\n"
-                               f"{evidence.content}", files=attachments)
-            await send_message(interaction.channel, f"Proof for {user.name}({user.id}) has been added to the evidence channel.")
-            return
-
-        ban_entry, embed = await Bans().find_ban_record(self.bot, ban_id)
-        if ban_entry is None:
-            await send_response(interaction, f"Ban ID {ban_id} not found.")
-            return
-        thread = await ban_entry.fetch_thread()
-        if thread is None:
-            thread = await ban_entry.create_thread(name=f"Evidence for {user.name}({user.id})")
-
-        await thread.send(f"{evidence.content}", files=attachments)
+        channel = self.bot.get_channel(int(os.getenv("APPROVED")))
+        await EvidenceController.add_evidence(interaction, evidence, ban_id, channel, user)
 
 
 async def setup(bot: commands.Bot):

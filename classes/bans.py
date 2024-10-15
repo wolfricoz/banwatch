@@ -259,7 +259,7 @@ class Bans(metaclass=Singleton):
 
     async def find_ban_record(self, bot, banid, channel=None):
         if channel is None:
-            channel = bot.get_channel(bot.APPROVALCHANNEL)
+            channel = bot.get_channel(int(os.getenv("APPROVED")))
         async for message in channel.history():
             if message.author.id != bot.user.id:
                 continue
