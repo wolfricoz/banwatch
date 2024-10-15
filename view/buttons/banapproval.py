@@ -35,7 +35,7 @@ class BanApproval(View):
                                  description=f"{reason}")
         invite = await Bans().create_invite(guild)
         banembed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} ban ID: {self.wait_id} ")
-        await interaction.followup.send(f"Approved with proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else None}", ephemeral=False)
+        await interaction.followup.send(f"Approved with proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}", ephemeral=False)
         if self.silent:
             return
         await Bans().check_guilds(interaction, self.bot, guild, user, banembed, self.wait_id, self.create_thread)
@@ -57,7 +57,7 @@ class BanApproval(View):
                                  description=f"{reason}")
         invite = await Bans().create_invite(guild)
         banembed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} ban ID: {self.wait_id} ")
-        await interaction.followup.send(f"Approved without proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else None}", ephemeral=False)
+        await interaction.followup.send(f"Approved without proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}", ephemeral=False)
         if self.silent:
             return
         await Bans().check_guilds(interaction, self.bot, guild, user, banembed, self.wait_id, False)
