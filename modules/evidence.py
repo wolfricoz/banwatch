@@ -7,6 +7,7 @@ from discord.ext import commands
 from classes.evidence import EvidenceController
 from classes.support.discord_tools import await_message, send_response, send_message
 from database.databaseController import ProofDbTransactions
+from view.pagination.pagination import Pagination
 
 
 class Evidence(commands.GroupCog, name="evidence"):
@@ -43,6 +44,15 @@ class Evidence(commands.GroupCog, name="evidence"):
         # user goes here
         entries = ProofDbTransactions().get(user_id=user.id)
         await EvidenceController().send_proof(interaction, entries, user.id)
+
+    # Add a way to manage bans, both for staff of a server as well as the banwatch staff
+    @app_commands.command(name="manage", description="View evidence and manage evidence")
+    async def manage(self, interaction: discord.Interaction, user: discord.User = None, ban_id: str = None):
+        view = Pagination(['record 1', 'record 2', 'record 3', 'record 4'])
+        view.interaction = interaction
+        await view.send_view()
+
+
 
 
 
