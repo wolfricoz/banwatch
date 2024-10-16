@@ -5,16 +5,24 @@ nav_order: 1
 ---
 
 <h1 align="center">Banwatch</h1>
-Build: 2.0<br>
+Build: 3.0<br>
 Devs: ricostryker
 
-Banwatch is a tool that allows you to monitor your server for bans in the roleplay community. It can be used to find
-troublesome members and keep your server safe. By providing the ban reasons you gain more information about the ban and
-can make a more informed decision about the user, whether to ban them or not. Banwatch also provides invites to the
-server the user was banned from, so you can investigate further if needed.
+Banwatch is a ban management tool that informs you about troublesome users in the community. Banwatch comes with the following features:
+* A suite of ban management tools
+* The ability to look up bans of specified users
+* A warning about a user's ban when they join
+* warnings when a user gets banned in another server (if they are in your server)
+* Serious allegations are investigated by staff, ensuring accuracy.
+* (3.0) An evidence management system
+* (3.0) Verified bans, which are verified by the banwatch team.
 
-banwatch manages more than 100 servers and has access to more than 6000 bans. It is a powerful tool that can help you
-keep your server safe.
+The goal of banwatch is to inform servers about troublesome users, this means that  **Banwatch will never automatically ban users!** By using banwatch you can avoid troublesome and even dangerous users from harming your community, 
+
+Banwatch boasts unique bans  15,000+ unique bans and 150 other servers contributing to keeping the community safe.
+
+Invite Banwatch:
+https://discord.com/oauth2/authorize?client_id=1047697525349564436
 
 ## Key Features
 
