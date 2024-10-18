@@ -192,11 +192,11 @@ class ProofDbTransactions(DatabaseTransactions):
             return to_list(session.scalars(Select(Proof).join(Bans).where(Proof.uid == user_id)).all())
         return to_list(session.scalars(Select(Proof).join(Bans).where(Proof.ban_id == ban_id)).all())
 
-    def delete(self, ban_id: int) -> bool:
-        proof = self.get(ban_id)
-        if not proof:
+    def delete(self, id: int) -> bool:
+        entry = session.scalar(Select(Proof).where(Proof.id == id))
+        if not entry:
             return False
-        session.delete(proof)
+        session.delete(entry)
         self.commit(session)
         return True
 

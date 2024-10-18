@@ -1,13 +1,15 @@
 import discord
 from discord.ui import View, button
 
-from classes.support.discord_tools import await_message, send_response
+from classes.support.discord_tools import send_response
+from database.current import Proof
+from database.databaseController import ProofDbTransactions
 
 
 class Pagination(View):
     pages = 0
     current_page = 0
-    data = []
+    data: list[Proof] = []
     interaction = None
 
     def __init__(self, data: list):
@@ -18,21 +20,51 @@ class Pagination(View):
     async def send_view(self):
         if self.pages <= 0:
             return await send_response(self.interaction, f"This user does not have any evidence")
-        await self.interaction.response.send_message(self.data[self.current_page], view=self)
+        embed = await self.create_embed()
+        self.update_buttons()
+        await self.interaction.response.send_message(embed=embed, view=self)
+
+    async def create_embed(self) -> discord.Embed:
+        data: Proof = self.data[self.current_page]
+        embed = discord.Embed(title=f"Evidence for ban entry: {data.ban_id}",
+                              description=f"{data.proof}")
+        for attachment in data.get_attachments():
+            embed.add_field(name="", value=attachment)
+        return embed
+
+    async def delete_item(self, interaction):
+        self.data.pop(self.current_page)
+        self.pages = len(self.data)
+        if self.pages == 0:
+            await interaction.message.edit(content="No evidence remaining", embed=None, view=None)
+            return
+        self.update_buttons()
+        await self.load_page(self.current_page - 1)
 
     async def load_page(self, page_number: int):
-        print(page_number)
-        print(self.pages)
         if page_number + 1 > self.pages:
             page_number = 0
-        await self.interaction.message.edit(content=self.data[page_number])
         self.current_page = page_number
+        embed = await self.create_embed()
+        self.update_buttons()
+        await self.interaction.message.edit(embed=embed, view=self)
 
     @button(label="Previous", custom_id="Previous", style=discord.ButtonStyle.success)
     async def previous(self, interaction: discord.Interaction, button: button):
         await interaction.response.defer()
         self.interaction = interaction
-        await self.load_page(self.current_page - 1 )
+        await self.load_page(self.current_page - 1)
+
+    @button(label="Delete", custom_id="Delete", style=discord.ButtonStyle.danger, emoji="🗑️")
+    async def delete(self, interaction: discord.Interaction, button: button):
+        await interaction.response.defer()
+        result = ProofDbTransactions().delete(self.data[self.current_page].id)
+        if not result:
+            await interaction.followup.send("Failed to delete", ephemeral=True)
+            return
+        await interaction.followup.send(f"Deleted entry successfully", ephemeral=True)
+        await self.delete_item(interaction)
+        pass
 
     @button(label="Next", custom_id="Next", style=discord.ButtonStyle.success)
     async def next(self, interaction: discord.Interaction, button: button):
@@ -40,4 +72,18 @@ class Pagination(View):
         self.interaction = interaction
         await self.load_page(self.current_page + 1)
 
+    def update_buttons(self):
+        if self.current_page == 0:
+            self.previous.disabled = True
+            self.previous.style = discord.ButtonStyle.gray
+            print(self.previous.disabled)
+        else:
+            self.previous.disabled = False
+            self.previous.style = discord.ButtonStyle.success
 
+        if self.current_page == self.pages - 1:
+            self.next.disabled = True
+            self.next.style = discord.ButtonStyle.gray
+        else:
+            self.next.disabled = False
+            self.next.style = discord.ButtonStyle.primary

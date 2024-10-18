@@ -19,7 +19,7 @@ Banwatch is a ban management tool that informs you about troublesome users in th
 
 The goal of banwatch is to inform servers about troublesome users, this means that  **Banwatch will never automatically ban users!** By using banwatch you can avoid troublesome and even dangerous users from harming your community, 
 
-Banwatch boasts unique bans  15,000+ unique bans and 150 other servers contributing to keeping the community safe.
+Banwatch boasts 15,000+ unique bans and 150 other servers contributing to keeping the community safe.
 
 Invite Banwatch:
 https://discord.com/oauth2/authorize?client_id=1047697525349564436

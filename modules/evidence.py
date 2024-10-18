@@ -48,7 +48,12 @@ class Evidence(commands.GroupCog, name="evidence"):
     # Add a way to manage bans, both for staff of a server as well as the banwatch staff
     @app_commands.command(name="manage", description="View evidence and manage evidence")
     async def manage(self, interaction: discord.Interaction, user: discord.User = None, ban_id: str = None):
-        view = Pagination(['record 1', 'record 2', 'record 3', 'record 4'])
+        if ban_id:
+            entries = ProofDbTransactions().get(ban_id=ban_id)
+            return
+        # user goes here
+        entries = ProofDbTransactions().get(user_id=user.id)
+        view = Pagination(entries)
         view.interaction = interaction
         await view.send_view()
 
