@@ -10,18 +10,12 @@ from classes.configer import Configer
 from classes.queue import queue
 from classes.rpsec import RpSec
 from classes.server import Server
+from classes.singleton import Singleton
 from classes.support.discord_tools import send_message
 from database.databaseController import BanDbTransactions, ServerDbTransactions
 from modules.logs import Logging
 
 
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
 
 
 class Bans(metaclass=Singleton):
