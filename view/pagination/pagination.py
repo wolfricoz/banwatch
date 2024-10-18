@@ -58,6 +58,11 @@ class Pagination(View):
     @button(label="Delete", custom_id="Delete", style=discord.ButtonStyle.danger, emoji="🗑️")
     async def delete(self, interaction: discord.Interaction, button: button):
         await interaction.response.defer()
+
+        if interaction.guild.id != self.data[self.current_page].ban.gid:
+            await interaction.followup.send("Evidence may only be removed by the original server or banwatch staff.", ephemeral=True)
+            return
+
         result = ProofDbTransactions().delete(self.data[self.current_page].id)
         if not result:
             await interaction.followup.send("Failed to delete", ephemeral=True)
