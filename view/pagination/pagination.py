@@ -1,6 +1,7 @@
 import discord
 from discord.ui import View, button
 
+from classes.access import AccessControl
 from classes.support.discord_tools import send_response
 from database.current import Proof
 from database.databaseController import ProofDbTransactions
@@ -10,7 +11,8 @@ class Pagination(View):
     pages = 0
     current_page = 0
     data: list[Proof] = []
-    interaction = None
+    message = None
+    interaction: discord.Interaction
 
     def __init__(self, data: list):
         super().__init__(timeout=None)
@@ -22,7 +24,8 @@ class Pagination(View):
             return await send_response(self.interaction, f"This user does not have any evidence")
         embed = await self.create_embed()
         self.update_buttons()
-        await self.interaction.response.send_message(embed=embed, view=self)
+        self.message = await self.interaction.channel.send(embed=embed, view=self)
+        await send_response(self.interaction, "Success!")
 
     async def create_embed(self) -> discord.Embed:
         data: Proof = self.data[self.current_page]
@@ -47,7 +50,7 @@ class Pagination(View):
         self.current_page = page_number
         embed = await self.create_embed()
         self.update_buttons()
-        await self.interaction.message.edit(embed=embed, view=self)
+        await self.message.edit(embed=embed, view=self)
 
     @button(label="Previous", custom_id="Previous", style=discord.ButtonStyle.success)
     async def previous(self, interaction: discord.Interaction, button: button):
@@ -59,7 +62,7 @@ class Pagination(View):
     async def delete(self, interaction: discord.Interaction, button: button):
         await interaction.response.defer()
 
-        if interaction.guild.id != self.data[self.current_page].ban.gid:
+        if interaction.guild.id != self.data[self.current_page].ban.gid and not AccessControl().access_all(interaction.user):
             await interaction.followup.send("Evidence may only be removed by the original server or banwatch staff.", ephemeral=True)
             return
 
