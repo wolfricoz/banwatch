@@ -5,7 +5,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from classes.evidence import EvidenceController
-from classes.support.discord_tools import await_message, send_response, send_message
+from classes.support.discord_tools import await_message, send_response, send_message, ban_member
 from database.databaseController import ProofDbTransactions
 from view.pagination.pagination import Pagination
 
@@ -33,6 +33,7 @@ class Evidence(commands.GroupCog, name="evidence"):
         await EvidenceController.add_evidence(interaction, evidence, ban_id, channel, user)
 
     @app_commands.command(name="get", description="Get the proof for an user's ban!")
+    @app_commands.checks.has_permissions(ban_members=True)
     async def get(self, interaction: discord.Interaction, user: discord.User = None, ban_id: str = None):
         if user is None and ban_id is None:
             await send_response(interaction, "Please fill in the user or ban_id field to get the user.")
@@ -47,6 +48,7 @@ class Evidence(commands.GroupCog, name="evidence"):
 
     # Add a way to manage bans, both for staff of a server as well as the banwatch staff
     @app_commands.command(name="manage", description="View evidence and manage evidence")
+    @app_commands.checks.has_permissions(ban_members=True)
     async def manage(self, interaction: discord.Interaction, user: discord.User = None, ban_id: str = None):
         if ban_id:
             entries = ProofDbTransactions().get(ban_id=ban_id)

@@ -9,11 +9,13 @@ from discord.app_commands import Choice
 from discord.ext import commands
 from sqlalchemy.testing.plugin.plugin_base import logging
 
+from classes.access import AccessControl
 from classes.bans import Bans
 from classes.configer import Configer
 from classes.queue import queue
 from classes.support.discord_tools import send_response, send_message, get_all_threads
 from classes.tasks import pending_bans
+from database.databaseController import StaffDbTransactions
 from view.modals.inputmodal import send_modal
 
 
@@ -304,6 +306,18 @@ class dev(commands.GroupCog, name="dev"):
                     await interaction.followup.send(f"Found in {thread.mention}: {message.jump_url}")
                     return
         await send_message(interaction.channel, "Not found")
+
+    @app_commands.command(name="add_staff", description="[DEV] Adds a staff member to the team")
+    @app_commands.choices(role=[Choice(name=x, value=x.lower()) for x in ["Dev", "Rep"] ])
+    @in_guild()
+    async def add_staff(self, interaction: discord.Interaction, user: discord.User, role: Choice[str]):
+        StaffDbTransactions().add(user.id, role.value)
+        await send_response(interaction, f"Staff member {user.mention} successfully added as a `{role.name}`!")
+        AccessControl().reload()
+
+    @app_commands.command(name="amistaff", description="[DEV] check if you're a banwatch staff member.")
+    async def rpseclookup(self, interaction: discord.Interaction):
+        return await send_response(interaction, "You are a staff member" if AccessControl().access_all(interaction.user) else "You are not a staff member")
 
 
 async def setup(bot: commands.Bot):
