@@ -140,11 +140,27 @@ class Bans(metaclass=Singleton):
         sr = "".join(reasons)
         return sr
 
-    async def send_to_channel(self, channel: discord.TextChannel, sr, memberid: int):
+    async def send_to_channel(self, interaction: discord.Interaction, sr, member: discord.Member | discord.User):
         characters = 0
+        bans = []
+        embed = discord.Embed(title=f"{member.name}'s ban history", description="Please ensure to reach out to the respective servers for proof or check the support server.")
+        print("checking bans")
+        print(sr)
+        for i, ban in enumerate(sr):
+            guild = interaction.client.get_guild(ban.gid)
+            if i >= 25:
+                bans.append(f"{guild.name}: {ban.reason}\n-# Verified: {'Yes' if ban.verified else 'No'}, invite: {ban.invite}")
+            guild = interaction.client.get_guild(ban.gid)
+            embed.add_field(name=f"{guild.name} ({ban.guild.invite})",
+                            value=f"{ban.reason}\n"
+                                  f"verified: {'Yes' if ban.verified else 'No'}, date: {ban.created_at}")
+        print("finished checking bans")
+        sr = "\n".join(bans)
+        if len(sr) == 0:
+            await send_message(interaction.channel, embed=embed)
+
         while characters < len(sr):
-            message = f"{Bans().bans[f'{memberid}']['name']}({memberid}) is banned in: {sr}"
-            await send_message(channel, message[characters:characters + 1800])
+            await send_message(interaction.channel, sr[characters:characters + 1800], embed=embed)
             characters += 1800
 
     async def announce_add(self, guildid, userid, reason):
@@ -331,6 +347,9 @@ class DatabaseBans():
         if permanent:
             BanDbTransactions().delete_permanent(user_id + guild_id)
         BanDbTransactions().delete_soft(user_id + guild_id)
+
+    async def get_user_bans(self, user_id):
+        return BanDbTransactions().get_all(user_id)
 
     async def get_ban(self, ban_id):
         pass

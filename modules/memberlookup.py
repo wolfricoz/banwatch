@@ -52,23 +52,20 @@ class User(commands.GroupCog, name="user"):
     @app_commands.checks.has_permissions(ban_members=True)
     async def lookup(self, interaction: discord.Interaction, member: discord.User):
         logging.info(f"{interaction.user} from {interaction.guild.name} is looking up {member.name}")
-        await interaction.response.defer(ephemeral=True)
         if interaction.user.id == member.id and not interaction.guild.id == self.bot.SUPPORTGUILD:
             logging.warning(f"{interaction.user} tried to look up themselves")
             return await send_response(interaction, "You can not look up yourself!",
                                        ephemeral=True)
-
         sr =  BanDbTransactions().get_all(user_id=member.id)
         if sr is None:
-            await send_message(interaction.channel, f"<@{member.id}> is not banned in any servers the bot is in.")
+            await send_response(interaction, f"<@{member.id}> is not banned in any servers the bot is in.")
             return
-        await Bans().send_to_channel(interaction, sr, member.id)
+        await send_response(interaction, "⌛ Fetching bans, please wait.", ephemeral=True)
+        await Bans().send_to_channel(interaction, sr, member)
 
     @app_commands.command(name="checkall", description="checks ALL users")
     @app_commands.checks.has_permissions(ban_members=True)
     async def checkall(self, interaction: discord.Interaction):
-        if Bans().is_ready() is False:
-            return await send_response(interaction, "Bans not ready, please wait a moment - this usually takes 2 minutes.", ephemeral=True)
         await send_response(interaction, f"Checking all users ({len(interaction.guild.members)}), please wait. Looking through {BanDbTransactions().count_bans()} unique bans")
         start = time.time()
         count = 0
