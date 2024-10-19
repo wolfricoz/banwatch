@@ -12,7 +12,6 @@ from classes.support.discord_tools import send_message, send_response
 from database.databaseController import BanDbTransactions
 
 
-# TODO: UPDATE THIS TO WORK WITH THE DATABASE
 
 class BanCheck(ABC):
 
@@ -64,33 +63,6 @@ class User(commands.GroupCog, name="user"):
             await send_message(interaction.channel, f"<@{member.id}> is not banned in any servers the bot is in.")
             return
         await Bans().send_to_channel(interaction, sr, member.id)
-
-    @app_commands.command(name="lookupid", description="Looks up user's bans with user id and displays them in the channel")
-    @app_commands.checks.has_permissions(ban_members=True)
-    async def lookupid(self, interaction: discord.Interaction, memberid: str):
-        logging.info(f"{interaction.user} from {interaction.guild.name} is looking up {memberid}")
-        if interaction.user.id == memberid and not interaction.guild.id == self.bot.SUPPORTGUILD:
-            logging.warning(f"{interaction.user} tried to look up themselves")
-            return await send_response(interaction, "You can not look up yourself!",
-                                       ephemeral=True)
-        if BanCheck().member_count_check(interaction.guild, self.bot) is False:
-            await send_message(interaction.channel, "This command can only be used in servers with 50 or more members, to prevent abuse.")
-            return
-        if Bans().is_ready() is False:
-            return await send_response(interaction, "Bans not ready, please wait a moment - this usually takes 2 minutes.", ephemeral=True)
-        try:
-            memberid = int(memberid)
-        except ValueError:
-            await send_message(interaction.channel, "Please provide a valid user id")
-            return
-        await interaction.response.defer(ephemeral=True)
-
-        sr = await Bans().check(self.bot, int(memberid))
-
-        if sr is None:
-            await send_message(interaction.channel, f"<@{memberid}> is not banned in any servers the bot is in.")
-            return
-        await Bans().send_to_channel(interaction.channel, sr, int(memberid))
 
     @app_commands.command(name="checkall", description="checks ALL users")
     @app_commands.checks.has_permissions(ban_members=True)
