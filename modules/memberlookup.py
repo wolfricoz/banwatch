@@ -9,7 +9,10 @@ from discord.ext import commands
 
 from classes.bans import Bans
 from classes.support.discord_tools import send_message, send_response
+from database.databaseController import BanDbTransactions
 
+
+# TODO: UPDATE THIS TO WORK WITH THE DATABASE
 
 class BanCheck(ABC):
 
@@ -19,40 +22,21 @@ class BanCheck(ABC):
         return len(guild.members) >= 50
 
     async def checkerall(self, interaction, bot):
-
         fcount = 0
         bcount = 0
-        bans = Bans().bans
         with open(f"bans.txt", 'w', encoding='utf-8') as f:
             f.write(f"Bans:")
         for member in interaction.guild.members:
 
-            if f"{member.id}" in bans:
+            ban_list = BanDbTransactions().get_all(member.id)
+            fcount += 1
+            if not ban_list:
+                continue
+            for ban in ban_list:
                 bcount += 1
-                count = 0
-
-                reasons = []
-                for guild in bot.guilds:
-                    try:
-                        ban = bans[f"{member.id}"][f"{guild.id}"]['reason']
-                        reasons.append(f"\n{guild}: {ban}"
-                                       f"\n Owner: {guild.owner}\n")
-                        count += 1
-                    except discord.NotFound:
-                        pass
-                    except Exception as e:
-                        pass
-                sr = "".join(reasons)
-
-                if count >= 1:
-                    fcount += 1
-                    with open(f"bans.txt", 'a', encoding='utf-8') as f:
-                        f.write(f"\n----{member}({member.id})----:"
-                                f"{sr}")
-                else:
-                    pass
-            else:
-                pass
+                with open(f"bans.txt", 'a', encoding='utf-8') as f:
+                    f.write(f"\n----{member}({member.id})----:"
+                            f"\n{ban.reason}")
         with open(f"bans.txt", encoding='utf-8') as f:
             await interaction.channel.send(f"Bans found :",
                                            file=discord.File(f.name, "banned.txt"))
@@ -67,30 +51,28 @@ class User(commands.GroupCog, name="user"):
 
     @app_commands.command(name="lookup", description="Looks up user's bans and displays them in the channel")
     @app_commands.checks.has_permissions(ban_members=True)
-    async def lookup(self, interaction: discord.Interaction, member: discord.Member):
+    async def lookup(self, interaction: discord.Interaction, member: discord.User):
         logging.info(f"{interaction.user} from {interaction.guild.name} is looking up {member.name}")
         await interaction.response.defer(ephemeral=True)
-        if Bans().is_ready() is False:
-            return await interaction.followup.send("Bans not ready, please wait a moment - this usually takes 2 minutes.", ephemeral=True)
-        # if interaction.user.id == member.id and not interaction.guild.id == self.bot.SUPPORTGUILD:
-        #     logging.warning(f"{interaction.user} tried to look up themselves")
-        #     return await send_response(interaction, "You can not look up yourself!",
-        #                                ephemeral=True)
+        if interaction.user.id == member.id and not interaction.guild.id == self.bot.SUPPORTGUILD:
+            logging.warning(f"{interaction.user} tried to look up themselves")
+            return await send_response(interaction, "You can not look up yourself!",
+                                       ephemeral=True)
 
-        sr = await Bans().check(self.bot, member.id)
+        sr =  BanDbTransactions().get_all(user_id=member.id)
         if sr is None:
             await send_message(interaction.channel, f"<@{member.id}> is not banned in any servers the bot is in.")
             return
-        await Bans().send_to_channel(interaction.channel, sr, member.id)
+        await Bans().send_to_channel(interaction, sr, member.id)
 
     @app_commands.command(name="lookupid", description="Looks up user's bans with user id and displays them in the channel")
     @app_commands.checks.has_permissions(ban_members=True)
     async def lookupid(self, interaction: discord.Interaction, memberid: str):
         logging.info(f"{interaction.user} from {interaction.guild.name} is looking up {memberid}")
-        # if interaction.user.id == memberid and not interaction.guild.id == self.bot.SUPPORTGUILD:
-        #     logging.warning(f"{interaction.user} tried to look up themselves")
-        #     return await send_response(interaction, "You can not look up yourself!",
-        #                                ephemeral=True)
+        if interaction.user.id == memberid and not interaction.guild.id == self.bot.SUPPORTGUILD:
+            logging.warning(f"{interaction.user} tried to look up themselves")
+            return await send_response(interaction, "You can not look up yourself!",
+                                       ephemeral=True)
         if BanCheck().member_count_check(interaction.guild, self.bot) is False:
             await send_message(interaction.channel, "This command can only be used in servers with 50 or more members, to prevent abuse.")
             return
@@ -115,7 +97,7 @@ class User(commands.GroupCog, name="user"):
     async def checkall(self, interaction: discord.Interaction):
         if Bans().is_ready() is False:
             return await send_response(interaction, "Bans not ready, please wait a moment - this usually takes 2 minutes.", ephemeral=True)
-        await send_response(interaction, f"Checking all users ({len(interaction.guild.members)}), please wait. Looking through {len(Bans().bans)} unique bans")
+        await send_response(interaction, f"Checking all users ({len(interaction.guild.members)}), please wait. Looking through {BanDbTransactions().count_bans()} unique bans")
         start = time.time()
         count = 0
         count += await BanCheck().checkerall(interaction, self.bot)
@@ -123,7 +105,6 @@ class User(commands.GroupCog, name="user"):
         total = end - start
         await send_message(interaction.channel, f"Check-up done, found {count} ban registries in {str(total)[0:4]} seconds."
                                                 f"\n-# Reminder: You should reach out to the owner of the server for more information on the ban. Some of these bans may be older than the bot and have not been verified.")
-
 
 
 async def setup(bot: commands.Bot):
