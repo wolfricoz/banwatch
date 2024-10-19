@@ -3,7 +3,7 @@ import logging
 from typing import Type
 
 from aiohttp.web_routedef import delete
-from sqlalchemy import Select, exists, and_, false, Sequence, Row
+from sqlalchemy import Select, exists, and_, false, Sequence, Row, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy.util import to_list
@@ -124,10 +124,19 @@ class BanDbTransactions(DatabaseTransactions, Bans):
         self.commit(session)
         return ban
 
-    def get(self, ban_id: int, override: bool = False) -> Type[Bans] | None:
+    def get(self, ban_id: int = None, override: bool = False) -> Type[Bans] | None:
         if override:
             return session.scalar(Select(Bans).where(Bans.ban_id == ban_id))
         return session.query(Bans).join(Servers).filter(and_(Bans.ban_id == ban_id, Bans.deleted_at.is_(None), Servers.deleted_at.is_(None))).first()
+
+    def get_all(self, user_id, override = False):
+        if override:
+            return session.scalars(Select(Bans).where(Bans.uid == user_id)).all()
+        return session.query(Bans).join(Servers).filter(and_(Bans.uid == user_id, Bans.deleted_at.is_(None), Servers.deleted_at.is_(None))).all()
+
+    def count_bans(self):
+        return session.execute(text("SELECT count(*) FROM bans")).scalar()
+
 
     def delete_soft(self, ban_id: int) -> bool:
         logging.info(f"Ban soft removed {ban_id}. Will be removed permanently in 7 days.")
