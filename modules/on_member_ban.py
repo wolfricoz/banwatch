@@ -25,7 +25,7 @@ class BanEvents(commands.Cog):
         found = None
         await Bans().add_ban(bot, guild, user, ban.reason)
 
-        if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(ban.reason).lower().startswith('[silent]') or str(ban.reason).lower().startswith('[hidden]'):
+        if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or "[silent]" in str(ban.reason).lower() or "[hidden]" in str(ban.reason).lower():
             print("silent or hidden ban/no reason, not adding to list")
             return
         channel = bot.get_channel(bot.BANCHANNEL)

@@ -47,4 +47,6 @@ class queue():
             except Exception as e:
                 logging.error(f"Error in queue: {e}")
             self.task_finished = True
-            print(f"Remaining queue: High: {len(self.high_priority_queue)} Normal: {len(self.normal_priority_queue)} Low: {len(self.low_priority_queue)}")
+            estimated_time = len(self.high_priority_queue) + len(self.normal_priority_queue) + len(self.low_priority_queue) * 0.2 / 60
+
+            print(f"Remaining queue: High: {len(self.high_priority_queue)} Normal: {len(self.normal_priority_queue)} Low: {len(self.low_priority_queue)}. Estimated time: {estimated_time} minutes")
