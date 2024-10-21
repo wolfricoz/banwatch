@@ -65,6 +65,7 @@ class Servers(Base):
     __tablename__ = "servers"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
     owner: Mapped[str] = mapped_column(String(1024, collation='utf8mb4_unicode_ci'))
+    name: Mapped[str] = mapped_column(String(1024, collation='utf8mb4_unicode_ci'))
     member_count: Mapped[int] = mapped_column(BigInteger)
     invite: Mapped[str] = mapped_column(String(256, collation='utf8mb4_unicode_ci'), default="")
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

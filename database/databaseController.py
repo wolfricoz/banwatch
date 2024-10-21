@@ -1,9 +1,7 @@
-import json
 import logging
 from typing import Type
 
-from aiohttp.web_routedef import delete
-from sqlalchemy import Select, exists, and_, false, Sequence, Row, text
+from sqlalchemy import Select, exists, and_, false, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy.util import to_list
@@ -58,21 +56,22 @@ class ServerDbTransactions(DatabaseTransactions):
     def exist(self, guild_id: int):
         return session.query(exists().where(Servers.id == guild_id)).scalar()
 
-    def add(self, guild_id: int, owner: str, member_count: int, invite: str) -> Servers | bool:
+    def add(self, guild_id: int, owner: str, name: str, member_count: int, invite: str) -> Servers | bool:
         if self.exist(guild_id):
             # Call the update function
             return False
-        guild = Servers(id=guild_id, owner=owner, member_count=member_count, invite=invite)
+        guild = Servers(id=guild_id, owner=owner, name=name, member_count=member_count, invite=invite)
         session.add(guild)
         self.commit(session)
         return guild
 
-    def update(self, guild_id: int, owner: str = None, member_count: int = None, invite: str = None, delete: bool = None) -> Servers | bool:
+    def update(self, guild_id: int, owner: str = None, name: str = None, member_count: int = None, invite: str = None, delete: bool = None) -> Servers | bool:
         guild = session.scalar(Select(Servers).where(Servers.id == guild_id))
         if not guild:
             return False
         updates = {
             'owner'       : owner,
+            'name'        : name,
             'member_count': member_count,
             'invite'      : invite,
             'deleted_at'  : datetime.now() if delete else None if delete is False else guild.deleted_at,
@@ -129,14 +128,16 @@ class BanDbTransactions(DatabaseTransactions, Bans):
             return session.scalar(Select(Bans).where(Bans.ban_id == ban_id))
         return session.query(Bans).join(Servers).filter(and_(Bans.ban_id == ban_id, Bans.deleted_at.is_(None), Servers.deleted_at.is_(None))).first()
 
-    def get_all(self, user_id, override = False):
+    def get_all_user(self, user_id, override=False):
         if override:
             return session.scalars(Select(Bans).where(Bans.uid == user_id)).all()
         return session.query(Bans).join(Servers).filter(and_(Bans.uid == user_id, Bans.deleted_at.is_(None), Servers.deleted_at.is_(None))).all()
 
+    def get_all(self):
+        return session.scalars(Select(Bans).join(Servers).where(and_(Bans.deleted_at.is_(None), Servers.deleted_at.is_(None)))).all()
+
     def count_bans(self):
         return session.execute(text("SELECT count(*) FROM bans")).scalar()
-
 
     def delete_soft(self, ban_id: int) -> bool:
         logging.info(f"Ban soft removed {ban_id}. Will be removed permanently in 7 days.")
@@ -194,7 +195,7 @@ class ProofDbTransactions(DatabaseTransactions):
         self.commit(session)
         return proof
 
-    def get(self, ban_id: str|int = None, user_id: int = None) -> list | None:
+    def get(self, ban_id: str | int = None, user_id: int = None) -> list | None:
         if isinstance(ban_id, str):
             ban_id = int(ban_id)
         if user_id:
@@ -226,6 +227,7 @@ class ProofDbTransactions(DatabaseTransactions):
     #             setattr(proof, field, value)
     #     self.commit(session)
     #     return proof
+
 
 class StaffDbTransactions(DatabaseTransactions):
 
