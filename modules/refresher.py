@@ -12,7 +12,7 @@ class refresher(commands.Cog):
     def cog_unload(self):
         self.ban_update_task.cancel()
 
-    @tasks.loop(hours=4)
+    @tasks.loop(hours=2)
     async def ban_update_task(self):
         """Updates banlist when user is unbanned"""
         if self.ban_update_task.current_loop == 0:
