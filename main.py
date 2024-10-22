@@ -48,8 +48,7 @@ async def on_ready():
     # LOOPS THROUGH ALL THE GUILD / SERVERS THAT THE BOT IS ASSOCIATED WITH.
     await Configer.create_appeals()
     await Configer.create_bot_config()
-    Bans().load_bans()
-    LongTermCache().create()
+    queue().add(Bans().update(bot))
     logging.info("Configs and cache created")
     for guild in bot.guilds:
         # add invites
@@ -58,8 +57,6 @@ async def on_ready():
         await Configer.create(guild.id, guild.name)
         if await blacklist_check(guild, devroom):
             continue
-        ServerDbTransactions().add(guild.id, guild.owner.name, len(guild.members), "")
-        queue().add(DatabaseBans().check_guild_bans(guild), priority=0)
 
         # INCREMENTS THE GUILD COUNTER.
         guild_count += 1
@@ -77,13 +74,18 @@ async def on_guild_join(guild: discord.Guild) -> None:
     log = bot.get_channel(DEV)
     membercount = len([m for m in guild.members if not m.bot])
     logging.info(
-        f"Server Info: {guild}({guild.id}) has {membercount} members, it's owner is {guild.owner}({guild.owner.id}) and it was created at {guild.created_at}. This server has {len(guild.channels)} channels and {len(guild.roles)} roles.")
+            f"Server Info: {guild}({guild.id}) has {membercount} members, it's owner is {guild.owner}({guild.owner.id}) and it was created at {guild.created_at}. This server has {len(guild.channels)} channels and {len(guild.roles)} roles.")
 
     if await blacklist_check(guild, log):
         return
     if membercount < 25:
-        await guild.owner.send("[SECURITY ALERT] Banwatch has left your server due to low member count. Please ensure your server has at least 25 members to use the bot. When you have reached this number, [you can reinvite the bot.](https://discord.com/oauth2/authorize?client_id=1047697525349564436)")
-        await log.send(f"Left {guild}({guild.id}) due to low member count ({membercount})")
+        await guild.owner.send(
+            "[SECURITY ALERT] Banwatch has left your server due to low member count. Please ensure your server has at least 25 members to use the bot. When you have reached this number, [you can reinvite the bot.](https://discord.com/oauth2/authorize?client_id=1047697525349564436)")
+        await log.send(f"Ban watch is now in {len(bot.guilds)}! It just joined:"
+                       f"\nGuild: {guild}({guild.id})"
+                       f"\nOwner: {guild.owner}({guild.owner.id})"
+                       f"\nMember count: {membercount}"
+                       f"\n**__Leaving due to low user count__**")
         await guild.leave()
         return
     await Configer.create(guild.id, guild.name)
@@ -94,12 +96,12 @@ async def on_guild_join(guild: discord.Guild) -> None:
                    f"\nOwner: {guild.owner}({guild.owner.id})"
                    f"\nMember count: {membercount}"
                    f"\n\nWelcome to the Banwatch collective!")
-    # SYNCS COMMANDS
-    await bot.tree.sync()
     # Updates ban list
     logging.info(f"{guild} joined, refreshing ban list")
-    queue().add(Bans().add_guild_bans(bot, guild))
-    queue().add(Bans().add_guild_invites(guild))
+    ServerDbTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), "")
+    queue().add(DatabaseBans().check_guild_bans(guild), priority=0)
+    queue().add(bot.tree.sync(), priority=2)
+
 
 
 @bot.event
