@@ -5,7 +5,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from classes.evidence import EvidenceController
-from classes.support.discord_tools import await_message, send_response, send_message, ban_member
+from classes.support.discord_tools import await_message, send_response
 from database.databaseController import ProofDbTransactions
 from view.pagination.pagination import Pagination
 
@@ -58,9 +58,6 @@ class Evidence(commands.GroupCog, name="evidence"):
         view = Pagination(entries)
         view.interaction = interaction
         await view.send_view()
-
-
-
 
 
 async def setup(bot: commands.Bot):

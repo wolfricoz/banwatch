@@ -54,6 +54,7 @@ class queue(metaclass=Singleton):
             self.task_finished = False
             try:
                 task = self.process()
+
                 if not task:
                     self.low_priority_queue = [i for i in self.low_priority_queue if i is not None]
                     self.normal_priority_queue = [i for i in self.normal_priority_queue if i is not None]
@@ -64,6 +65,8 @@ class queue(metaclass=Singleton):
                 if not inspect.iscoroutine(task):
                     task()
                     self.task_finished = True
+                    logging.info(f"Processing task: {task.__name__}")
+
                     print(f"Remaining queue: High: {len(self.high_priority_queue)} Normal: {len(self.normal_priority_queue)} Low: {len(self.low_priority_queue)}")
                     return
                 logging.info(f"Processing task: {task.__name__}")
