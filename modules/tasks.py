@@ -17,7 +17,7 @@ class Tasks(commands.Cog):
     def cog_unload(self):
         self.check_blacklist.cancel()
 
-    @tasks.loop(hours=12)
+    @tasks.loop(hours=1)
     async def check_blacklist(self):
         if self.check_blacklist.current_loop == 0:
             return
