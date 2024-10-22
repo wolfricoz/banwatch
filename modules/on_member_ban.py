@@ -19,7 +19,11 @@ class BanEvents(commands.Cog):
     async def on_member_ban(self, guild, user):
         """informs other servers an user is banned and updates banlist"""
         print('ban event')
+
         bot = self.bot
+        if user == bot.user:
+            logging.warning(f"I was banned in {guild.name}")
+            return
         ban = await guild.fetch_ban(user)
         if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(ban.reason).lower().startswith('[silent]') or str(ban.reason).lower().startswith('[hidden]'):
             print("silent or hidden ban/no reason, not prompting")
