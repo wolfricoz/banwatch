@@ -21,8 +21,9 @@ class Events(commands.Cog):
         configid = int(config)
         channel = bot.get_channel(configid)
         sr = await DatabaseBans().get_user_bans(member.id)
+        print(sr)
 
-        if sr is None:
+        if sr is None or len(sr) < 1:
             logging.info(f"{member} has no ban record")
             return
         if channel is None:
