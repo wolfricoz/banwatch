@@ -14,6 +14,7 @@ from classes.server import Server
 from classes.singleton import Singleton
 from classes.support.discord_tools import send_message
 from database.databaseController import BanDbTransactions, ServerDbTransactions
+from view.buttons.baninform import BanInform
 
 
 class Bans(metaclass=Singleton):
@@ -134,17 +135,21 @@ class Bans(metaclass=Singleton):
         return sr
 
     async def send_to_channel(self, bot: commands.Bot, channel: discord.TextChannel, sr, member: discord.Member | discord.User):
+        if len(sr) <= 0 or not sr:
+            return
         characters = 0
         bans = []
-        embed = discord.Embed(title=f"{member.name}'s ban history", description="Please ensure to reach out to the respective servers for proof or check the support server.")
+        embed = discord.Embed(title=f"{member.name}({member.id})'s ban history", description="Please ensure to reach out to the respective servers for proof or check the support server.")
         for i, ban in enumerate(sr):
             guild = bot.get_guild(ban.gid)
             if i >= 25:
                 bans.append(f"{guild.name}: {ban.reason}\n-# Verified: {'Yes' if ban.verified else 'No'}, invite: {ban.invite}")
             guild = bot.get_guild(ban.gid)
+            created_at = ban.created_at.strftime('%m/%d/%Y') if ban.created_at else 'pre-banwatch, please check with server owner.'
+
             embed.add_field(name=f"{guild.name} ({ban.guild.invite})",
                             value=f"{ban.reason}\n"
-                                  f"verified: {'Yes' if ban.verified else 'No'}, date: {ban.created_at}")
+                                  f"verified: {'Yes' if ban.verified else 'No'}, date: {created_at}")
         sr = "\n".join(bans)
         if len(sr) == 0:
             await send_message(channel, embed=embed)
@@ -193,6 +198,7 @@ class Bans(metaclass=Singleton):
 
     async def announce_retrieve(self, wait_id):
         """Retrieves an announcement from waiting list"""
+        # This needs fixing, use database.
         ban_info = LongTermCache().get_ban(wait_id)
         if not ban_info:
             raise Exception("Wait ID not found")
@@ -201,7 +207,8 @@ class Bans(metaclass=Singleton):
     async def inform_server(self, bot, guilds, banembed):
         config = await Configer.get(guilds.id, "modchannel")
         modchannel = bot.get_channel(int(config))
-        await modchannel.send(embed=banembed)
+        options = BanInform(ban_class=DatabaseBans())
+        await modchannel.send(embed=banembed, view=options)
 
     async def check_guilds(self, interaction, bot, guild, user, banembed, wait_id, open_thread=False):
         approved_channel = bot.get_channel(bot.APPROVALCHANNEL)

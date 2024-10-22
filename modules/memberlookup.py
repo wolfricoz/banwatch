@@ -23,24 +23,36 @@ class BanCheck(ABC):
     async def checkerall(self, interaction, bot):
         fcount = 0
         bcount = 0
+        start = time.time()
+        ban_list = BanDbTransactions().get_all()
+        end = time.time()
+        total = end - start
+        print(f"Getting bans: {total}")
         with open(f"bans.txt", 'w', encoding='utf-8') as f:
             f.write(f"Bans:")
+        start = time.time()
         for member in interaction.guild.members:
 
-            ban_list = BanDbTransactions().get_all(member.id)
+            # Once done with the rest, get this back to 0.30 seconds if possible.
+            # A good way would potentially be turning it into a dict.
+            members_bans = [row for row in ban_list if row.uid == member.id]
+
             fcount += 1
             if not ban_list:
                 continue
-            for ban in ban_list:
+            for ban in members_bans:
                 bcount += 1
                 with open(f"bans.txt", 'a', encoding='utf-8') as f:
                     f.write(f"\n----{member}({member.id})----:"
                             f"\n{ban.reason}")
+        end = time.time()
+        total = end - start
+        print(f"Fetching bans and appending: {total}")
         with open(f"bans.txt", encoding='utf-8') as f:
             await interaction.channel.send(f"Bans found :",
                                            file=discord.File(f.name, "banned.txt"))
         os.remove(f.name)
-        return fcount
+        return bcount
 
 
 class User(commands.GroupCog, name="user"):
@@ -56,12 +68,12 @@ class User(commands.GroupCog, name="user"):
             logging.warning(f"{interaction.user} tried to look up themselves")
             return await send_response(interaction, "You can not look up yourself!",
                                        ephemeral=True)
-        sr =  BanDbTransactions().get_all(user_id=member.id)
+        sr =  BanDbTransactions().get_all_user(user_id=member.id)
         if sr is None:
             await send_response(interaction, f"<@{member.id}> is not banned in any servers the bot is in.")
             return
         await send_response(interaction, "⌛ Fetching bans, please wait.", ephemeral=True)
-        await Bans().send_to_channel(interaction, sr, member)
+        await Bans().send_to_interaction_channel(interaction, sr, member)
 
     @app_commands.command(name="checkall", description="checks ALL users")
     @app_commands.checks.has_permissions(ban_members=True)

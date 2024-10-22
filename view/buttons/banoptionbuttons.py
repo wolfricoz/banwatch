@@ -36,7 +36,7 @@ class BanOptionButtons(View):
 
     @button(label="Share with proof", custom_id="share_with_proof", style=discord.ButtonStyle.success)
     async def share_with_proof(self, interaction: discord.Interaction, button: button):
-        evidence_message = f"Please send a message with the evidence you would like to add to the record \n Type `cancel` to cancel.\n -# By responding to this message you agree to the evidence being stored in our support server."
+        evidence_message = f"Please send a message with the evidence you would like to add to the record \nType `cancel` to cancel.\n-# By responding to this message you agree to the evidence being stored in our support server."
         evidence = await await_message(interaction, evidence_message)
         await self.process(interaction)
         queue().add(self.provide_proof(interaction, evidence))
@@ -45,12 +45,10 @@ class BanOptionButtons(View):
     async def silent(self, interaction: discord.Interaction, button: button):
         await self.process(interaction, silent=True)
 
-        pass
 
     @button(label="Hide", custom_id="hide", style=discord.ButtonStyle.danger)
     async def hidden(self, interaction: discord.Interaction, button: button):
         await self.process(interaction, hidden=True)
-        pass
 
     async def process(self, interaction, hidden=False, silent=False):
         guild, user, ban = await self.get_data(interaction)
@@ -74,6 +72,7 @@ class BanOptionButtons(View):
                                   description=f"{ban.reason}")
             embed.set_footer(text=f"invite: {guild_db.invite} To approve it manually: /approve_ban {wait_id} ")
             queue().add(send_message(channel, embed=embed, view=BanApproval(interaction.client, wait_id, True, silent=silent)))
+            return
 
         queue().add(DatabaseBans().add_ban(user.id, guild.id, ban.reason, staff_member.name))
         if silent:

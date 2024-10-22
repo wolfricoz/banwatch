@@ -5,6 +5,7 @@ from discord.ext import commands
 
 from classes.bans import DatabaseBans
 from classes.configer import Configer
+from view.buttons.baninform import BanInform
 from view.buttons.banoptionbuttons import BanOptionButtons
 
 
@@ -13,6 +14,7 @@ class BanEvents(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.bot.add_view(BanOptionButtons())
+        self.bot.add_view(BanInform(DatabaseBans()))
 
     # Overhaul due to letting server owners choose
     @commands.Cog.listener()
