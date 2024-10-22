@@ -1,4 +1,5 @@
 """This class generates the ban list, with functions to update it, and to check for similar names"""
+import asyncio
 import logging
 import os
 
@@ -13,9 +14,6 @@ from classes.server import Server
 from classes.singleton import Singleton
 from classes.support.discord_tools import send_message
 from database.databaseController import BanDbTransactions, ServerDbTransactions
-from modules.logs import Logging
-
-
 
 
 class Bans(metaclass=Singleton):
@@ -42,15 +40,10 @@ class Bans(metaclass=Singleton):
     async def update(self, bot, override=False):
         """Updates the ban list"""
         guild: discord.Guild
-        self.old_bans = self.bans
-        self.load_bans()
-        if override:
-            self.bans = {}
-            pass
         for guild in bot.guilds:
-            queue().add(Bans().add_guild_bans(bot, guild), priority=0)
-            queue().add(Bans().add_guild_invites(guild), priority=0)
-        queue().add(Bans().store_bans(), priority=0)
+            ServerDbTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), None)
+            queue().add(DatabaseBans().check_guild_bans(guild), priority=0)
+            queue().add(DatabaseBans().check_guild_invites(bot, guild), priority=0)
 
     async def store_bans(self):
         """Stores the bans in the cache"""
@@ -140,12 +133,30 @@ class Bans(metaclass=Singleton):
         sr = "".join(reasons)
         return sr
 
-    async def send_to_channel(self, interaction: discord.Interaction, sr, member: discord.Member | discord.User):
+    async def send_to_channel(self, bot: commands.Bot, channel: discord.TextChannel, sr, member: discord.Member | discord.User):
         characters = 0
         bans = []
         embed = discord.Embed(title=f"{member.name}'s ban history", description="Please ensure to reach out to the respective servers for proof or check the support server.")
-        print("checking bans")
-        print(sr)
+        for i, ban in enumerate(sr):
+            guild = bot.get_guild(ban.gid)
+            if i >= 25:
+                bans.append(f"{guild.name}: {ban.reason}\n-# Verified: {'Yes' if ban.verified else 'No'}, invite: {ban.invite}")
+            guild = bot.get_guild(ban.gid)
+            embed.add_field(name=f"{guild.name} ({ban.guild.invite})",
+                            value=f"{ban.reason}\n"
+                                  f"verified: {'Yes' if ban.verified else 'No'}, date: {ban.created_at}")
+        sr = "\n".join(bans)
+        if len(sr) == 0:
+            await send_message(channel, embed=embed)
+
+        while characters < len(sr):
+            await send_message(channel, sr[characters:characters + 1800], embed=embed)
+            characters += 1800
+
+    async def send_to_interaction_channel(self, interaction: discord.Interaction, sr, member: discord.Member | discord.User):
+        characters = 0
+        bans = []
+        embed = discord.Embed(title=f"{member.name}'s ban history", description="Please ensure to reach out to the respective servers for proof or check the support server.")
         for i, ban in enumerate(sr):
             guild = interaction.client.get_guild(ban.gid)
             if i >= 25:
@@ -310,6 +321,7 @@ class Bans(metaclass=Singleton):
         channel = bot.get_channel(bot.APPROVALCHANNEL)
         queue().add(self.search_messages(bot, channel, banid, reason), priority=2)
 
+
 class DatabaseBans():
     def __init__(self):
         pass
@@ -326,10 +338,38 @@ class DatabaseBans():
         queue().add(server.remove_missing_ids(), priority=0)
         logging.info(f"Found {count} new bans in {guild.name}({guild.id})")
 
+    async def check_guild_invites(self, bot: commands.Bot, guild: discord.Guild):
+        guild_record = ServerDbTransactions().get(guild.id)
+        invite: None | discord.Invite = None
+        try:
+            await bot.fetch_invite(guild_record.invite)
+            return
+        except discord.HTTPException or discord.NotFound:
+            logging.info(f"{guild.name}'s invite expired, creating a new one.")
+        try:
+            count = 0
+            bot_member = guild.get_member(bot.user.id)
 
+            for channel in guild.channels:
+                await asyncio.sleep(0.5)
+                try:
+                    invite = await channel.create_invite(reason="Banwatch invite")
+                except discord.NotFound:
+                    continue
+                ServerDbTransactions().update(guild.id, invite=invite.url)
+                return
+        except discord.Forbidden:
+            logging.info(f"No permission to create invites in {guild.name}")
+        try:
+            invite: discord.Invite = (await guild.invites())[0]
+        except discord.Forbidden:
+            logging.info(f"No permission to fetch invites in {guild.name}")
+        except IndexError:
+            logging.info(f"{guild.name} has no invites.")
+        except Exception as e:
+            logging.error(f"Error creating invite: {e}")
 
-
-    async def add_ban(self, user_id, guild_id, reason, staff, hidden = False, approved = True, remove_deleted = True):
+    async def add_ban(self, user_id, guild_id, reason, staff, hidden=False, approved=True, remove_deleted=True):
         """Adds a ban to the database"""
         if reason is None or reason == "" or reason.lower() == "none":
             hidden = True
@@ -340,7 +380,6 @@ class DatabaseBans():
             reason = reason[8:]
         BanDbTransactions().add(user_id, guild_id, reason, staff, hidden=hidden, approved=approved, remove_deleted=remove_deleted)
 
-
     async def delete_ban(self, user_id, guild_id, permanent=False):
         """Removes a ban from the database"""
 
@@ -349,11 +388,10 @@ class DatabaseBans():
         BanDbTransactions().delete_soft(user_id + guild_id)
 
     async def get_user_bans(self, user_id):
-        return BanDbTransactions().get_all(user_id)
+        return BanDbTransactions().get_all_user(user_id)
 
     async def get_ban(self, ban_id):
         pass
-
 
     async def get_guild_status_from_ban(self, ban_id):
         pass

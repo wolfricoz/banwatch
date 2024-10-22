@@ -56,9 +56,10 @@ class ServerDbTransactions(DatabaseTransactions):
     def exist(self, guild_id: int):
         return session.query(exists().where(Servers.id == guild_id)).scalar()
 
-    def add(self, guild_id: int, owner: str, name: str, member_count: int, invite: str) -> Servers | bool:
+    def add(self, guild_id: int, owner: str, name: str, member_count: int, invite: str | None) -> Servers | bool:
         if self.exist(guild_id):
             # Call the update function
+            self.update(guild_id, owner, name, member_count, invite)
             return False
         guild = Servers(id=guild_id, owner=owner, name=name, member_count=member_count, invite=invite)
         session.add(guild)
@@ -66,6 +67,7 @@ class ServerDbTransactions(DatabaseTransactions):
         return guild
 
     def update(self, guild_id: int, owner: str = None, name: str = None, member_count: int = None, invite: str = None, delete: bool = None) -> Servers | bool:
+
         guild = session.scalar(Select(Servers).where(Servers.id == guild_id))
         if not guild:
             return False
@@ -85,6 +87,8 @@ class ServerDbTransactions(DatabaseTransactions):
             if value is not None:
                 setattr(guild, field, value)
         self.commit(session)
+        logging.info(f"Updated {guild_id} with:")
+        logging.info(updates)
         return guild
 
     def get(self, guild_id: int) -> Type[Servers] | None:
