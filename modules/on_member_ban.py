@@ -25,11 +25,7 @@ class BanEvents(commands.Cog):
         ban = await guild.fetch_ban(user)
         found = None
         await Bans().add_ban(bot, guild, user, ban.reason)
-        pattern = r'\bhidden\b'
-
-        text = "This text contains the word hidden."
-        match = re.search(pattern, text)
-        if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or "[silent]" in str(ban.reason).lower() or match:
+        if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or "[silent]" in str(ban.reason).lower() or 'hidden' in str(ban.reason).lower():
             print("silent or hidden ban/no reason, not adding to list")
             return
         channel = bot.get_channel(bot.BANCHANNEL)

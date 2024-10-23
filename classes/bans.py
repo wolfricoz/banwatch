@@ -85,11 +85,7 @@ class Bans(metaclass=Singleton):
 
     async def add_ban(self, bot, guild, user, reason):
         """Adds a ban to the ban list"""
-        pattern = r'\bhidden\b'
-
-        text = "This text contains the word hidden."
-        match = re.search(pattern, text)
-        if reason is None or reason == "" or reason.lower == "none" or match:
+        if reason is None or reason == "" or reason.lower == "none" or 'hidden' in str(reason).lower():
             return
         try:
             if (str(user.id) in self.bans

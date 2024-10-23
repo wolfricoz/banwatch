@@ -82,7 +82,7 @@
       <recent name="C:\Users\ricoi\PycharmProjects\banbot" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.rpsectest">
+  <component name="RunManager" selected="Python.main">
     <configuration name="checkword" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="banbot" />
       <option name="ENV_FILES" value="" />
@@ -173,8 +173,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.rpsectest" />
         <item itemvalue="Python.main" />
+        <item itemvalue="Python.rpsectest" />
         <item itemvalue="Python.queue-test" />
         <item itemvalue="Python.checkword" />
       </list>
