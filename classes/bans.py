@@ -84,7 +84,7 @@ class Bans(metaclass=Singleton):
 
     async def add_ban(self, bot, guild, user, reason):
         """Adds a ban to the ban list"""
-        if reason is None or reason == "" or reason.lower == "none" or str(reason).lower().startswith('[hidden]'):
+        if reason is None or reason == "" or reason.lower == "none" or 'hidden' in str(reason).lower():
             return
         try:
             if (str(user.id) in self.bans
