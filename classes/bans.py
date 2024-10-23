@@ -1,6 +1,7 @@
 """This class generates the ban list, with functions to update it, and to check for similar names"""
 import logging
 import os
+import re
 
 import discord
 from discord.ext import commands
@@ -84,7 +85,11 @@ class Bans(metaclass=Singleton):
 
     async def add_ban(self, bot, guild, user, reason):
         """Adds a ban to the ban list"""
-        if reason is None or reason == "" or reason.lower == "none" or 'hidden' in str(reason).lower():
+        pattern = r'\bhidden\b'
+
+        text = "This text contains the word hidden."
+        match = re.search(pattern, text)
+        if reason is None or reason == "" or reason.lower == "none" or match:
             return
         try:
             if (str(user.id) in self.bans
