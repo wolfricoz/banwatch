@@ -1,4 +1,5 @@
 import logging
+from dis import disco
 
 import discord
 
@@ -74,6 +75,10 @@ async def send_response(interaction: discord.Interaction, response, ephemeral=Fa
             )
         except discord.errors.NotFound:
             await send_message(interaction.channel, response)
+    except discord.InteractionResponded:
+        return await interaction.followup.send(response, ephemeral=ephemeral)
+    except Exception:
+        return await interaction.channel.send(response)
 
 async def get_all_threads(guild: discord.Guild):
     """Get all threads in a guild"""
