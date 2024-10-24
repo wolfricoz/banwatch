@@ -134,15 +134,18 @@ class Bans(metaclass=Singleton):
         sr = "".join(reasons)
         return sr
 
-    async def send_to_channel(self, bot: commands.Bot, channel: discord.TextChannel, sr, member: discord.Member | discord.User):
+    async def send_to_channel(self, bot: commands.Bot, channel: discord.TextChannel, sr, member: discord.Member | discord.User, excess=True):
         if len(sr) <= 0 or not sr:
             return
         characters = 0
+        count = 0
         bans = []
         embed = discord.Embed(title=f"{member.name}({member.id})'s ban history", description="Please ensure to reach out to the respective servers for proof or check the support server.")
         for i, ban in enumerate(sr):
             guild = bot.get_guild(ban.gid)
             if i >= 25:
+                if excess:
+                    count += 1
                 bans.append(f"{guild.name}: {ban.reason}\n-# Verified: {'Yes' if ban.verified else 'No'}, invite: {ban.invite}")
             guild = bot.get_guild(ban.gid)
             created_at = ban.created_at.strftime('%m/%d/%Y') if ban.created_at else 'pre-banwatch, please check with server owner.'
@@ -151,8 +154,12 @@ class Bans(metaclass=Singleton):
                             value=f"{ban.reason}\n"
                                   f"verified: {'Yes' if ban.verified else 'No'}, date: {created_at}")
         sr = "\n".join(bans)
+        if excess:
+            sr = f"This user has {count} bans that aren't shown to prevent spam. Please use `/user lookup`"
+
         if len(sr) == 0:
             await send_message(channel, embed=embed)
+            return
 
         while characters < len(sr):
             await send_message(channel, sr[characters:characters + 1800], embed=embed)
