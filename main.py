@@ -100,6 +100,7 @@ async def on_guild_join(guild: discord.Guild) -> None:
     logging.info(f"{guild} joined, refreshing ban list")
     ServerDbTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), "")
     queue().add(DatabaseBans().check_guild_bans(guild), priority=0)
+    queue().add(bot.tree.clear_commands(guild=None))
     queue().add(bot.tree.sync(), priority=2)
 
 

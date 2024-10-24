@@ -5,7 +5,7 @@ from abc import ABC
 
 import discord
 from discord import app_commands
-from discord.app_commands import Choice
+from discord.app_commands import Choice, guilds
 from discord.ext import commands
 from sqlalchemy.testing.plugin.plugin_base import logging
 
@@ -75,7 +75,11 @@ def in_guild():
 
     return app_commands.check(predicate)
 
+SUPPORT_GUILD = discord.Object(id=GUILD)
 
+
+@app_commands.guild_only()
+@app_commands.guilds(SUPPORT_GUILD)
 class dev(commands.GroupCog, name="dev"):
 
     def __init__(self, bot: commands.Bot):
@@ -149,6 +153,7 @@ class dev(commands.GroupCog, name="dev"):
                     await interaction.channel.send(f"Error sending to {guild}({guild.owner}): {e}")
 
     @app_commands.command(name="leave_server", description="[DEV] Leave a server")
+
     @in_guild()
     async def leave_server(self, interaction: discord.Interaction, guildid: int):
         if interaction.user.id != 188647277181665280:
@@ -158,6 +163,7 @@ class dev(commands.GroupCog, name="dev"):
         await interaction.response.send_message(f"Left {guild}")
 
     @app_commands.command(name="blacklist_server", description="[DEV] Blacklist a server")
+
     @in_guild()
     async def blacklist_server(self, interaction: discord.Interaction, guildid: str):
         if interaction.user.id != 188647277181665280:
@@ -179,6 +185,8 @@ class dev(commands.GroupCog, name="dev"):
 
     # blacklist user goes here
     @app_commands.command(name="blacklist_user", description="[DEV] Blacklist a user")
+
+
     @in_guild()
     async def blacklist_user(self, interaction: discord.Interaction, userid: str):
         if interaction.user.id != 188647277181665280:
@@ -191,6 +199,7 @@ class dev(commands.GroupCog, name="dev"):
         await send_response(interaction, f"Blacklisted {userid}")
 
     @app_commands.command(name="unblacklist_user", description="[DEV] Remove a user from the blacklist")
+
     @in_guild()
     async def unblacklist_user(self, interaction: discord.Interaction, userid: str):
         if interaction.user.id != 188647277181665280:
