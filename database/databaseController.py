@@ -10,8 +10,7 @@ import database.current as db
 from database.current import *
 from database.current import Servers
 
-session = Session(bind=db.engine, expire_on_commit=False)
-
+session = Session(bind=db.engine)
 
 class ConfigNotFound(Exception):
     """config item was not found or has not been added yet."""
@@ -50,6 +49,9 @@ class DatabaseTransactions():
         finally:
             session.close()
 
+    def refresh(self):
+        session.expire_all()
+
 
 class ServerDbTransactions(DatabaseTransactions):
 
@@ -59,7 +61,7 @@ class ServerDbTransactions(DatabaseTransactions):
     def add(self, guild_id: int, owner: str, name: str, member_count: int, invite: str | None) -> Servers | bool:
         if self.exist(guild_id):
             # Call the update function
-            self.update(guild_id, owner, name, member_count, invite)
+            self.update(guild_id, owner, name, member_count, invite, delete=False)
             return False
         guild = Servers(id=guild_id, owner=owner, name=name, member_count=member_count, invite=invite)
         session.add(guild)
@@ -94,11 +96,22 @@ class ServerDbTransactions(DatabaseTransactions):
     def get(self, guild_id: int) -> Type[Servers] | None:
         return session.scalar(Select(Servers).where(Servers.id == guild_id))
 
-    def delete(self, guild_id: int) -> bool:
-        guild = self.get(guild_id)
-        if not guild:
+    def delete_soft(self, guildid: int):
+        logging.info(f"server soft removed {guildid}.")
+        server = self.get(guildid)
+        if not server or server.deleted_at:
             return False
-        session.delete(guild)
+        server.deleted_at = datetime.now()
+        self.commit(session)
+        return True
+
+    def delete_permanent(self, server: int | Type[Servers]) -> bool:
+        if isinstance(server, int):
+            server = self.get(server)
+        logging.info(f"Permanently removing {server.id}")
+        if not server:
+            return False
+        session.delete(server)
         self.commit(session)
         return True
 
@@ -107,6 +120,12 @@ class ServerDbTransactions(DatabaseTransactions):
             return [uid[0] for uid in session.query(Bans.uid).filter(and_(Bans.gid == guild_id, Bans.deleted_at.is_(None))).all()]
 
         return session.query(Bans).filter(and_(Bans.gid == guild_id, Bans.deleted_at.is_(None))).all()
+
+    def get_all_servers(self):
+        return [id[0] for id in session.query(Servers.id).filter(and_(Servers.deleted_at.is_(None))).all()]
+
+    def get_deleted_servers(self):
+        return session.query(Servers).filter(Servers.deleted_at.isnot(None)).all()
 
     def count_servers(self):
         return session.execute(text("SELECT count(*) FROM servers")).scalar()
@@ -163,7 +182,7 @@ class BanDbTransactions(DatabaseTransactions, Bans):
 
 
     def delete_soft(self, ban_id: int) -> bool:
-        logging.info(f"Ban soft removed {ban_id}. Will be removed permanently in 7 days.")
+        logging.info(f"Ban soft removed {ban_id}.")
         ban = self.get(ban_id)
         if not ban or ban.deleted_at:
             return False
@@ -171,9 +190,10 @@ class BanDbTransactions(DatabaseTransactions, Bans):
         self.commit(session)
         return True
 
-    def delete_permanent(self, ban_id: int) -> bool:
-        logging.info(f"Hard removing ban {ban_id}")
-        ban = self.get(ban_id, override=True)
+    def delete_permanent(self, ban: int | Type[Bans]) -> bool:
+        if isinstance(ban, int):
+            ban = self.get(ban, override=True)
+        logging.info(f"Permanently removing ban: {ban.ban_id}")
         if not ban:
             return False
         session.delete(ban)

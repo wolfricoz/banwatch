@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from discord.ext import commands, tasks
 
 from classes.queue import queue
-from database.databaseController import BanDbTransactions
+from database.databaseController import BanDbTransactions, ServerDbTransactions
 
 
 class DatabaseTasks(commands.Cog):
@@ -18,16 +18,16 @@ class DatabaseTasks(commands.Cog):
     @tasks.loop(hours=2)
     async def delete_old_bans(self):
         bans = BanDbTransactions().get_deleted_bans()
+        servers = ServerDbTransactions().get_deleted_servers()
+        logging.info(f"Checking soft-deleted entries for removal")
         for ban in bans:
-            if ban.deleted_at < datetime.now() - timedelta(days=7):
-                queue().add(self.delete(ban), 0)
-
-    async def delete(self, ban):
-        result = BanDbTransactions().delete_permanent(ban.ban_id)
-        if not result:
-            logging.error(f"Failed to delete {ban.ban_id}")
-            return
-        logging.info(f"Deleted {ban.ban_id}")
+            if ban.deleted_at is None:
+                continue
+            if ban.deleted_at < datetime.now() - timedelta(days=30):
+                BanDbTransactions().delete_permanent(ban)
+        for server in servers:
+            if server.deleted_at < datetime.now() - timedelta(days=30):
+                ServerDbTransactions().delete_permanent(server)
 
     @delete_old_bans.before_loop
     async def before_queue(self):
