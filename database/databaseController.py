@@ -1,7 +1,7 @@
 import logging
 from typing import Type
 
-from sqlalchemy import Select, exists, and_, false, text
+from sqlalchemy import Select, exists, and_, false, text, ColumnElement
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy.util import to_list
@@ -102,11 +102,14 @@ class ServerDbTransactions(DatabaseTransactions):
         self.commit(session)
         return True
 
-    def get_bans(self, guild_id: int, uid_only: bool = false()) -> list[type[Bans]] | list[int]:
+    def get_bans(self, guild_id: int, uid_only: bool = false()) -> list[type[Bans]] | list[int] | list[ColumnElement]:
         if uid_only:
             return [uid[0] for uid in session.query(Bans.uid).filter(and_(Bans.gid == guild_id, Bans.deleted_at.is_(None))).all()]
 
         return session.query(Bans).filter(and_(Bans.gid == guild_id, Bans.deleted_at.is_(None))).all()
+
+    def count_servers(self):
+        return session.execute(text("SELECT count(*) FROM servers")).scalar()
 
 
 class BanDbTransactions(DatabaseTransactions, Bans):
@@ -140,8 +143,24 @@ class BanDbTransactions(DatabaseTransactions, Bans):
     def get_all(self):
         return session.scalars(Select(Bans).join(Servers).where(and_(Bans.deleted_at.is_(None), Servers.deleted_at.is_(None)))).all()
 
-    def count_bans(self):
-        return session.execute(text("SELECT count(*) FROM bans")).scalar()
+    def count_bans(self, result_type="all"):
+        """
+        This function takes: available, approved, hidden, and deleted as result type, leave empty for all bans
+        :param result_type:
+        :return:
+        """
+        match result_type.lower():
+            case "available":
+                return session.execute(text("SELECT count(*) FROM bans where hidden=0 and deleted_at is NULL")).scalar()
+            case "verified":
+                return session.execute(text("SELECT count(*) FROM bans where verified=1")).scalar()
+            case "hidden":
+                return session.execute(text("SELECT count(*) FROM bans where hidden=1")).scalar()
+            case "deleted":
+                return session.execute(text("SELECT count(*) FROM bans where deleted_at is not NULL")).scalar()
+            case _:
+                return session.execute(text("SELECT count(*) FROM bans")).scalar()
+
 
     def delete_soft(self, ban_id: int) -> bool:
         logging.info(f"Ban soft removed {ban_id}. Will be removed permanently in 7 days.")
