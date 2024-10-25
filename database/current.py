@@ -15,7 +15,7 @@ pymysql.install_as_MySQLdb()
 load_dotenv('main.env')
 DB = os.getenv('DB')
 
-engine = create_engine(f"{DB}?charset=utf8mb4", poolclass=NullPool, echo=False, )
+engine = create_engine(f"{DB}?charset=utf8mb4", poolclass=NullPool, echo=False, isolation_level="READ COMMITTED")
 if not database_exists(engine.url):
     create_database(engine.url)
 
