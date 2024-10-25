@@ -64,7 +64,7 @@ async def on_ready():
     formguilds = "\n".join(guilds)
     logging.info(f"Bot is in {guild_count} guilds:\n{formguilds}")
     queue().add(bot.tree.sync(), priority=0)
-    queue().add(devroom.send(f"Banwatch is in {guild_count} guilds. Version 2.1.5"), priority=2)
+    queue().add(devroom.send(f"Banwatch is in {guild_count} guilds. Version 3.0: Now I remember!"), priority=2)
 
 
 @bot.event
@@ -98,8 +98,8 @@ async def on_guild_join(guild: discord.Guild) -> None:
                    f"\n\nWelcome to the Banwatch collective!")
     # Updates ban list
     logging.info(f"{guild} joined, refreshing ban list")
-    ServerDbTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), "")
-    queue().add(DatabaseBans().check_guild_bans(guild), priority=0)
+    ServerDbTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), await DatabaseBans().check_guild_invites(bot, guild))
+    queue().add(Bans().update(bot), priority=0)
     queue().add(bot.tree.clear_commands(guild=None))
     queue().add(bot.tree.sync(), priority=2)
 

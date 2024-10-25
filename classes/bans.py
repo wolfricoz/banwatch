@@ -37,14 +37,20 @@ class Bans(metaclass=Singleton):
     def load_bans(self):
         """Loads the bans from the cache"""
         self.bans = LongTermCache().get_logged_bans()
-
     async def update(self, bot, override=False):
         """Updates the ban list"""
         guild: discord.Guild
+        known_guilds = ServerDbTransactions().get_all_servers()
+        print(known_guilds)
         for guild in bot.guilds:
+            if guild.id in known_guilds:
+                known_guilds.remove(guild.id)
             ServerDbTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), None)
             queue().add(DatabaseBans().check_guild_bans(guild), priority=0)
             queue().add(DatabaseBans().check_guild_invites(bot, guild), priority=0)
+        print(known_guilds)
+        for k in known_guilds:
+            ServerDbTransactions().delete_soft(k)
 
     async def store_bans(self):
         """Stores the bans in the cache"""
@@ -355,11 +361,12 @@ class DatabaseBans():
     async def check_guild_invites(self, bot: commands.Bot, guild: discord.Guild):
         guild_record = ServerDbTransactions().get(guild.id)
         invite: None | discord.Invite = None
-        try:
-            await bot.fetch_invite(guild_record.invite)
-            return
-        except discord.HTTPException or discord.NotFound:
-            logging.info(f"{guild.name}'s invite expired, creating a new one.")
+        if guild_record.invite:
+            try:
+                await bot.fetch_invite(guild_record.invite)
+                return
+            except discord.HTTPException or discord.NotFound:
+                logging.info(f"{guild.name}'s invite expired, creating a new one.")
         try:
             count = 0
             bot_member = guild.get_member(bot.user.id)
@@ -404,14 +411,3 @@ class DatabaseBans():
     async def get_user_bans(self, user_id):
         return BanDbTransactions().get_all_user(user_id)
 
-    async def get_ban(self, ban_id):
-        pass
-
-    async def get_guild_status_from_ban(self, ban_id):
-        pass
-
-    async def get_ban_by_user(self, user_id):
-        pass
-
-    async def get_ban_by_guild(self, guild_id):
-        pass
