@@ -59,6 +59,7 @@ class ServerDbTransactions(DatabaseTransactions):
         return session.query(exists().where(Servers.id == guild_id)).scalar()
 
     def add(self, guild_id: int, owner: str, name: str, member_count: int, invite: str | None) -> Servers | bool:
+        logging.info(f"Adding entry to server table with data: {guild_id}, {owner}, {name}, {member_count}, {invite}")
         if self.exist(guild_id):
             # Call the update function
             self.update(guild_id, owner, name, member_count, invite, delete=False)
@@ -141,7 +142,7 @@ class BanDbTransactions(DatabaseTransactions, Bans):
         return session.scalar(Select(Bans).where(Bans.ban_id == ban_id))
 
     def add(self, uid: int, gid: int, reason: str, staff: str, approved: bool = False, verified: bool = False, hidden: bool = False, remove_deleted: bool = False) -> Bans | bool:
-        logging.info(f"Adding ban {uid} in {gid}")
+        logging.info(f"Adding ban {uid} in {gid} with reason {reason} by {staff}")
         if self.exist(uid + gid, remove_deleted=remove_deleted):
             return False
         ban = Bans(ban_id=uid + gid, uid=uid, gid=gid, reason=reason, approved=approved, verified=verified, hidden=hidden, staff=staff, deleted_at=None)
@@ -220,6 +221,8 @@ class BanDbTransactions(DatabaseTransactions, Bans):
         for field, value in updates.items():
             if value is not None:
                 setattr(ban, field, value)
+        logging.info(f"Updated {ban_id} with:")
+        logging.info(updates)
         self.commit(session)
         return ban
 
@@ -233,6 +236,7 @@ class ProofDbTransactions(DatabaseTransactions):
         return session.scalar(Select(Proof).where(Proof.ban_id == ban_id))
 
     def add(self, ban_id: int, user_id: int, proof: str, attachments: list[str]) -> Proof | bool:
+        logging.info(f"Adding proof for {ban_id} with {proof} and {len(attachments)} attachments")
         proof = Proof(ban_id=ban_id, uid=user_id, proof=proof, attachments=json.dumps(attachments))
         session.add(proof)
         self.commit(session)
@@ -245,8 +249,12 @@ class ProofDbTransactions(DatabaseTransactions):
             return to_list(session.scalars(Select(Proof).join(Bans).where(Proof.uid == user_id)).all())
         return to_list(session.scalars(Select(Proof).join(Bans).where(Proof.ban_id == ban_id)).all())
 
+    # TODO: Add soft-delete to the proof table?
     def delete(self, id: int) -> bool:
-        entry = session.scalar(Select(Proof).where(Proof.id == id))
+        entry: Proof = session.scalar(Select(Proof).where(Proof.id == id))
+        if entry is None:
+            return False
+        logging.info(f"Deleting evidence {id} from {entry.ban_id}")
         if not entry:
             return False
         session.delete(entry)
