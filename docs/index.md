@@ -19,6 +19,7 @@ keep your server safe.
 ## Key Features
 
 - Ban monitoring
+- See evidence for bans within the network
 - Being informed upon join about a ban
 - Real time ban updates
 - Invites to the server the user was banned from
