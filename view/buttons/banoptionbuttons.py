@@ -38,8 +38,8 @@ class BanOptionButtons(View):
     async def share_with_proof(self, interaction: discord.Interaction, button: button):
         evidence_message = f"Please send a message with the evidence you would like to add to the record \nType `cancel` to cancel.\n-# By responding to this message you agree to the evidence being stored in our support server."
         evidence = await await_message(interaction, evidence_message)
-        await self.process(interaction)
-        queue().add(self.provide_proof(interaction, evidence))
+        queue().add(self.process(interaction), priority=2)
+        queue().add(self.provide_proof(interaction, evidence), priority=0)
 
     @button(label="Silent", custom_id="silent", style=discord.ButtonStyle.primary)
     async def silent(self, interaction: discord.Interaction, button: button):
@@ -57,16 +57,16 @@ class BanOptionButtons(View):
         staff_member: discord.User = await self.get_staff_member(guild, user)
         message: discord.Message = interaction.message
         if hidden:
-            queue().add(DatabaseBans().add_ban(user.id, guild.id, ban.reason, staff_member.name, hidden=True))
+            queue().add(DatabaseBans().add_ban(user.id, guild.id, ban.reason, staff_member.name, hidden=True), priority=2)
             await interaction.response.send_message(f"Ban for {user.mention} has been successfully hidden.", ephemeral=True)
             await interaction.message.delete()
             return
 
-        wait_id = await Bans().announce_add(guild.id, user.id, ban.reason)
+        wait_id = Bans().create_ban_id(user.id, guild.id)
 
         if checklist_check:
             channel = interaction.client.get_channel(int(os.getenv("BANS")))
-            queue().add(DatabaseBans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=False))
+            queue().add(DatabaseBans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=False), priority=2)
             queue().add(self.status(interaction.client, guild, user, "waiting_approval", ban.reason, word=checklist_check, message=message, silent=silent))
             embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
                                   description=f"{ban.reason}")

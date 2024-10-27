@@ -192,6 +192,9 @@ class Bans(metaclass=Singleton):
             await send_message(interaction.channel, sr[characters:characters + 1800], embed=embed)
             characters += 1800
 
+    def create_ban_id(self, user_id, guild_id):
+        return user_id + guild_id
+
     async def announce_add(self, guildid, userid, reason):
         """Creates an announcement in waiting list"""
         wait_id = guildid + userid
@@ -230,7 +233,7 @@ class Bans(metaclass=Singleton):
                 continue
             if user in guilds.members:
                 queue().add(self.inform_server(bot, guilds, banembed))
-        await Bans().announce_remove(wait_id)
+        await DatabaseBans().change_ban_approval_status(wait_id, True)
         if interaction is not None:
             await interaction.message.delete()
         queue().add(self.send_to_ban_channel(approved_channel, banembed, guild, user, open_thread, bot))
@@ -407,6 +410,9 @@ class DatabaseBans():
         if permanent:
             BanDbTransactions().delete_permanent(user_id + guild_id)
         BanDbTransactions().delete_soft(user_id + guild_id)
+
+    async def change_ban_approval_status(self, ban_id:int, status: bool):
+        BanDbTransactions().update(ban_id, approved=status)
 
     async def get_user_bans(self, user_id):
         return BanDbTransactions().get_all_user(user_id)

@@ -36,8 +36,8 @@ def in_guild():
 SUPPORT_GUILD = discord.Object(id=GUILD)
 
 
-@app_commands.guild_only()
-@app_commands.guilds(SUPPORT_GUILD)
+# @app_commands.guild_only()
+# @app_commands.guilds(SUPPORT_GUILD)
 class dev(commands.GroupCog, name="dev"):
 
     def __init__(self, bot: commands.Bot):

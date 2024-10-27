@@ -153,7 +153,7 @@ class BanDbTransactions(DatabaseTransactions, Bans):
     def get(self, ban_id: int = None, override: bool = False) -> Type[Bans] | None:
         if override:
             return session.scalar(Select(Bans).where(Bans.ban_id == ban_id))
-        return session.query(Bans).join(Servers).filter(and_(Bans.ban_id == ban_id, Bans.deleted_at.is_(None), Servers.deleted_at.is_(None))).first()
+        return session.query(Bans).join(Servers).join(Proof).filter(and_(Bans.ban_id == ban_id, Bans.deleted_at.is_(None), Servers.deleted_at.is_(None))).first()
 
     def get_all_user(self, user_id, override=False):
         if override:

@@ -68,11 +68,11 @@ class queue(metaclass=Singleton):
                 if not inspect.iscoroutine(task):
                     task()
                     self.task_finished = True
-                    logging.debug(f"Processing task: {task.__name__}")
+                    logging.info(f"Processing task: {task.__name__}")
 
                     print(self.status())
                     return
-                logging.debug(f"Processing task: {task.__name__}")
+                logging.info(f"Processing task: {task.__name__}")
                 await task
 
             except Exception as e:

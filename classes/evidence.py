@@ -20,8 +20,8 @@ class EvidenceController():
         stored = await send_message(evidence_channel, f"Evidence for {ban_id}", files=attachments)
         attachments = [await a.to_file() for a in stored.attachments]
         attachments_urls = [a.url for a in stored.attachments]
-        ProofDbTransactions().add(ban_id=ban_id, user_id=user.id, proof=evidence.content, attachments=attachments_urls)
-        if LongTermCache().get_ban(ban_id):
+        result =  ProofDbTransactions().add(ban_id=ban_id, user_id=user.id, proof=evidence.content, attachments=attachments_urls)
+        if result is not None:
             queue().add(send_message(channel,
                                      f"Ban ID {ban_id} has been updated with new evidence:\n"
                                      f"{evidence.content}", files=attachments))

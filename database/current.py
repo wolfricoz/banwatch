@@ -43,7 +43,7 @@ class Bans(Base):
     hidden: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     staff: Mapped[str] = mapped_column(String(1024, collation='utf8mb4_unicode_ci'))
-    proof: Mapped["Proof"] = relationship("Proof", cascade="save-update, merge, delete, delete-orphan", back_populates="ban")
+    proof: Mapped[List["Proof"]] = relationship("Proof", back_populates="ban", cascade="all, save-update, merge, delete, delete-orphan")
     guild: Mapped["Servers"] = relationship("Servers", back_populates="bans")
     deleted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=None, nullable=True)
 
@@ -55,7 +55,7 @@ class Proof(Base):
     uid: Mapped[int] = mapped_column(BigInteger)
     proof: Mapped[str] = mapped_column(String(4096, collation='utf8mb4_unicode_ci'))
     attachments: Mapped[str] = mapped_column(String(10000, collation='utf8mb4_unicode_ci'))
-    ban: Mapped["Bans"] = relationship("Bans", back_populates="proof")
+    ban: Mapped["Bans"] = relationship("Bans", back_populates="proof", )
 
     def get_attachments(self):
         return json.loads(self.attachments)

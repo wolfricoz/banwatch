@@ -17,6 +17,7 @@ class BanEvents(commands.Cog):
         self.bot.add_view(BanInform(DatabaseBans()))
 
     # Overhaul due to letting server owners choose
+    # TODO: update the announcement system, make it work with the db mayhaps?
     @commands.Cog.listener()
     async def on_member_ban(self, guild, user):
         """informs other servers an user is banned and updates banlist"""
