@@ -226,14 +226,14 @@ class Bans(metaclass=Singleton):
         options = BanInform(ban_class=DatabaseBans())
         await modchannel.send(embed=banembed, view=options)
 
-    async def check_guilds(self, interaction, bot, guild, user, banembed, wait_id, open_thread=False):
+    async def check_guilds(self, interaction, bot, guild, user, banembed, wait_id, open_thread=False, verified=False):
         approved_channel = bot.get_channel(bot.APPROVALCHANNEL)
         for guilds in bot.guilds:
             if guilds.id == guild.id:
                 continue
             if user in guilds.members:
                 queue().add(self.inform_server(bot, guilds, banembed))
-        await DatabaseBans().change_ban_approval_status(wait_id, True)
+        await DatabaseBans().change_ban_approval_status(wait_id, True, verified=verified)
         if interaction is not None:
             await interaction.message.delete()
         queue().add(self.send_to_ban_channel(approved_channel, banembed, guild, user, open_thread, bot))
@@ -297,8 +297,10 @@ class Bans(metaclass=Singleton):
 
         return invite
 
-    async def delete_message(self, message):
+    async def delete_message(self, message: discord.Message):
         print(f"deleting {message.id}")
+        thread = await message.fetch_thread()
+        await thread.delete()
         await message.delete()
 
     async def find_ban_record(self, bot, banid, channel=None):
@@ -411,8 +413,9 @@ class DatabaseBans():
             BanDbTransactions().delete_permanent(user_id + guild_id)
         BanDbTransactions().delete_soft(user_id + guild_id)
 
-    async def change_ban_approval_status(self, ban_id:int, status: bool):
-        BanDbTransactions().update(ban_id, approved=status)
+    async def change_ban_approval_status(self, ban_id:int, status: bool, verified=False):
+        print(verified)
+        BanDbTransactions().update(ban_id, approved=status, verified=verified)
 
     async def get_user_bans(self, user_id):
         return BanDbTransactions().get_all_user(user_id)
