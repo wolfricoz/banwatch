@@ -17,7 +17,7 @@ class EvidenceController():
     async def add_evidence(interaction: discord.Interaction, evidence, ban_id, channel, user):
         attachments = [await a.to_file() for a in evidence.attachments]
         evidence_channel = interaction.client.get_channel(int(os.getenv("EVIDENCE")))
-        stored = await send_message(evidence_channel, f"Evidence for {ban_id}", files=attachments)
+        stored = await send_message(evidence_channel, f"Evidence for {ban_id}: \n```{evidence.content}```", files=attachments)
         attachments = [await a.to_file() for a in stored.attachments]
         attachments_urls = [a.url for a in stored.attachments]
         result =  ProofDbTransactions().add(ban_id=ban_id, user_id=user.id, proof=evidence.content, attachments=attachments_urls)
