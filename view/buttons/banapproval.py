@@ -1,12 +1,15 @@
 import logging
 
 import discord
+from discord.app_commands import guilds
 from discord.ui import View
 
 from classes.bans import Bans
 from classes.configer import Configer
 from classes.queue import queue
+from classes.support.discord_tools import send_message, send_response
 from database.databaseController import BanDbTransactions
+from view.modals.inputmodal import send_modal
 
 
 class BanApproval(View):
@@ -76,17 +79,40 @@ class BanApproval(View):
             return
         await Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, False)
 
-    @discord.ui.button(label="Hide", style=discord.ButtonStyle.danger, custom_id="deny_broadcast")
-    async def deny(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(label="request evidence", style=discord.ButtonStyle.danger, custom_id="custom_ID")
+    async def evidence(self, interaction: discord.Interaction, button: discord.ui.Button):
+        reason = await send_modal(interaction, confirmation="Thank you for providing a reason", title="What evidence do we require?")
+        if not reason:
+            return
+        ban_entry = BanDbTransactions().get(self.wait_id, override=True)
+        if ban_entry is None:
+            return await send_response(interaction, "Ban not found")
+        guild: discord.Guild = interaction.client.get_guild(ban_entry.gid)
+        user:discord.User = await interaction.client.fetch_user(ban_entry.uid)
+        modchannel = guild.get_channel(await Configer.get(guild.id, "modchannel"))
+
+        content = f"The banwatch team requests that you add more evidence to user {user}({user.id}), you can do this by joining our support guild or by using `/evidence add user:{user.id}`."
+        embed = discord.Embed(title=f"Evidence request for ban {ban_entry.ban_id}", description=content)
+        embed.add_field(name=f"Request reason", value=reason)
+        await send_message(modchannel, embed=embed)
+        await send_response(interaction, f"Server has been notified with reason:\n{reason}")
+
+
+
+    @discord.ui.button(label="Hide Ban", style=discord.ButtonStyle.danger, custom_id="deny_broadcast")
+    async def Hide(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
 
         if self.bot is None or self.wait_id is None:
             await interaction.followup.send("Error: The bot has restarted, the data of this button was lost", ephemeral=True)
             return
-        guildid, userid, reason = await Bans().announce_retrieve(self.wait_id)
-        if guildid is None or userid is None or reason is None:
-            await interaction.followup.send("Waitlist ERROR", ephemeral=True)
+        ban_entry = BanDbTransactions().get(self.wait_id)
+        if ban_entry is None:
+            await interaction.followup.send("Ban not found", ephemeral=True)
             return
+        guildid = ban_entry.gid
+        userid = ban_entry.uid
+        reason = ban_entry.reason
         guild = self.bot.get_guild(guildid)
         owner = guild.owner
         user = await self.bot.fetch_user(userid)
@@ -96,5 +122,6 @@ class BanApproval(View):
         await interaction.followup.send("Denied", ephemeral=True)
         await interaction.message.delete()
         banembed.set_footer(text="Denied")
+        BanDbTransactions().update(self.wait_id, approved=True, hidden=True)
         await denial_channel.send(embed=banembed)
 
