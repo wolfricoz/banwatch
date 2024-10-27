@@ -55,24 +55,28 @@ async def send_message(channel: discord.TextChannel, message=None, embed=None, v
         raise NoMessagePermissionException(missing_permissions=missing_perms)
 
 
-async def send_response(interaction: discord.Interaction, response, ephemeral=False):
+async def send_response(interaction: discord.Interaction, response, ephemeral=False, view=None, embed=None):
     """Send a response to an interaction"""
     try:
-        return await interaction.response.send_message(response, ephemeral=ephemeral)
+        return await interaction.response.send_message(response, ephemeral=ephemeral, view=view, embed=embed)
     except discord.errors.Forbidden:
         required_perms = ['view_channel', 'send_messages', 'embed_links', 'attach_files']
         missing_perms = await check_missing_permissions(interaction.channel, required_perms)
         logging.error(f"Missing permission to send message to {interaction.channel.name}")
         await interaction.guild.owner.send(f"Missing permission to send message to {interaction.channel.name}. Check permissions: {', '.join(missing_perms)}", )
         raise NoMessagePermissionException(missing_permissions=missing_perms)
-    except discord.errors.NotFound:
+    except discord.errors.NotFound or discord.InteractionResponded:
         try:
-            return await interaction.followup.send(
+            await interaction.followup.send(
                     response,
-                    ephemeral=ephemeral
+                    ephemeral=ephemeral,
+                    view=view,
+                    embed=embed
             )
         except discord.errors.NotFound:
-            return await send_message(interaction.channel, response)
+            await send_message(interaction.channel, response)
+    except Exception:
+        return await interaction.channel.send(response)
 
 
 async def get_all_threads(guild: discord.Guild):
@@ -102,7 +106,7 @@ async def ban_member(bans_class, interaction, user, reason, days=1):
 
 async def await_message(interaction, message) -> discord.Message | bool:
     msg: discord.Message = await send_message(interaction.channel,
-                                               message)
+                                              message)
     m = await interaction.client.wait_for('message', check=lambda m: m.author == interaction.user, timeout=600)
     await msg.delete()
     if m.content.lower() == "cancel":
