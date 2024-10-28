@@ -33,11 +33,9 @@ def in_guild():
     return app_commands.check(predicate)
 
 
-SUPPORT_GUILD = discord.Object(id=GUILD)
+SUPPORT_GUILD = discord.Object(GUILD)
 
 
-@app_commands.guild_only()
-@app_commands.guilds(SUPPORT_GUILD)
 class dev(commands.GroupCog, name="dev"):
 
     def __init__(self, bot: commands.Bot):
@@ -73,7 +71,6 @@ class dev(commands.GroupCog, name="dev"):
         for i, v in stats.items():
             embed.add_field(name=i, value=v, inline=False)
         await send_message(interaction.channel, embed=embed)
-
 
     @app_commands.command(name="announce", description="[DEV] Send an announcement to all guild owners")
     @in_guild()
@@ -197,6 +194,7 @@ class dev(commands.GroupCog, name="dev"):
 
     @app_commands.command(name="testban", description="[DEV] unbans and rebans the test account")
     # @in_guild()
+
     async def testban(self, interaction: discord.Interaction):
         if interaction.user.id != 188647277181665280:
             return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
@@ -255,4 +253,4 @@ class dev(commands.GroupCog, name="dev"):
 
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(dev(bot))
+    await bot.add_cog(dev(bot), guild=SUPPORT_GUILD)

@@ -1,49 +1,75 @@
-import asyncio
 import os
+import typing
 
 import discord
 from discord import app_commands
-from discord.app_commands import Choice
 from discord.ext import commands
-from sqlalchemy.testing.plugin.plugin_base import logging
 
 from classes.access import AccessControl
-from classes.bans import Bans
-from classes.configer import Configer
-from classes.queue import queue
-from classes.support.discord_tools import send_response, send_message, get_all_threads
-from classes.tasks import pending_bans
-from database.databaseController import StaffDbTransactions, BanDbTransactions, ServerDbTransactions
-from view.modals.inputmodal import send_modal
+from classes.support.discord_tools import send_response, send_message
+from database.databaseController import ServerDbTransactions
 
-OWNER = int(os.getenv("OWNER"))
-GUILD = int(os.getenv("GUILD"))
+SUPPORT_GUILD = discord.Object(1251639351918727259)
 
 
-def in_guild():
-    async def predicate(interaction: discord.Interaction):
-        if interaction.guild is None:
-            return False
-        if interaction.guild.id != GUILD:
-            return False
-        if interaction.user.id != OWNER:
-            return False
-        return True
-
-    return app_commands.check(predicate)
-
-
-SUPPORT_GUILD = discord.Object(id=GUILD)
-
-
-@app_commands.guild_only()
-@app_commands.guilds(SUPPORT_GUILD)
-class Staff(commands.GroupCog, name="staff"):
+class staff(commands.GroupCog, name="staff"):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+    # This doesn't work when limited to one server, only globally?
+    async def server_autocompletion(self, interaction: discord.Interaction, current: str) -> typing.List[
+        app_commands.Choice[str]]:
+        """generates the options for autocomplete."""
+        data = []
+        for x in interaction.client.guilds:
+            if current.lower() in x.name.lower() or current.lower() == x.name.lower():
+                data.append(app_commands.Choice(name=x.name.lower(), value=str(x.id)))
+        return data
 
+    @app_commands.command(name="servers", description="[staff] View all servers banwatch is in")
+    @app_commands.guilds(SUPPORT_GUILD)
+    @AccessControl().check_access()
+    async def servers(self, interaction: discord.Interaction):
+        await send_response(interaction, "Fetching servers, please be patient", ephemeral=True)
+        servers = []
+        for server in self.bot.guilds:
+            info = f"{server.name} ({server.id}) owner: {server.owner.name}({server.owner.id})"
+            servers.append(info)
+        servers.append(f"For more information, please use the /staff server command")
+        result = "\n\n".join(servers)
+        with open('servers.txt', 'w') as file:
+            file.write(f"I am in {len(self.bot.guilds)} servers:\n")
+            file.write(result)
+        await send_message(interaction.channel, "Here is a file with all the servers", files=[discord.File(file.name)])
+        os.remove(file.name)
+
+    @app_commands.command(name="serverinfo", description="[staff] View server info of a specific server")
+    @app_commands.autocomplete(server=server_autocompletion)
+    async def serverinfo(self, interaction: discord.Interaction, server: str):
+        await send_response(interaction, "Retrieving server data")
+        guild = self.bot.get_guild(int(server))
+        if guild is None:
+            guild = await self.bot.fetch_guild(int(server))
+        if guild is None:
+            return
+        embed = discord.Embed(title=f"{guild.name}'s info")
+        server_info = ServerDbTransactions().get(guild.id)
+        guild_data = {
+            "Owner"        : f"{guild.owner}({guild.owner.id})",
+            "User count"   : len([m for m in guild.members if not m.bot]),
+            "Channel count": len(guild.channels),
+            "Role count"   : len(guild.roles),
+            "Created at"   : guild.created_at.strftime("%m/%d/%Y"),
+            "bans"         : len(ServerDbTransactions().get_bans(guild.id)),
+            "MFA level"    : guild.mfa_level,
+            "invite"       : server_info.invite
+
+        }
+        for key, value in guild_data.items():
+            embed.add_field(name=key, value=value)
+        embed.set_footer(text=f"This data should not be shared outside of the support server.")
 
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(Staff(bot))
+    await bot.add_cog(staff(bot), guild=SUPPORT_GUILD)
+    # await bot.tree.sync(guild=SUPPORT_GUILD)
