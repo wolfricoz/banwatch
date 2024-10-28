@@ -207,7 +207,7 @@ class BanDbTransactions(DatabaseTransactions, Bans):
                hidden: bool = None,
                deleted_at: bool = None
                ) -> Type[Bans] | bool:
-        ban = self.get(ban_id)
+        ban = self.get(ban_id, override=True)
         if not ban:
             return False
         updates = {
