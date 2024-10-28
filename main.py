@@ -57,13 +57,13 @@ async def on_ready():
         await Configer.create(guild.id, guild.name)
         if await blacklist_check(guild, devroom):
             continue
+        bot.tree.clear_commands(guild=guild)
 
         # INCREMENTS THE GUILD COUNTER.
         guild_count += 1
 
     formguilds = "\n".join(guilds)
     logging.info(f"Bot is in {guild_count} guilds:\n{formguilds}")
-    queue().add(bot.tree.sync(), priority=0)
     queue().add(devroom.send(f"Banwatch is in {guild_count} guilds. Version 3.0: Now I remember!"), priority=2)
 
 
@@ -78,7 +78,7 @@ async def on_guild_join(guild: discord.Guild) -> None:
 
     if await blacklist_check(guild, log):
         return
-    if membercount < 25:
+    if membercount < 25 and guild.id != bot.SUPPORTGUILD:
         await guild.owner.send(
             "[SECURITY ALERT] Banwatch has left your server due to low member count. Please ensure your server has at least 25 members to use the bot. When you have reached this number, [you can reinvite the bot.](https://discord.com/oauth2/authorize?client_id=1047697525349564436)")
         await log.send(f"Ban watch is now in {len(bot.guilds)}! It just joined:"
@@ -125,6 +125,8 @@ async def setup_hook():
         else:
             logging.info(f'Unable to load {filename[:-3]}')
 
+    await bot.tree.sync()
+
 
 @bot.command(aliases=["cr", "reload"])
 @commands.is_owner()
@@ -137,6 +139,7 @@ async def cogreload(ctx):
     fp = ', '.join(filesloaded)
     await ctx.send(f"Modules loaded: {fp}")
     await bot.tree.sync()
+
 
 
 # EXECUTES THE BOT WITH THE SPECIFIED TOKEN.
