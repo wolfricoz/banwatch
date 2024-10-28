@@ -1,6 +1,7 @@
 import logging
 
 import discord
+from discord.ext.commands.help import MISSING
 
 max_length = 1800
 
@@ -33,7 +34,7 @@ async def check_missing_permissions(channel: discord.TextChannel, required_permi
     return missing_permissions
 
 
-async def send_message(channel: discord.TextChannel, message=None, embed=None, view=None, files=None) -> discord.Message:
+async def send_message(channel: discord.TextChannel, message=None, embed=None, view=None, files=None, file=None) -> discord.Message:
     """Send a message to a channel, if there is no permission it will send an error message to the owner"""
     last_message = None
     if channel is None:
@@ -55,10 +56,11 @@ async def send_message(channel: discord.TextChannel, message=None, embed=None, v
         raise NoMessagePermissionException(missing_permissions=missing_perms)
 
 
-async def send_response(interaction: discord.Interaction, response, ephemeral=False, view=None, embed=None):
+async def send_response(interaction: discord.Interaction, response, ephemeral=False, view=MISSING, embed=MISSING):
     """Send a response to an interaction"""
     try:
-        return await interaction.response.send_message(response, ephemeral=ephemeral, view=view, embed=embed)
+
+        return await interaction.response.send_message(response, ephemeral=ephemeral, view=view, embed=embed, )
     except discord.errors.Forbidden:
         required_perms = ['view_channel', 'send_messages', 'embed_links', 'attach_files']
         missing_perms = await check_missing_permissions(interaction.channel, required_perms)
@@ -71,12 +73,13 @@ async def send_response(interaction: discord.Interaction, response, ephemeral=Fa
                     response,
                     ephemeral=ephemeral,
                     view=view,
-                    embed=embed
+                    embed=embed,
+
             )
         except discord.errors.NotFound:
-            await send_message(interaction.channel, response)
+            await send_message(interaction.channel, response, view=view, embed=embed)
     except Exception:
-        return await interaction.channel.send(response)
+        return await interaction.channel.send(response, view=view, embed=embed)
 
 
 async def get_all_threads(guild: discord.Guild):
