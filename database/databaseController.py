@@ -10,7 +10,7 @@ import database.current as db
 from database.current import *
 from database.current import Servers
 
-session = Session(bind=db.engine)
+session = Session(bind=db.engine, expire_on_commit=False)
 
 class ConfigNotFound(Exception):
     """config item was not found or has not been added yet."""
@@ -116,7 +116,7 @@ class ServerDbTransactions(DatabaseTransactions):
         self.commit(session)
         return True
 
-    def get_bans(self, guild_id: int, uid_only: bool = false()) -> list[type[Bans]] | list[int] | list[ColumnElement]:
+    def get_bans(self, guild_id: int, uid_only: bool = False) -> list[type[Bans]] | list[int] | list[ColumnElement]:
         if uid_only:
             return [uid[0] for uid in session.query(Bans.uid).filter(and_(Bans.gid == guild_id, Bans.deleted_at.is_(None))).all()]
 
@@ -201,13 +201,14 @@ class BanDbTransactions(DatabaseTransactions, Bans):
         self.commit(session)
         return True
 
-    def update(self, ban_id: int,
+    def update(self, ban: int | Bans | Type[Bans],
                approved: bool = None,
                verified: bool = None,
                hidden: bool = None,
                deleted_at: bool = None
                ) -> Type[Bans] | bool:
-        ban = self.get(ban_id, override=True)
+        if isinstance(ban, int):
+            ban = self.get(ban, override=True)
         if not ban:
             return False
         updates = {
@@ -221,7 +222,7 @@ class BanDbTransactions(DatabaseTransactions, Bans):
         for field, value in updates.items():
             if value is not None:
                 setattr(ban, field, value)
-        logging.info(f"Updated {ban_id} with:")
+        logging.info(f"Updated {ban.ban_id} with:")
         logging.info(updates)
         self.commit(session)
         return ban

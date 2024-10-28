@@ -366,7 +366,7 @@ class DatabaseBans():
     async def check_guild_invites(self, bot: commands.Bot, guild: discord.Guild):
         guild_record = ServerDbTransactions().get(guild.id)
         invite: None | discord.Invite = None
-        if guild_record.invite:
+        if guild and guild_record.invite:
             try:
                 await bot.fetch_invite(guild_record.invite)
                 return
