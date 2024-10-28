@@ -121,6 +121,4 @@ class staff(commands.GroupCog, name="staff"):
 
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(staff(bot))
-    # await bot.add_cog(staff(bot), guild=SUPPORT_GUILD)
-    # await bot.tree.sync(guild=SUPPORT_GUILD)
+    await bot.add_cog(staff(bot), guild=SUPPORT_GUILD)

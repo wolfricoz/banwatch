@@ -100,8 +100,6 @@ async def on_guild_join(guild: discord.Guild) -> None:
     logging.info(f"{guild} joined, refreshing ban list")
     ServerDbTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), await DatabaseBans().check_guild_invites(bot, guild))
     queue().add(Bans().update(bot), priority=0)
-    queue().add(bot.tree.clear_commands(guild=None))
-    queue().add(bot.tree.sync(), priority=2)
 
 
 
@@ -124,8 +122,10 @@ async def setup_hook():
             logging.info({filename[:-3]})
         else:
             logging.info(f'Unable to load {filename[:-3]}')
-
-    await bot.tree.sync()
+    for guild in bot.guilds:
+        await bot.tree.sync(guild=guild)
+    synced_commands = await bot.tree.fetch_commands(guild=discord.Object(id=os.getenv("guild")))
+    print(f"Synced commands: {[command.name for command in synced_commands]}")
 
 
 @bot.command(aliases=["cr", "reload"])
