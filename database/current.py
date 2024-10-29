@@ -38,6 +38,7 @@ class Bans(Base):
     uid: Mapped[int] = mapped_column(BigInteger)
     gid: Mapped[int] = mapped_column(BigInteger, ForeignKey("servers.id"))
     reason: Mapped[str] = mapped_column(String(4096, collation='utf8mb4_unicode_ci'), default="")
+    message: Mapped[int] = mapped_column(BigInteger, nullable=True)
     approved: Mapped[bool] = mapped_column(Boolean, default=True)
     verified: Mapped[bool] = mapped_column(Boolean, default=False)
     hidden: Mapped[bool] = mapped_column(Boolean, default=False)

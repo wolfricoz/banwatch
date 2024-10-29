@@ -3,6 +3,7 @@ import os
 import discord
 from discord.ui import View, button
 
+from classes.access import AccessControl
 from classes.bans import DatabaseBans, Bans
 from classes.configer import Configer
 from classes.evidence import EvidenceController
@@ -63,8 +64,10 @@ class BanOptionButtons(View):
             return
 
         wait_id = Bans().create_ban_id(user.id, guild.id)
-
-        if checklist_check:
+        check = AccessControl().access_all(user)
+        if checklist_check or check:
+            if check:
+                checklist_check = "Banwatch Staff Member"
             channel = interaction.client.get_channel(int(os.getenv("BANS")))
             queue().add(DatabaseBans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=False), priority=2)
             queue().add(self.status(interaction.client, guild, user, "waiting_approval", ban.reason, word=checklist_check, message=message, silent=silent))

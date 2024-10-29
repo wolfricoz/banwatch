@@ -236,12 +236,13 @@ class Bans(metaclass=Singleton):
         await DatabaseBans().change_ban_approval_status(wait_id, True, verified=verified)
         if interaction is not None:
             await interaction.message.delete()
-        queue().add(self.send_to_ban_channel(approved_channel, banembed, guild, user, open_thread, bot))
+        queue().add(self.send_to_ban_channel(approved_channel, banembed, guild, user, open_thread, bot, wait_id))
 
-    async def send_to_ban_channel(self, approved_channel, banembed, guild, user, open_thread, bot: commands.Bot):
+    async def send_to_ban_channel(self, approved_channel, banembed, guild, user, open_thread, bot: commands.Bot, wait_id):
         approved_message = await approved_channel.send(embed=banembed)
+        BanDbTransactions().update(wait_id, message=approved_message.id)
         dev_guild: discord.Guild = bot.get_guild(bot.SUPPORTGUILD)
-        queue().add(self.open_thread(user, guild, approved_message, dev_guild, open_thread, bot))
+        queue().add(self.open_thread(user, guild, approved_message, dev_guild, open_thread, bot), priority=2)
 
     async def open_thread(self, user, guild, approved_message, dev_guild: discord.Guild, provide_proof, bot):
         rpsec = dev_guild.get_thread(RpSec.get_user(user.id))
@@ -273,16 +274,24 @@ class Bans(metaclass=Singleton):
                 f"Your ban for {user.name} has been approved and has been broadcasted, please provide the proof of the ban in the thread {thread.mention} in our support server. You can provide the proof by using the /evidence add command in the thread, or by joining our support server (18+).")
 
     async def check_previous_bans(self, original_message, dev_guild: discord.Guild, user_id):
+        ban_record = BanDbTransactions().get_all_user(user_id)
+
         ban_channel: discord.TextChannel = dev_guild.get_channel(int(os.getenv("APPROVED")))
         bans = []
-        async for message in ban_channel.history(limit=10000):
-            if message.id == original_message.id:
-                continue
-            if len(message.embeds) < 1:
-                continue
-            embed = message.embeds[0]
-            if embed.title and str(user_id) in embed.title:
+
+        for ban in ban_record:
+            if ban.message:
+                message = await ban_channel.fetch_message(ban.message)
                 bans.append(message)
+
+        # async for message in ban_channel.history(limit=10000):
+        #     if message.id == original_message.id:
+        #         continue
+        #     if len(message.embeds) < 1:
+        #         continue
+        #     embed = message.embeds[0]
+        #     if embed.title and str(user_id) in embed.title:
+        #         bans.append(message)
         return bans
 
     async def create_invite(self, guild: discord.Guild):

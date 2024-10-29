@@ -38,7 +38,6 @@ class AccessControl(metaclass=Singleton):
         return True if user.id == int(os.getenv('OWNER')) else False
 
     def access_all(self, user) -> bool:
-        print(self.staff)
         return True if user.id in (self.staff.get('dev', []) or self.staff.get('rep', [])) else False
 
     def access_dev(self, user) -> bool:

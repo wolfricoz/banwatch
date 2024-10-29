@@ -1,7 +1,7 @@
 import logging
 from typing import Type
 
-from sqlalchemy import Select, exists, and_, false, text, ColumnElement
+from sqlalchemy import Select, exists, and_, text, ColumnElement
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy.util import to_list
@@ -11,6 +11,7 @@ from database.current import *
 from database.current import Servers
 
 session = Session(bind=db.engine, expire_on_commit=False)
+
 
 class ConfigNotFound(Exception):
     """config item was not found or has not been added yet."""
@@ -181,7 +182,6 @@ class BanDbTransactions(DatabaseTransactions, Bans):
             case _:
                 return session.execute(text("SELECT count(*) FROM bans")).scalar()
 
-
     def delete_soft(self, ban_id: int) -> bool:
         logging.info(f"Ban soft removed {ban_id}.")
         ban = self.get(ban_id)
@@ -205,7 +205,8 @@ class BanDbTransactions(DatabaseTransactions, Bans):
                approved: bool = None,
                verified: bool = None,
                hidden: bool = None,
-               deleted_at: bool = None
+               deleted_at: bool = None,
+               message: int = None
                ) -> Type[Bans] | bool:
         if isinstance(ban, int):
             ban = self.get(ban, override=True)
@@ -216,7 +217,8 @@ class BanDbTransactions(DatabaseTransactions, Bans):
             'verified'  : verified,
             'hidden'    : hidden,
             'updated_at': datetime.now(),
-            'deleted_at': datetime.now() if deleted_at else None if deleted_at is False else ban.deleted_at
+            'deleted_at': datetime.now() if deleted_at else None if deleted_at is False else ban.deleted_at,
+            'message'   : message
         }
 
         for field, value in updates.items():
