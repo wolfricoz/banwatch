@@ -37,6 +37,7 @@ class Bans(metaclass=Singleton):
     def load_bans(self):
         """Loads the bans from the cache"""
         self.bans = LongTermCache().get_logged_bans()
+
     async def update(self, bot, override=False):
         """Updates the ban list"""
         guild: discord.Guild
@@ -154,7 +155,7 @@ class Bans(metaclass=Singleton):
                     count += 1
                 bans.append(f"{guild.name}: {ban.reason}\n-# Verified: {'Yes' if ban.verified else 'No'}, invite: {ban.invite}")
             guild = bot.get_guild(ban.gid)
-            created_at = ban.created_at.strftime('%m/%d/%Y') if ban.created_at else 'pre-banwatch, please check with server owner.'
+            created_at = ban.created_at.strftime('%m/%d/%Y') if ban.message else 'pre-banwatch, please check with server owner.'
 
             embed.add_field(name=f"{guild.name} ({ban.guild.invite})",
                             value=f"{ban.reason}\n"
@@ -220,19 +221,20 @@ class Bans(metaclass=Singleton):
             raise Exception("Wait ID not found")
         return ban_info['guild'], ban_info['user'], ban_info['reason']
 
-    async def inform_server(self, bot, guilds, banembed):
+    async def inform_server(self, bot, guilds, user, ban_id):
+        ban_entry = BanDbTransactions().get(ban_id)
         config = await Configer.get(guilds.id, "modchannel")
         modchannel = bot.get_channel(int(config))
         options = BanInform(ban_class=DatabaseBans())
-        await modchannel.send(embed=banembed, view=options)
+        await options.send(modchannel, user, guilds, ban_entry)
 
-    async def check_guilds(self, interaction, bot, guild, user, banembed, wait_id, open_thread=False, verified=False):
+    async def check_guilds(self, interaction, bot, guild, user, wait_id, open_thread=False, verified=False):
         approved_channel = bot.get_channel(bot.APPROVALCHANNEL)
         for guilds in bot.guilds:
             if guilds.id == guild.id:
                 continue
             if user in guilds.members:
-                queue().add(self.inform_server(bot, guilds, banembed))
+                queue().add(self.inform_server(bot, guilds, user, wait_id))
         await DatabaseBans().change_ban_approval_status(wait_id, True, verified=verified)
         if interaction is not None:
             await interaction.message.delete()
@@ -273,7 +275,7 @@ class Bans(metaclass=Singleton):
         await guild_owner.send(
                 f"Your ban for {user.name} has been approved and has been broadcasted, please provide the proof of the ban in the thread {thread.mention} in our support server. You can provide the proof by using the /evidence add command in the thread, or by joining our support server (18+).")
 
-    async def check_previous_bans(self, original_message, dev_guild: discord.Guild, user_id):
+    async def check_previous_bans(self, original_message, dev_guild: discord.Guild, user_id) -> list[discord.Message]:
         ban_record = BanDbTransactions().get_all_user(user_id)
 
         ban_channel: discord.TextChannel = dev_guild.get_channel(int(os.getenv("APPROVED")))
@@ -283,15 +285,6 @@ class Bans(metaclass=Singleton):
             if ban.message:
                 message = await ban_channel.fetch_message(ban.message)
                 bans.append(message)
-
-        # async for message in ban_channel.history(limit=10000):
-        #     if message.id == original_message.id:
-        #         continue
-        #     if len(message.embeds) < 1:
-        #         continue
-        #     embed = message.embeds[0]
-        #     if embed.title and str(user_id) in embed.title:
-        #         bans.append(message)
         return bans
 
     async def create_invite(self, guild: discord.Guild):
@@ -422,10 +415,9 @@ class DatabaseBans():
             BanDbTransactions().delete_permanent(user_id + guild_id)
         BanDbTransactions().delete_soft(user_id + guild_id)
 
-    async def change_ban_approval_status(self, ban_id:int, status: bool, verified=False):
+    async def change_ban_approval_status(self, ban_id: int, status: bool, verified=False):
         print(verified)
         BanDbTransactions().update(ban_id, approved=status, verified=verified)
 
     async def get_user_bans(self, user_id):
         return BanDbTransactions().get_all_user(user_id)
-

@@ -161,7 +161,9 @@ class BanDbTransactions(DatabaseTransactions, Bans):
             return session.scalars(Select(Bans).where(Bans.uid == user_id)).all()
         return session.query(Bans).join(Servers).filter(and_(Bans.uid == user_id, Bans.deleted_at.is_(None), Servers.deleted_at.is_(None))).all()
 
-    def get_all(self):
+    def get_all(self, override = False):
+        if override:
+            return session.scalars(Select(Bans).join(Servers)).all()
         return session.scalars(Select(Bans).join(Servers).where(and_(Bans.deleted_at.is_(None), Servers.deleted_at.is_(None)))).all()
 
     def count_bans(self, result_type="all"):

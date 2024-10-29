@@ -138,7 +138,7 @@ async def cogreload(ctx):
             filesloaded.append(filename[:-3])
     fp = ', '.join(filesloaded)
     await ctx.send(f"Modules loaded: {fp}")
-    await bot.tree.sync()
+    # await bot.tree.sync()
 
 
 

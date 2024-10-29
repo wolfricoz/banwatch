@@ -1,3 +1,5 @@
+from distutils.command.install import value
+
 import discord
 from discord.ui import View
 from sqlalchemy.orm.sync import update
@@ -41,8 +43,8 @@ class BanApproval(View):
         user = await self.bot.fetch_user(userid)
         banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
                                  description=f"{reason}")
-        invite = await Bans().create_invite(guild)
-        banembed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} ban ID: {self.wait_id}. ")
+        banembed.add_field(name="Banwatch Verified", value="This ban was verified by banwatch staff")
+        banembed.set_footer(text=f"Server Invite: {ban_entry.guild.invite} Server Owner: {owner} ban ID: {self.wait_id}. ")
         interaction.message.embeds[0].set_footer(text=f"Verified by {interaction.user}")
         await interaction.message.edit(embed=interaction.message.embeds[0])
         if self.silent:
@@ -67,8 +69,7 @@ class BanApproval(View):
         user = await self.bot.fetch_user(userid)
         banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
                                  description=f"{reason}")
-        invite = await Bans().create_invite(guild)
-        banembed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} ban ID: {self.wait_id} ")
+        banembed.set_footer(text=f"Server Invite: {ban_entry.guild.invite} Server Owner: {owner} ban ID: {self.wait_id} ")
         await interaction.followup.send(f"Approved without proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}", ephemeral=False)
         interaction.message.embeds[0].set_footer(text=f"Verified by {interaction.user}")
         await interaction.message.edit(embed=interaction.message.embeds[0])

@@ -1,5 +1,6 @@
 import asyncio
 import os
+import re
 
 import discord
 from discord import app_commands
@@ -175,22 +176,31 @@ class dev(commands.GroupCog, name="dev"):
 
     @app_commands.command(name="migrate_ban")
     @in_guild()
-    async def copy(self, interaction: discord.Interaction, channelid: str):
+    async def copy(self, interaction: discord.Interaction):
         if interaction.user.id != 188647277181665280:
             return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
         await interaction.response.send_message("Migration Started")
-        channel = self.bot.get_channel(int(channelid))
-        async for message in channel.history(limit=None, oldest_first=True):
-            thread = channel.guild.get_thread(message.id)
-            await asyncio.sleep(2)
-            timestamp = message.created_at.strftime("%m/%d/%Y")
-            new = await interaction.channel.send(f"Migrated ban from the old server, sent on {timestamp}:\n{message.content} ", embeds=message.embeds, silent=True)
-            if thread is not None:
-                new_thread = await new.create_thread(name=thread.name)
-                async for msg in thread.history(limit=None, oldest_first=True):
-                    if msg.content is None and len(msg.attachments) < 1 and len(msg.embeds) < 1:
-                        continue
-                    queue().add(new_thread.send(msg.content if len(msg.content) > 0 else "Empty Msg", embeds=msg.embeds, files=[await attachment.to_file() for attachment in msg.attachments], silent=True))
+        dev_guild: discord.Guild = self.bot.get_guild(int(os.getenv("GUILD")))
+        ban_channel: discord.TextChannel = dev_guild.get_channel(int(os.getenv("APPROVED")))
+        history = ban_channel.history(limit=10000)
+        bans = BanDbTransactions().get_all(override=True)
+        for ban in bans:
+            queue().add(self.find_ban_id(history, ban.ban_id))
+
+    async def find_ban_id(self, history, ban_id):
+        print(ban_id)
+        async for message in history:
+            if len(message.embeds) < 1:
+                continue
+            embed = message.embeds[0]
+            # print(embed.footer.text.lower())
+
+            match = re.search(r'ban ID: (\w+)', embed.footer.text)
+
+            if match:
+                print("found")
+                BanDbTransactions().update(ban_id, message=message.id)
+                return
 
     @app_commands.command(name="testban", description="[DEV] unbans and rebans the test account")
     # @in_guild()
@@ -253,4 +263,4 @@ class dev(commands.GroupCog, name="dev"):
 
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(dev(bot), guild=SUPPORT_GUILD)
+    await bot.add_cog(dev(bot))

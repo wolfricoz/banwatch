@@ -1,9 +1,10 @@
+import logging
 import re
 
 import discord
 from discord.ui import View
-import logging
 
+from classes.bans import DatabaseBans
 from classes.support.discord_tools import send_response, ban_member, send_message
 from database.current import Proof
 from database.databaseController import BanDbTransactions, ProofDbTransactions
@@ -12,11 +13,11 @@ from database.databaseController import BanDbTransactions, ProofDbTransactions
 class BanInform(View):
     bot = None
 
-    def __init__(self, ban_class):
+    def __init__(self, ban_class=DatabaseBans()):
         super().__init__(timeout=None)
         self.ban_class = ban_class
 
-    async def get_ban_id(self, interaction:discord.Interaction):
+    async def get_ban_id(self, interaction: discord.Interaction):
         embed = interaction.message.embeds[0]
         match = re.search(r'ban ID: (\w+)', embed.footer.text)
         return match.group(1) if match else None
