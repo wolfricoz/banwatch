@@ -4,8 +4,7 @@ import re
 import discord
 from discord.ui import View
 
-from classes.bans import DatabaseBans
-from classes.support.discord_tools import send_response, ban_member, send_message
+from classes.support.discord_tools import ban_member, send_message, send_response
 from database.current import Proof
 from database.databaseController import BanDbTransactions, ProofDbTransactions
 
@@ -13,7 +12,7 @@ from database.databaseController import BanDbTransactions, ProofDbTransactions
 class BanInform(View):
     bot = None
 
-    def __init__(self, ban_class=DatabaseBans()):
+    def __init__(self, ban_class) :
         super().__init__(timeout=None)
         self.ban_class = ban_class
 
