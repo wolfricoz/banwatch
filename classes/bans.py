@@ -42,16 +42,16 @@ class Bans(metaclass=Singleton):
         """Updates the ban list"""
         guild: discord.Guild
         known_guilds = ServerDbTransactions().get_all_servers()
-        print(known_guilds)
         for guild in bot.guilds:
             if guild.id in known_guilds:
                 known_guilds.remove(guild.id)
             ServerDbTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), None)
             queue().add(DatabaseBans().check_guild_bans(guild), priority=0)
             queue().add(DatabaseBans().check_guild_invites(bot, guild), priority=0)
-        print(known_guilds)
         for k in known_guilds:
             ServerDbTransactions().delete_soft(k)
+        queue().add(BanDbTransactions().populate_cache(), priority=0)
+
 
     async def store_bans(self):
         """Stores the bans in the cache"""
@@ -221,20 +221,19 @@ class Bans(metaclass=Singleton):
             raise Exception("Wait ID not found")
         return ban_info['guild'], ban_info['user'], ban_info['reason']
 
-    async def inform_server(self, bot, guilds, user, ban_id):
-        ban_entry = BanDbTransactions().get(ban_id)
+    async def inform_server(self, bot, guilds, banembed) :
         config = await Configer.get(guilds.id, "modchannel")
         modchannel = bot.get_channel(int(config))
         options = BanInform(ban_class=DatabaseBans())
-        await options.send(modchannel, user, guilds, ban_entry)
+        await modchannel.send(embed=banembed, view=options)
 
-    async def check_guilds(self, interaction, bot, guild, user, wait_id, open_thread=False, verified=False):
+    async def check_guilds(self, interaction, bot, guild, user, banembed, wait_id, open_thread=False, verified=False) :
         approved_channel = bot.get_channel(bot.APPROVALCHANNEL)
         for guilds in bot.guilds:
             if guilds.id == guild.id:
                 continue
             if user in guilds.members:
-                queue().add(self.inform_server(bot, guilds, user, wait_id))
+                queue().add(self.inform_server(bot, guilds, banembed))
         await DatabaseBans().change_ban_approval_status(wait_id, True, verified=verified)
         if interaction is not None:
             await interaction.message.delete()
@@ -360,7 +359,7 @@ class DatabaseBans():
         async for banentry in guild.bans(limit=None):
             if server.check_ban(banentry.user.id):
                 continue
-            queue().add(self.add_ban(banentry.user.id, guild.id, banentry.reason, guild.owner.name), priority=0)
+            await self.add_ban(banentry.user.id, guild.id, banentry.reason, guild.owner.name)
             count += 1
         queue().add(server.remove_missing_ids(), priority=0)
         logging.info(f"Found {count} new bans in {guild.name}({guild.id})")
