@@ -176,29 +176,27 @@ class dev(commands.GroupCog, name="dev"):
     @in_guild()
     async def copy(self, interaction: discord.Interaction):
         if interaction.user.id != 188647277181665280:
-            return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
-        await interaction.response.send_message("Migration Started")
+            return await send_response(interaction,"You are not allowed to use this command.", ephemeral=True)
+        await send_response(interaction,"Migration Started")
         dev_guild: discord.Guild = self.bot.get_guild(int(os.getenv("GUILD")))
         ban_channel: discord.TextChannel = dev_guild.get_channel(int(os.getenv("APPROVED")))
         history = ban_channel.history(limit=10000)
         bans = BanDbTransactions().get_all(override=True)
         for ban in bans:
-            queue().add(self.find_ban_id(history, ban.ban_id))
+            await self.find_ban_id(history, ban.ban_id)
 
     async def find_ban_id(self, history, ban_id):
-        print(ban_id)
-        async for message in history:
-            if len(message.embeds) < 1:
-                continue
-            embed = message.embeds[0]
-            # print(embed.footer.text.lower())
-
-            match = re.search(r'ban ID: (\w+)', embed.footer.text)
-
-            if match:
-                print("found")
-                BanDbTransactions().update(ban_id, message=message.id)
-                return
+        try:
+            async for message in history:
+                if len(message.embeds) < 1:
+                    continue
+                embed = message.embeds[0]
+                match = re.search(r'ban ID: (\w+)', embed.footer.text)
+                if match:
+                    BanDbTransactions().update(ban_id, message=message.id, created_at=message.created_at)
+                    return
+        except discord.NotFound:
+            pass
 
     @app_commands.command(name="testban", description="[DEV] unbans and rebans the test account")
     @in_guild()

@@ -1,3 +1,4 @@
+import datetime
 import logging
 from typing import Type
 
@@ -224,6 +225,7 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
                approved: bool = None,
                verified: bool = None,
                hidden: bool = None,
+               created_at: datetime.date = None,
                deleted_at: bool = None,
                message: int = None
                ) -> Type[Bans] | bool:
@@ -235,6 +237,7 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
             'approved'  : approved,
             'verified'  : verified,
             'hidden'    : hidden,
+            'created_at': created_at,
             'updated_at': datetime.now(),
             'deleted_at': datetime.now() if deleted_at else None if deleted_at is False else ban.deleted_at,
             'message'   : message
