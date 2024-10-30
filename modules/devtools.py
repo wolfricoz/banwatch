@@ -12,9 +12,9 @@ from classes.access import AccessControl
 from classes.bans import Bans
 from classes.configer import Configer
 from classes.queue import queue
-from classes.support.discord_tools import send_response, send_message, get_all_threads
+from classes.support.discord_tools import get_all_threads, send_message, send_response
 from classes.tasks import pending_bans
-from database.databaseController import StaffDbTransactions, BanDbTransactions, ServerDbTransactions
+from database.databaseController import BanDbTransactions, ServerDbTransactions, StaffDbTransactions
 from view.modals.inputmodal import send_modal
 
 OWNER = int(os.getenv("OWNER"))
@@ -36,7 +36,6 @@ def in_guild():
 
 SUPPORT_GUILD = discord.Object(GUILD)
 
-
 class dev(commands.GroupCog, name="dev"):
 
     def __init__(self, bot: commands.Bot):
@@ -50,7 +49,6 @@ class dev(commands.GroupCog, name="dev"):
     @app_commands.command(name="updatecommands", description="[DEV] Unloads and syncs commands again", )
     @in_guild()
     async def update_commands(self, interaction: discord.Interaction):
-        queue().add(self.bot.tree.clear_commands(guild=None), priority=2)
         queue().add(self.bot.tree.sync(), priority=2)
         await interaction.response.send_message("Command sync queue, high priority queue.")
 
@@ -263,4 +261,4 @@ class dev(commands.GroupCog, name="dev"):
 
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(dev(bot))
+    await bot.add_cog(dev(bot), guild=SUPPORT_GUILD)

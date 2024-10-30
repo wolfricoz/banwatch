@@ -5,11 +5,11 @@ from typing import List
 
 import pymysql
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, DateTime, ForeignKey, String, BigInteger, Boolean
+from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, String, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
 from sqlalchemy.pool import NullPool
 from sqlalchemy.sql import func
-from sqlalchemy_utils import database_exists, create_database
+from sqlalchemy_utils import create_database, database_exists
 
 pymysql.install_as_MySQLdb()
 load_dotenv('main.env')
@@ -45,6 +45,8 @@ class Bans(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     staff: Mapped[str] = mapped_column(String(1024, collation='utf8mb4_unicode_ci'))
     proof: Mapped[List["Proof"]] = relationship("Proof", back_populates="ban", cascade="all, save-update, merge, delete, delete-orphan")
+    appeals: Mapped[List["Appeals"]] = relationship("Appeals", back_populates="ban",
+                                                    cascade="all, save-update, merge, delete, delete-orphan")
     guild: Mapped["Servers"] = relationship("Servers", back_populates="bans")
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None, nullable=True)
 
@@ -72,6 +74,17 @@ class Servers(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     deleted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=None, nullable=True)
     bans: Mapped[List["Bans"]] = relationship("Bans", back_populates="guild", cascade="save-update, merge, delete, delete-orphan")
+
+
+class Appeals(Base) :
+    __tablename__ = "appeals"
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    ban_id: Mapped[int] = mapped_column(ForeignKey("bans.ban_id"))
+    message: Mapped[str] = mapped_column(String(2000, collation='utf8mb4_unicode_ci'))
+    status: Mapped[str] = mapped_column(Enum('approved', 'pending', 'denied', name='status_enum'), nullable=False,
+                                        default='pending')
+    ban: Mapped["Bans"] = relationship("Bans", back_populates="appeals", )
+
 
 
 def create_bot_database():
