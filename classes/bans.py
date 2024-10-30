@@ -82,7 +82,7 @@ class Bans(metaclass=Singleton) :
 			guild = interaction.client.get_guild(ban.gid)
 			embed.add_field(name=f"{guild.name} ({ban.guild.invite})",
 			                value=f"{ban.reason}\n"
-			                      f"verified: {'Yes' if ban.verified else 'No'}, date: {ban.created_at}")
+			                      f"verified: {'Yes' if ban.verified else 'No'}, date: {ban.created_at}", inline=False)
 		print("finished checking bans")
 		sr = "\n".join(bans)
 		if len(sr) == 0 :

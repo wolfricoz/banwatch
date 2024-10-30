@@ -201,8 +201,7 @@ class dev(commands.GroupCog, name="dev"):
                 return
 
     @app_commands.command(name="testban", description="[DEV] unbans and rebans the test account")
-    # @in_guild()
-
+    @in_guild()
     async def testban(self, interaction: discord.Interaction):
         if interaction.user.id != 188647277181665280:
             return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
