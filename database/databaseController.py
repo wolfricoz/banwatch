@@ -283,23 +283,6 @@ class ProofDbTransactions(DatabaseTransactions):
         self.commit(session)
         return True
 
-    # def update(self, ban_id: int,
-    #            proof: str = None,
-    #            attachments: list[str] = None
-    #            ) -> Proof | bool:
-    #     proof = self.get(ban_id)
-    #     if not proof:
-    #         return False
-    #     updates = {
-    #         'proof'      : proof,
-    #         'attachments': attachments
-    #     }
-    #
-    #     for field, value in updates.items():
-    #         if value is not None:
-    #             setattr(proof, field, value)
-    #     self.commit(session)
-    #     return proof
 
 
 class StaffDbTransactions(DatabaseTransactions):
@@ -325,3 +308,25 @@ class StaffDbTransactions(DatabaseTransactions):
         session.delete(staff)
         self.commit(session)
         return True
+
+
+class AppealsDbTransactions(DatabaseTransactions) :
+    def get(self, ban_id: int) -> Appeals | None :
+        return session.scalar(Select(Appeals).where(Appeals.ban_id == ban_id))
+
+    def exist(self, ban_id: int) -> Appeals | None :
+        return session.scalar(Select(Appeals).where(Appeals.ban_id == ban_id))
+
+    def add(self, ban_id: int, message: str, status="pending") -> bool | Type[Appeals] :
+        if self.exist(ban_id) :
+            return False
+        appeal = Appeals(ban_id=ban_id, message=message, status=status)
+        session.add(appeal)
+        self.commit(session)
+
+    def change_status(self, ban_id, status) :
+        appeal: Appeals = self.get(ban_id)
+        if not appeal :
+            return False
+        appeal.status = status
+        self.commit(session)
