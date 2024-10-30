@@ -3,7 +3,7 @@ import logging
 import discord
 from discord.ext import commands
 
-from classes.bans import DatabaseBans
+from classes.bans import Bans
 from classes.configer import Configer
 from view.buttons.baninform import BanInform
 from view.buttons.banoptionbuttons import BanOptionButtons
@@ -14,7 +14,7 @@ class BanEvents(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.bot.add_view(BanOptionButtons())
-        self.bot.add_view(BanInform(DatabaseBans()))
+        self.bot.add_view(BanInform(Bans()))
 
     # Overhaul due to letting server owners choose
     # TODO: update the announcement system, make it work with the db mayhaps?
@@ -30,7 +30,7 @@ class BanEvents(commands.Cog):
         ban = await guild.fetch_ban(user)
         if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(ban.reason).lower().startswith('[silent]') or str(ban.reason).lower().startswith('[hidden]'):
             print("silent or hidden ban/no reason, not prompting")
-            await DatabaseBans().add_ban(user.id, guild.id, "Hidden Ban", "Unknown")
+            await Bans().add_ban(user.id, guild.id, "Hidden Ban", "Unknown")
             return
         logging.info("starting to update banlist and informing other servers")
         view = BanOptionButtons()

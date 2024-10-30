@@ -4,7 +4,7 @@ import discord
 from discord.ui import View, button
 
 from classes.access import AccessControl
-from classes.bans import Bans, DatabaseBans
+from classes.bans import Bans
 from classes.configer import Configer
 from classes.evidence import EvidenceController
 from classes.queue import queue
@@ -57,7 +57,7 @@ class BanOptionButtons(View) :
 		staff_member: discord.User = await self.get_staff_member(guild, user)
 		message: discord.Message = interaction.message
 		if hidden :
-			queue().add(DatabaseBans().add_ban(user.id, guild.id, ban.reason, staff_member.name, hidden=True), priority=2)
+			queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, hidden=True), priority=2)
 			await interaction.response.send_message(f"Ban for {user.mention} has been successfully hidden.", ephemeral=True)
 			await interaction.message.delete()
 			return
@@ -68,7 +68,7 @@ class BanOptionButtons(View) :
 			if check :
 				checklist_check = "Banwatch Staff Member"
 			channel = interaction.client.get_channel(int(os.getenv("BANS")))
-			queue().add(DatabaseBans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=False), priority=2)
+			queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=False), priority=2)
 			queue().add(self.status(interaction.client, guild, user, "waiting_approval", ban.reason, word=checklist_check,
 			                        message=message, silent=silent))
 			embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
@@ -78,7 +78,7 @@ class BanOptionButtons(View) :
 				send_message(channel, embed=embed, view=BanApproval(interaction.client, wait_id, True, silent=silent)))
 			return
 
-		queue().add(DatabaseBans().add_ban(user.id, guild.id, ban.reason, staff_member.name))
+		queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name))
 		if silent :
 			return
 		embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
@@ -91,7 +91,7 @@ class BanOptionButtons(View) :
 		if not evidence :
 			return
 		channel = interaction.client.get_channel(int(os.getenv("BANS")))
-		await EvidenceController.add_evidence(interaction, evidence, self.wait_id, channel, self.user)
+		queue().add(EvidenceController.add_evidence(interaction, evidence, self.wait_id, channel, self.user))
 
 	async def check_checklisted_words(self, ban) :
 		found = None

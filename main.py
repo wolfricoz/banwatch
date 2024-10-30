@@ -6,7 +6,7 @@ from discord.ext import commands
 # IMPORT LOAD_DOTENV FUNCTION FROM DOTENV MODULE.
 from dotenv import load_dotenv
 
-from classes.bans import Bans, DatabaseBans
+from classes.bans import Bans
 from classes.blacklist import blacklist_check
 from classes.configer import Configer
 from classes.queue import queue
@@ -101,7 +101,7 @@ async def on_guild_join(guild: discord.Guild) -> None:
     # Updates ban list
     logging.info(f"{guild} joined, refreshing ban list")
     ServerDbTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), "")
-    await DatabaseBans().check_guild_invites(bot, guild)
+    await Bans().check_guild_invites(bot, guild)
     queue().add(Bans().update(bot), priority=0)
     approval_channel = bot.get_guild(int(os.getenv("GUILD"))).get_channel(int(os.getenv("BANS")))
     queue().add(ServerInfo().send(approval_channel, guild), priority=2)

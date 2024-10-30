@@ -1,10 +1,8 @@
 import logging
 
 from discord.ext import commands
-from sqlalchemy.orm import sessionmaker
 
-
-from classes.bans import Bans, DatabaseBans
+from classes.bans import Bans
 from classes.configer import Configer
 
 
@@ -20,7 +18,7 @@ class Events(commands.Cog):
         config = await Configer.get(member.guild.id, "modchannel")
         configid = int(config)
         channel = bot.get_channel(configid)
-        sr = await DatabaseBans().get_user_bans(member.id)
+        sr = await Bans().get_user_bans(member.id)
         print(sr)
 
         if sr is None or len(sr) < 1:

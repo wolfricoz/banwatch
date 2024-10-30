@@ -20,17 +20,10 @@ class BanCheck(ABC):
         return len(guild.members) >= 50
 
     async def checkerall(self, interaction, bot):
-        fcount = 0
         bcount = 0
-        start = time.time()
-        ban_list = BanDbTransactions().get_all()
         cache = BanDbTransactions().local_cache
-        end = time.time()
-        total = end - start
-        print(f"Getting bans: {total}")
         with open(f"bans.txt", 'w', encoding='utf-8') as f:
             f.write(f"Bans:")
-        start = time.time()
         for member in interaction.guild.members:
             if str(member.id) not in cache :
                 continue
@@ -44,22 +37,9 @@ class BanCheck(ABC):
                             f"\nReason: {info['reason']}"
                             f"\nDate: {info['date']}"
                             f"\nverified: {info['verified']}")
-
-            # # Once done with the rest, get this back to 0.30 seconds if possible.
-            # # A good way would potentially be turning it into a dict.
-            # members_bans = [row for row in ban_list if row.uid == member.id]
-            #
-            # fcount += 1
-            # if not ban_list:
-            #     continue
-            # for ban in members_bans:
-
-        end = time.time()
-        total = end - start
-        print(f"Fetching bans and appending: {total}")
         with open(f"bans.txt", encoding='utf-8') as f:
-            await interaction.channel.send(f"Bans found :",
-                                           file=discord.File(f.name, "banned.txt"))
+            await send_message(interaction.channel, f"Bans found :",
+                               files=[discord.File(f.name, "banned.txt")])
         os.remove(f.name)
         return bcount
 
