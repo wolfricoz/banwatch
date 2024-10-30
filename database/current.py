@@ -46,7 +46,7 @@ class Bans(Base):
     staff: Mapped[str] = mapped_column(String(1024, collation='utf8mb4_unicode_ci'))
     proof: Mapped[List["Proof"]] = relationship("Proof", back_populates="ban", cascade="all, save-update, merge, delete, delete-orphan")
     guild: Mapped["Servers"] = relationship("Servers", back_populates="bans")
-    deleted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=None, nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None, nullable=True)
 
 
 class Proof(Base):

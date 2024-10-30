@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.util import to_list
 
 import database.current as db
+from classes.singleton import Singleton
 from database.current import *
 from database.current import Servers
 
@@ -133,7 +134,23 @@ class ServerDbTransactions(DatabaseTransactions):
         return session.execute(text("SELECT count(*) FROM servers")).scalar()
 
 
-class BanDbTransactions(DatabaseTransactions, Bans):
+class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
+    local_cache = {}
+
+    def populate_cache(self) :
+        ban: Bans
+        bans = self.get_all()
+        self.local_cache = {}
+        for ban in bans :
+            data = {
+                "guild"    : ban.guild.name,
+                "reason"   : ban.reason,
+                "date"     : ban.created_at.strftime("%m/%d/%Y") if ban.message is not None else 'Pre-Banwatch',
+                "verified" : "yes" if ban.verified else 'No'
+            }
+            if str(ban.uid) not in self.local_cache :
+                self.local_cache[str(ban.uid)] = {}
+            self.local_cache[str(ban.uid)][str(ban.ban_id)] = data
 
     def exist(self, ban_id: int, remove_deleted: bool = False) -> bool:
         ban = session.scalar(Select(Bans).where(Bans.ban_id == ban_id))
