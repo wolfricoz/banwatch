@@ -35,6 +35,9 @@ class Appeals(commands.GroupCog, name="appeal") :
 	@app_commands.command()
 	@app_commands.autocomplete(guild=autocomplete_appeal)
 	async def create(self, interaction: discord.Interaction, guild: str) :
+		appeals_allowed = await Configer.get(int(guild), "allow_appeals")
+		if appeals_allowed is False:
+			return await send_response(interaction, "This server does not allow appeals.")
 		if guild.lower() == "none" :
 			await interaction.response.send_message("No bans to appeal", ephemeral=True)
 			return

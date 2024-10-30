@@ -13,20 +13,23 @@ class Configer(ABC):
     @abstractmethod
     async def create(guildid, guildname):
         """Creates the config"""
-        dictionary = {
-            "Name"      : guildname,
-            "modchannel": 0,
-        }
-        json_object = json.dumps(dictionary, indent=4)
+        print("updating config")
+        path = f"configs/{guildid}.json"
+        config = {}
         if not os.path.isdir('configs'):
             os.mkdir('configs')
-        if os.path.exists(f"configs/{guildid}.json"):
-            with open(f"configs/template.json", "w") as outfile:
-                outfile.write(json_object)
-        else:
-            with open(f"configs/{guildid}.json", "w") as outfile:
-                outfile.write(json_object)
-                logging.info(f"config created for {guildid}")
+        if os.path.exists(path):
+            with open(path, 'r') as f:
+                config = json.load(f)
+        dictionary = {
+            "name"      : config.get("name", guildname),
+            "modchannel": config.get("modchannel", 0),
+            "allow_appeals": config.get("allow_appeals", True)
+        }
+        json_object = json.dumps(dictionary, indent=4)
+        with open(f"configs/{guildid}.json", "w") as outfile:
+            outfile.write(json_object)
+        logging.info(f"config created for {guildid}")
 
     @staticmethod
     @abstractmethod
@@ -132,15 +135,15 @@ class Configer(ABC):
     # config editing starts hee
     @staticmethod
     @abstractmethod
-    async def change(guildid, interaction, channelid, key):
+    async def change(guildid, interaction, value, key):
         """Changes value in the config"""
         if os.path.exists(f"configs/{guildid}.json"):
             with open(f"configs/{guildid}.json") as f:
                 data = json.load(f)
-                data[key] = channelid
+                data[key] = value
             with open(f"configs/{guildid}.json", 'w') as f:
                 json.dump(data, f, indent=4)
-            await interaction.followup.send(f"Config key **{key}** changed to **{channelid}**")
+            await interaction.followup.send(f"Config key **{key}** changed to **{value}**")
 
     @staticmethod
     @abstractmethod
