@@ -1,7 +1,7 @@
 import logging
 from typing import Type
 
-from sqlalchemy import Select, exists, and_, text, ColumnElement
+from sqlalchemy import ColumnElement, Select, and_, exists, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy.util import to_list
@@ -171,8 +171,8 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
     def get(self, ban_id: int = None, override: bool = False) -> Type[Bans] | None:
         if override:
             return session.scalar(Select(Bans).where(Bans.ban_id == ban_id))
-        return session.query(Bans).join(Servers).join(Proof).filter(and_(Bans.ban_id == ban_id, Bans.deleted_at.is_(None), Servers.deleted_at.is_(None))).first()
-
+        return session.query(Bans).join(Servers).outerjoin(Proof).filter(
+            and_(Bans.ban_id == ban_id, Bans.deleted_at.is_(None), Servers.deleted_at.is_(None))).first()
     def get_all_user(self, user_id, override=False):
         if override:
             return session.scalars(Select(Bans).where(Bans.uid == user_id)).all()
