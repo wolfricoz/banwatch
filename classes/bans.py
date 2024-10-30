@@ -368,7 +368,7 @@ class DatabaseBans():
     async def check_guild_invites(self, bot: commands.Bot, guild: discord.Guild):
         guild_record = ServerDbTransactions().get(guild.id)
         invite: None | discord.Invite = None
-        if guild and guild_record.invite:
+        if guild_record and guild_record.invite :
             try:
                 await bot.fetch_invite(guild_record.invite)
                 return
@@ -390,6 +390,7 @@ class DatabaseBans():
             logging.info(f"No permission to create invites in {guild.name}")
         try:
             invite: discord.Invite = (await guild.invites())[0]
+            ServerDbTransactions().update(guild.id, invite=invite.url)
         except discord.Forbidden:
             logging.info(f"No permission to fetch invites in {guild.name}")
         except IndexError:
