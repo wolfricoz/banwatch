@@ -1,76 +1,47 @@
 import logging
-import re
 
 import discord
 from discord.ext import commands
 
 from classes.bans import Bans
 from classes.configer import Configer
-from classes.queue import queue
-from classes.support.discord_tools import send_message
-from view.buttons.banapproval import BanApproval
+from view.buttons.baninform import BanInform
+from view.buttons.banoptionbuttons import BanOptionButtons
 
 
 class BanEvents(commands.Cog):
 
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.bot.add_view(BanOptionButtons())
+        self.bot.add_view(BanInform(Bans()))
 
+    # Overhaul due to letting server owners choose
+    # TODO: update the announcement system, make it work with the db mayhaps?
     @commands.Cog.listener()
     async def on_member_ban(self, guild, user):
         """informs other servers an user is banned and updates banlist"""
         print('ban event')
+
         bot = self.bot
-        logging.info("starting to update banlist and informing other servers")
+        if user == bot.user:
+            logging.warning(f"I was banned in {guild.name}")
+            return
         ban = await guild.fetch_ban(user)
-        found = None
-        await Bans().add_ban(bot, guild, user, ban.reason)
-        if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or "[silent]" in str(ban.reason).lower() or 'hidden' in str(ban.reason).lower():
-            print("silent or hidden ban/no reason, not adding to list")
+        if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(ban.reason).lower().startswith('[silent]') or str(ban.reason).lower().startswith('[hidden]'):
+            print("silent or hidden ban/no reason, not prompting")
+            await Bans().add_ban(user.id, guild.id, "Hidden Ban", "Unknown")
             return
-        channel = bot.get_channel(bot.BANCHANNEL)
-        wait_id = await Bans().announce_add(guild.id, user.id, ban.reason)
-        embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
-                              description=f"{ban.reason}")
-        embed.set_footer(text=f"/approve_ban {wait_id}")
-        checklist: list = await Configer.get_checklist()
-        if checklist:
-            for word in checklist:
-                if word.lower() in ban.reason.lower():
-                    found = word
-        if not found:
-            invite = await Bans().create_invite(guild)
-            owner = guild.owner
-            embed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} ban ID: {wait_id}")
-            print(embed.to_dict())
-            await Bans().check_guilds(None, bot, guild, user, embed, wait_id)
-            await self.status(bot, guild, user)
-            return
-
-        await self.status(bot, guild, user, "waiting_approval", ban.reason, word=found)
-        await send_message(channel, embed=embed, view=BanApproval(bot, wait_id, True))
-        return
-
-    async def verification_notification(self, banreason, bot, guild, user, word):
-        modchannel_id = await Configer.get(guild.id, "modchannel")
-        modchannel = bot.get_channel(int(modchannel_id))
-        supportguild = bot.get_guild(bot.SUPPORTGUILD)
-        support_invite = await Bans().create_invite(supportguild)
-        verembed = discord.Embed(title=f"ban for {user}({user.id}) was flagged for review",
-                                 description=f"{banreason}\n\n"
-                                             f"Flagged word: {word}. We review bans with serious accusations to ensure they are legitimate.")
-        verembed.set_footer(text=f"Please supply evidence by using the /evidence add commmand, or by joining our support server (18+).")
-        await send_message(modchannel, f"-# You can join our support server by [clicking here to join]({support_invite}).", embed=verembed)
-
-    async def status(self, bot, guild, user: discord.User, status="queued", banreason=None, word=None):
-        """informs user is the ban has been approved or is in queue"""
+        logging.info("starting to update banlist and informing other servers")
+        view = BanOptionButtons()
         modchannel = await Configer.get(guild.id, "modchannel")
-        channel = bot.get_channel(int(modchannel))
-        if status == "waiting_approval":
-            await self.verification_notification(banreason, bot, guild, user, word=word)
-            return
-        message: discord.Message = await channel.send(f"Your ban for {user.mention} is currently: {status}.")
-        queue().add(message.edit(content=f"Your ban for {user.mention} has been successfully broadcasted to other servers."), priority=0)
+        if modchannel is None:
+            await guild.owner.send("No moderation channel set, please setup your moderation channel using the /config commands.")
+        modchannel = bot.get_channel(int(modchannel))
+        embed = discord.Embed(title=f"Do you want to share {user}'s ({user.id}) ban with other servers?",
+                              description=f"{ban.reason}")
+        embed.set_footer(text=f"{guild.id}-{user.id}")
+        await modchannel.send(embed=embed, view=view)
 
 
 async def setup(bot):

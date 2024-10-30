@@ -1,7 +1,6 @@
 import asyncio
 import os
-import random
-from abc import ABC
+import re
 
 import discord
 from discord import app_commands
@@ -9,53 +8,14 @@ from discord.app_commands import Choice
 from discord.ext import commands
 from sqlalchemy.testing.plugin.plugin_base import logging
 
+from classes.access import AccessControl
 from classes.bans import Bans
 from classes.configer import Configer
 from classes.queue import queue
-from classes.support.discord_tools import send_response, send_message, get_all_threads
+from classes.support.discord_tools import get_all_threads, send_message, send_response
 from classes.tasks import pending_bans
+from database.databaseController import BanDbTransactions, ServerDbTransactions, StaffDbTransactions
 from view.modals.inputmodal import send_modal
-
-
-class BanCheck(ABC):
-
-    async def checkerall(self, interaction, bot):
-        fcount = 0
-        bans = bot.bans
-        for member in interaction.guild.members:
-            print(f"{interaction.guild}: Checking {member}")
-            if f"{member.id}" in bans:
-                count = 0
-                print("member in bans")
-                reasons = []
-                for guild in bot.guilds:
-                    try:
-                        ban = bot.bans[f"{member.id}"][f"{guild.id}"]['reason']
-                        reasons.append(f"\n {guild}: {ban}")
-                        count += 1
-                    except discord.NotFound:
-                        pass
-                    except Exception as e:
-                        pass
-                sr = "".join(reasons)
-
-                if count >= 1:
-                    fcount += 1
-                    if len(sr) < 1800:
-                        await interaction.channel.send(f"{member.mention} is banned in: {sr}")
-                    else:
-                        with open(f"{random.randint(1, 1000)}.txt", 'w', encoding='utf-8') as f:
-                            print(sr)
-                            f.write(sr)
-                        await interaction.channel.send(f"{member.mention} is banned in:",
-                                                       file=discord.File(f.name, "banned.txt"))
-                        os.remove(f.name)
-                else:
-                    pass
-            else:
-                pass
-        return fcount
-
 
 OWNER = int(os.getenv("OWNER"))
 GUILD = int(os.getenv("GUILD"))
@@ -74,6 +34,8 @@ def in_guild():
     return app_commands.check(predicate)
 
 
+SUPPORT_GUILD = discord.Object(GUILD)
+
 class dev(commands.GroupCog, name="dev"):
 
     def __init__(self, bot: commands.Bot):
@@ -84,39 +46,30 @@ class dev(commands.GroupCog, name="dev"):
         modchannel = self.bot.get_channel(int(config))
         await modchannel.send(embed=banembed)
 
-    @app_commands.command(name="countbans", description="[DEV] Counts all bans in all servers", )
+    @app_commands.command(name="updatecommands", description="[DEV] Unloads and syncs commands again", )
     @in_guild()
-    async def countbans(self, interaction: discord.Interaction):
+    async def update_commands(self, interaction: discord.Interaction):
+        queue().add(self.bot.tree.sync(), priority=2)
+        await interaction.response.send_message("Command sync queue, high priority queue.")
+
+    @app_commands.command(name="stats", description="View banwatch's stats!", )
+    async def stats(self, interaction: discord.Interaction):
         with open('countbans.txt', 'w'):
             pass
-        testbans = []
-        total = 0
-        ucount = 0
 
-        for guild in self.bot.guilds:
-            try:
-                invites = await guild.invites()
-            except discord.Forbidden:
-                invites = ['No permission']
-            count = 0
-            try:
-                async for entry in guild.bans(limit=2000):
-                    count += 1
-                    if str(entry.user.id) not in testbans:
-                        testbans.append(str(entry.user.id))
-                        ucount += 1
-                    else:
-                        pass
-            except discord.Forbidden:
-                print(f'guild gave no permissionms: {guild.name} ({guild.owner})')
-            if len(invites) < 1:
-                invites = ['No invites']
-            with open('countbans.txt', 'a') as f:
-                f.write(f"\n{guild}'s ban count: {count}"
-                        f"\nDebug: Invite: {invites[0]}, Serverid: {guild.id}, user count {guild.member_count}, Owner: {guild.owner} /n")
-            total += count
-        await interaction.channel.send(f"Total bans: {total}, Unique: {ucount}",
-                                       file=discord.File(f.name, "countbans.txt"))
+        stats = {
+            "servers_total": ServerDbTransactions().count_servers(),
+            "bans_total"   : BanDbTransactions().count_bans(),
+            "verified_bans": BanDbTransactions().count_bans(result_type="verified"),
+            "deleted_bans" : BanDbTransactions().count_bans(result_type="deleted"),
+            "hidden_bans"  : BanDbTransactions().count_bans(result_type="hidden"),
+            "available"    : BanDbTransactions().count_bans(result_type="available"),
+            "queue-status" : queue().status()
+        }
+        embed = discord.Embed(title="Banwatch's stats")
+        for i, v in stats.items():
+            embed.add_field(name=i, value=v, inline=False)
+        await send_message(interaction.channel, embed=embed)
 
     @app_commands.command(name="announce", description="[DEV] Send an announcement to all guild owners")
     @in_guild()
@@ -183,7 +136,6 @@ class dev(commands.GroupCog, name="dev"):
             logging.info(f"{interaction.user.name}({interaction.user.id}) tried to blacklist a user")
             return await send_response(interaction, "You are not allowed to use this command.", ephemeral=True)
 
-            return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
         userid = int(userid)
         await Configer.add_to_user_blacklist(userid)
         await send_response(interaction, f"Blacklisted {userid}")
@@ -197,25 +149,6 @@ class dev(commands.GroupCog, name="dev"):
         userid = int(userid)
         await Configer.remove_from_user_blacklist(userid)
         await send_response(interaction, f"Unblacklisted {userid}")
-
-    @app_commands.command(name="approve_ban", description="Approve a ban")
-    @in_guild()
-    async def approve_ban(self, interaction: discord.Interaction, wait_id: str):
-        if interaction.user.id != 188647277181665280:
-            return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
-        guildid, userid, reason = await Bans().announce_retrieve(self.wait_id)
-        if guildid is None or userid is None or reason is None:
-            await interaction.followup.send("Waitlist ERROR", ephemeral=True)
-            return
-        guild = self.bot.get_guild(guildid)
-        owner = guild.owner
-        user = await self.bot.fetch_user(userid)
-        banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
-                                 description=f"{reason}")
-        invite = await Bans().create_invite(guild)
-        banembed.set_footer(text=f"Server Invite: {invite} Server Owner: {owner} Banned userid: {user.id} ")
-        await interaction.followup.send("Approved", ephemeral=True)
-        await Bans().check_guilds(interaction, self.bot, guild, user, banembed, wait_id, True)
 
     @app_commands.command(name="checklist", description="[DEV] Manage the checklist, these bans will be checked due to controversial reasons")
     @app_commands.choices(operation=[
@@ -241,25 +174,35 @@ class dev(commands.GroupCog, name="dev"):
 
     @app_commands.command(name="migrate_ban")
     @in_guild()
-    async def copy(self, interaction: discord.Interaction, channelid: str):
+    async def copy(self, interaction: discord.Interaction):
         if interaction.user.id != 188647277181665280:
             return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
         await interaction.response.send_message("Migration Started")
-        channel = self.bot.get_channel(int(channelid))
-        async for message in channel.history(limit=None, oldest_first=True):
-            thread = channel.guild.get_thread(message.id)
-            await asyncio.sleep(2)
-            timestamp = message.created_at.strftime("%m/%d/%Y")
-            new = await interaction.channel.send(f"Migrated ban from the old server, sent on {timestamp}:\n{message.content} ", embeds=message.embeds, silent=True)
-            if thread is not None:
-                new_thread = await new.create_thread(name=thread.name)
-                async for msg in thread.history(limit=None, oldest_first=True):
-                    if msg.content is None and len(msg.attachments) < 1 and len(msg.embeds) < 1:
-                        continue
-                    queue().add(new_thread.send(msg.content if len(msg.content) > 0 else "Empty Msg", embeds=msg.embeds, files=[await attachment.to_file() for attachment in msg.attachments], silent=True))
+        dev_guild: discord.Guild = self.bot.get_guild(int(os.getenv("GUILD")))
+        ban_channel: discord.TextChannel = dev_guild.get_channel(int(os.getenv("APPROVED")))
+        history = ban_channel.history(limit=10000)
+        bans = BanDbTransactions().get_all(override=True)
+        for ban in bans:
+            queue().add(self.find_ban_id(history, ban.ban_id))
+
+    async def find_ban_id(self, history, ban_id):
+        print(ban_id)
+        async for message in history:
+            if len(message.embeds) < 1:
+                continue
+            embed = message.embeds[0]
+            # print(embed.footer.text.lower())
+
+            match = re.search(r'ban ID: (\w+)', embed.footer.text)
+
+            if match:
+                print("found")
+                BanDbTransactions().update(ban_id, message=message.id)
+                return
 
     @app_commands.command(name="testban", description="[DEV] unbans and rebans the test account")
     # @in_guild()
+
     async def testban(self, interaction: discord.Interaction):
         if interaction.user.id != 188647277181665280:
             return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
@@ -292,7 +235,6 @@ class dev(commands.GroupCog, name="dev"):
     @app_commands.command(name="rpsecentrysearch", description="[DEV] Searches the rp security threads for a specific entry")
     @in_guild()
     async def rpseclookup(self, interaction: discord.Interaction, id: str):
-        print("testing!")
         await send_response(interaction, f"Checking threads", ephemeral=True)
         dev_guild: discord.Guild = self.bot.get_guild(self.bot.SUPPORTGUILD)
         all_threads = await get_all_threads(dev_guild)
@@ -304,6 +246,18 @@ class dev(commands.GroupCog, name="dev"):
                     await interaction.followup.send(f"Found in {thread.mention}: {message.jump_url}")
                     return
         await send_message(interaction.channel, "Not found")
+
+    @app_commands.command(name="add_staff", description="[DEV] Adds a staff member to the team")
+    @app_commands.choices(role=[Choice(name=x, value=x.lower()) for x in ["Dev", "Rep"]])
+    @in_guild()
+    async def add_staff(self, interaction: discord.Interaction, user: discord.User, role: Choice[str]):
+        StaffDbTransactions().add(user.id, role.value)
+        await send_response(interaction, f"Staff member {user.mention} successfully added as a `{role.name}`!")
+        AccessControl().reload()
+
+    @app_commands.command(name="amistaff", description="[DEV] check if you're a banwatch staff member.")
+    async def amistaff(self, interaction: discord.Interaction):
+        return await send_response(interaction, "You are a staff member" if AccessControl().access_all(interaction.user) else "You are not a staff member")
 
 
 async def setup(bot: commands.Bot):

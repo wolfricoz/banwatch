@@ -56,6 +56,7 @@ with open(logfile, 'a') as f:
 
 handlers = [logging.FileHandler(filename=logfile, encoding='utf-8', mode='a'), logging.StreamHandler()]
 logging.basicConfig(handlers=handlers, level=logging.INFO, format='%(asctime)s:%(name)s: %(message)s')
+logging.getLogger().setLevel(logging.INFO)
 
 
 logger = logging.getLogger('discord')

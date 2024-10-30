@@ -2,17 +2,21 @@ import discord
 
 from classes.cacher import LongTermCache
 from classes.queue import queue
+from database.current import Bans
+from database.databaseController import BanDbTransactions
 from view.buttons.banapproval import BanApproval
 
 
 async def pending_bans(bot):
-    bans: dict = LongTermCache().get_bans()
+    bans: Bans = BanDbTransactions().get_all()
     for ban in bans:
-        reason = bans[ban]['reason']
+        if ban.approved is True:
+            continue
+        reason = ban.reason
         channel = bot.get_channel(bot.BANCHANNEL)
-        wait_id = ban
-        user_id = int(bans[ban]['user'])
-        guild_id = int(bans[ban]['guild'])
+        wait_id = ban.ban_id
+        user_id =  ban.uid
+        guild_id = ban.gid
         user = bot.get_user(user_id)
         guild = bot.get_guild(guild_id)
 

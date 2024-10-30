@@ -1,8 +1,6 @@
 import logging
 
 from discord.ext import commands
-from sqlalchemy.orm import sessionmaker
-
 
 from classes.bans import Bans
 from classes.configer import Configer
@@ -20,14 +18,15 @@ class Events(commands.Cog):
         config = await Configer.get(member.guild.id, "modchannel")
         configid = int(config)
         channel = bot.get_channel(configid)
-        sr = await Bans().check(self.bot, int(member.id))
+        sr = await Bans().get_user_bans(member.id)
+        print(sr)
 
-        if sr is None:
+        if sr is None or len(sr) < 1:
             logging.info(f"{member} has no ban record")
             return
         if channel is None:
             await member.guild.owner.send('No mod channel set, please set one to receive banwatch notifications')
-        await Bans().send_to_channel(channel, sr, int(member.id))
+        await Bans().send_to_channel(bot, channel, sr, member, excess=False)
 
 
 async def setup(bot):

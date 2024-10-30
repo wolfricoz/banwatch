@@ -4,7 +4,6 @@ import discord
 from discord.ext import commands
 
 from classes.bans import Bans
-from classes.queue import queue
 
 
 class UnBanEvents(commands.Cog):
@@ -27,9 +26,8 @@ class UnBanEvents(commands.Cog):
         except discord.Forbidden:
             reason = "User was unbanned by the server with no reason provided"
             await guild.owner.send(f"Please give me the permission to view audit logs to get the reason for the unban of {user}")
-        queue_names = [q.name for q in queue().low_priority_queue]
-        if "update" not in queue_names:
-            queue().add(Bans().update(self.bot), 0)
+        await Bans().delete_ban(user.id, guild.id)
+        # await Bans().update(self.bot)
         await Bans().revoke_bans(self.bot, unique_id, reason)
         logging.info("List updated")
 
