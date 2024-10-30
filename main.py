@@ -66,6 +66,7 @@ async def on_ready():
     logging.info(f"Bot is in {guild_count} guilds:\n{formguilds}")
     queue().add(devroom.send(f"Banwatch is in {guild_count} guilds. Version 3.0: Now I remember!"), priority=2)
     bot.add_view(ServerInfo())
+    await bot.tree.sync()
 
 
 @bot.event
@@ -122,17 +123,16 @@ async def on_guild_remove(guild):
 
 @bot.event
 async def setup_hook():
+    loaded = []
     for filename in os.listdir("modules"):
         if filename.endswith('.py'):
             await bot.load_extension(f"modules.{filename[:-3]}")
-            logging.info({filename[:-3]})
+            loaded.append(filename[:-3])
         else:
             logging.info(f'Unable to load {filename[:-3]}')
-    for guild in bot.guilds:
-        await bot.tree.sync(guild=guild)
-    synced_commands = await bot.tree.fetch_commands(guild=discord.Object(id=os.getenv("guild")))
-    print(f"Synced commands: {[command.name for command in synced_commands]}")
 
+    loaded = ", ".join(loaded)
+    logging.info(f"Loaded Modules: {loaded}")
 
 @bot.command(aliases=["cr", "reload"])
 @commands.is_owner()
@@ -144,7 +144,6 @@ async def cogreload(ctx):
             filesloaded.append(filename[:-3])
     fp = ', '.join(filesloaded)
     await ctx.send(f"Modules loaded: {fp}")
-    # await bot.tree.sync()
 
 
 

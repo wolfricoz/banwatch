@@ -6,10 +6,10 @@ from discord.ext import commands
 
 from classes.access import AccessControl
 from classes.evidence import EvidenceController
-from classes.support.discord_tools import send_response, send_message, await_message
-from database.databaseController import ServerDbTransactions, BanDbTransactions
+from classes.support.discord_tools import await_message, send_message, send_response
+from database.databaseController import BanDbTransactions, ServerDbTransactions
 
-SUPPORT_GUILD = discord.Object(1251639351918727259)
+GUILD = int(os.getenv("GUILD"))
 
 
 class staff(commands.GroupCog, name="staff"):
@@ -28,7 +28,7 @@ class staff(commands.GroupCog, name="staff"):
     #     return data
 
     @app_commands.command(name="servers", description="[staff] View all servers banwatch is in")
-    @app_commands.guilds(SUPPORT_GUILD)
+    @app_commands.guilds(GUILD)
     @AccessControl().check_access()
     async def servers(self, interaction: discord.Interaction):
         await send_response(interaction, "Fetching servers, please be patient", ephemeral=True)
@@ -45,8 +45,10 @@ class staff(commands.GroupCog, name="staff"):
         os.remove(file.name)
 
     @app_commands.command(name="serverinfo", description="[staff] View server info of a specific server")
-    @app_commands.guilds(SUPPORT_GUILD)
+    @app_commands.guilds(GUILD)
     # @app_commands.autocomplete(server=server_autocompletion)
+    @AccessControl().check_access()
+
     async def serverinfo(self, interaction: discord.Interaction, server: str):
         await send_response(interaction, "Retrieving server data")
         guild = self.bot.get_guild(int(server))
@@ -74,6 +76,9 @@ class staff(commands.GroupCog, name="staff"):
         await send_message(interaction.channel, embed=embed)
 
     @app_commands.command(name="userinfo", description="[Staff] View user information")
+    @AccessControl().check_access()
+    @app_commands.guilds(GUILD)
+
     async def userinfo(self, interaction: discord.Interaction, user: discord.User):
         embed = discord.Embed(title=f"{user.name}({user.id})'s info")
         ban_info = BanDbTransactions().get_all_user(user.id)
@@ -93,6 +98,9 @@ class staff(commands.GroupCog, name="staff"):
         await send_message(interaction.channel, embed=embed)
 
     @app_commands.command(name="banverification", description="[Staff] change the status of a ban's verification")
+    @AccessControl().check_access()
+    @app_commands.guilds(GUILD)
+
     async def verifyban(self, interaction: discord.Interaction, ban_id: str, status: bool, provide_proof: bool):
         ban = BanDbTransactions().get(int(ban_id), override=True)
         if not ban:
@@ -112,7 +120,9 @@ class staff(commands.GroupCog, name="staff"):
         await send_response(interaction, f"{ban_id} verified status changed to {status} by {interaction.user.mention}")
 
     @app_commands.command(name="banvisibility", description="[staff] Change if a ban is hidden or not.")
-    async def command(self, interaction: discord.Interaction, ban_id: str, status: bool):
+    @AccessControl().check_access()
+    @app_commands.guilds(GUILD)
+    async def banvisibility(self, interaction: discord.Interaction, ban_id: str, status: bool) :
         ban = BanDbTransactions().get(int(ban_id), override=True)
         if not ban:
             return await send_response(interaction, f"Ban not found.")
@@ -121,4 +131,4 @@ class staff(commands.GroupCog, name="staff"):
 
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(staff(bot), guild=SUPPORT_GUILD)
+    await bot.add_cog(staff(bot))
