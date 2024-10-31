@@ -25,8 +25,11 @@ class BanOptionButtons(View) :
 	async def get_data(self, interaction: discord.Interaction) :
 		"""Gets the user data from the embed"""
 		ids = interaction.message.embeds[0].footer.text.split("-")
+		print(ids)
 		self.guild = interaction.guild
 		self.user = interaction.client.get_user(int(ids[1]))
+		if self.user is None:
+			self.user = await interaction.client.fetch_user(int(ids[1]))
 		self.ban = await self.guild.fetch_ban(self.user)
 		self.wait_id = self.guild.id + self.user.id
 		return self.guild, self.user, self.ban
