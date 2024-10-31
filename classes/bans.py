@@ -245,7 +245,6 @@ class Bans(metaclass=Singleton) :
 				logging.info(f"{guild.name}'s invite expired, creating a new one.")
 		try :
 			for channel in guild.channels :
-				await asyncio.sleep(0.5)
 				try :
 					invite = await channel.create_invite(reason="Banwatch invite")
 				except discord.NotFound :
