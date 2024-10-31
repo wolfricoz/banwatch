@@ -42,8 +42,7 @@ class BanApproval(View) :
 		                         description=f"{reason}")
 		banembed.add_field(name="Banwatch Verified", value="This ban was verified by banwatch staff")
 		banembed.set_footer(text=f"Server Invite: {ban_entry.guild.invite} Server Owner: {owner} ban ID: {self.wait_id}. ")
-		interaction.message.embeds[0].set_footer(text=f"Verified by {interaction.user}")
-		await interaction.message.edit(embed=interaction.message.embeds[0])
+		await self.update_embed(interaction)
 		if self.silent :
 			return
 		await Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, self.create_thread, verified=True)
@@ -70,8 +69,7 @@ class BanApproval(View) :
 		await interaction.followup.send(
 			f"Approved without proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}",
 			ephemeral=False)
-		interaction.message.embeds[0].set_footer(text=f"Verified by {interaction.user}")
-		await interaction.message.edit(embed=interaction.message.embeds[0])
+		await self.update_embed(interaction, "approved")
 		if self.silent :
 			return
 		await Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, False)
