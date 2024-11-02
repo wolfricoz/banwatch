@@ -174,10 +174,14 @@ class Bans(metaclass=Singleton) :
 		return invite
 
 	async def delete_message(self, message: discord.Message) :
-		print(f"deleting {message.id}")
-		thread = await message.fetch_thread()
-		await thread.delete()
+		try:
+			thread = await message.fetch_thread()
+			await thread.delete()
+		except:
+			pass
 		await message.delete()
+		print(f"deleted {message.id}")
+
 
 	def get_ban_id(self, embed: discord.Embed) :
 		match = re.search(r'ban ID: (\w+)', embed.footer.text)
@@ -195,14 +199,13 @@ class Bans(metaclass=Singleton) :
 			if not embed.footer.text:
 				continue
 			result = self.get_ban_id(embed)
-			if int(ban_id) == int(result):
+			if result and int(ban_id) == int(result):
 				print(f"Found {message.id} in {channel.name} ({channel.guild.name})")
 				return message, embed
 		return None, None
 
 	async def search_messages(self, bot, channel: discord.TextChannel, banid: str, reason: str) :
 		banid = str(banid)
-		print(f"checking {channel.name} ({channel.guild.name})")
 		try :
 			message, embed = await self.find_ban_record(bot, banid, channel)
 		except discord.Forbidden :
