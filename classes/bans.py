@@ -192,6 +192,8 @@ class Bans(metaclass=Singleton) :
 			if len(message.embeds) < 1 :
 				continue
 			embed = message.embeds[0]
+			if not embed.footer.text:
+				continue
 			ban_id = self.get_ban_id(embed)
 			if ban_id:
 				print(f"Found {message.id} in {channel.name} ({channel.guild.name})")

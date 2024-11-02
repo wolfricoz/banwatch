@@ -84,7 +84,6 @@ class Pagination(View):
         if self.current_page == 0:
             self.previous.disabled = True
             self.previous.style = discord.ButtonStyle.gray
-            print(self.previous.disabled)
         else:
             self.previous.disabled = False
             self.previous.style = discord.ButtonStyle.success
