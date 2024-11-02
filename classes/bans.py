@@ -1,7 +1,7 @@
 """This class generates the ban list, with functions to update it, and to check for similar names"""
-import asyncio
 import logging
 import os
+import re
 
 import discord
 from discord.ext import commands
@@ -179,6 +179,10 @@ class Bans(metaclass=Singleton) :
 		await thread.delete()
 		await message.delete()
 
+	def get_ban_id(self, embed: discord.Embed) :
+		match = re.search(r'ban ID: (\w+)', embed.footer.text)
+		return match.group(1) if match else None
+
 	async def find_ban_record(self, bot, banid, channel=None) :
 		if channel is None :
 			channel = bot.get_channel(int(os.getenv("APPROVED")))
@@ -188,7 +192,8 @@ class Bans(metaclass=Singleton) :
 			if len(message.embeds) < 1 :
 				continue
 			embed = message.embeds[0]
-			if embed.footer.text and str(banid) in embed.footer.text :
+			ban_id = self.get_ban_id(embed)
+			if ban_id:
 				print(f"Found {message.id} in {channel.name} ({channel.guild.name})")
 				return message, embed
 		return None, None
