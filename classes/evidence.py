@@ -9,12 +9,16 @@ from classes.cacher import LongTermCache
 from classes.queue import queue
 from classes.support.discord_tools import send_message, send_response
 from database.current import Proof
-from database.databaseController import ProofDbTransactions
+from database.databaseController import BanDbTransactions, ProofDbTransactions
 
 
 class EvidenceController():
     @staticmethod
     async def add_evidence(interaction: discord.Interaction, evidence, ban_id, channel, user):
+        exists = BanDbTransactions().exist(ban_id)
+        if exists is False:
+            queue().add(send_response(interaction, f"Ban ID {ban_id} not found, please check if the user is banned. If this error persists please open a ticket in the support server."))
+            return
         attachments = [await a.to_file() for a in evidence.attachments]
         evidence_channel = interaction.client.get_channel(int(os.getenv("EVIDENCE")))
         stored = await send_message(evidence_channel, f"Evidence for {ban_id}: \n```{evidence.content}```", files=attachments)
