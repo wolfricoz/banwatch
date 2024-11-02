@@ -183,7 +183,7 @@ class Bans(metaclass=Singleton) :
 		match = re.search(r'ban ID: (\w+)', embed.footer.text)
 		return match.group(1) if match else None
 
-	async def find_ban_record(self, bot, banid, channel=None) :
+	async def find_ban_record(self, bot, ban_id, channel=None) :
 		if channel is None :
 			channel = bot.get_channel(int(os.getenv("APPROVED")))
 		async for message in channel.history() :
@@ -194,8 +194,8 @@ class Bans(metaclass=Singleton) :
 			embed = message.embeds[0]
 			if not embed.footer.text:
 				continue
-			ban_id = self.get_ban_id(embed)
-			if ban_id:
+			result = self.get_ban_id(embed)
+			if int(ban_id) == int(result):
 				print(f"Found {message.id} in {channel.name} ({channel.guild.name})")
 				return message, embed
 		return None, None
