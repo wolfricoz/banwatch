@@ -211,9 +211,10 @@ class dev(commands.GroupCog, name="dev"):
         await interaction.guild.ban(user, reason="Test ban")
         await interaction.response.send_message("Test ban complete", ephemeral=True)
 
+    # TODO: Move this into the staff section, it should revoke the ban and set approved to False; as well as send it into the approval channel where staff can decide.
     @app_commands.command(name="revokeban", description="[DEV] Revokes a ban message. This does not unban the user.")
     @in_guild()
-    async def getembed(self, interaction: discord.Interaction, banid: str, reason: str):
+    async def revokeban(self, interaction: discord.Interaction, banid: str, reason: str):
         message = await interaction.response.send_message("Queueing the search for the embed")
         await Bans().revoke_bans(self.bot, banid, reason)
 
@@ -250,6 +251,13 @@ class dev(commands.GroupCog, name="dev"):
     async def add_staff(self, interaction: discord.Interaction, user: discord.User, role: Choice[str]):
         StaffDbTransactions().add(user.id, role.value)
         await send_response(interaction, f"Staff member {user.mention} successfully added as a `{role.name}`!")
+        AccessControl().reload()
+
+    @app_commands.command(name="remove_staff", description="[DEV] Remove a staff member from the team")
+    @in_guild()
+    async def remove_staff(self, interaction: discord.Interaction, user: discord.User):
+        StaffDbTransactions().delete(user.id)
+        await send_response(interaction, f"Staff member {user.mention} successfully removed!")
         AccessControl().reload()
 
     @app_commands.command(name="amistaff", description="[DEV] check if you're a banwatch staff member.")

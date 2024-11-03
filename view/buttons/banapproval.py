@@ -47,7 +47,7 @@ class BanApproval(View) :
 			return
 		await Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, self.create_thread, verified=True)
 
-	@discord.ui.button(label="Approve without proof", style=discord.ButtonStyle.success, custom_id="approve_ban")
+	@discord.ui.button(label="Approve without Proof", style=discord.ButtonStyle.success, custom_id="approve_ban")
 	async def approve_no_proof(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		await interaction.response.defer(ephemeral=True)
 		if self.bot is None or self.wait_id is None :
@@ -74,7 +74,7 @@ class BanApproval(View) :
 			return
 		await Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, False)
 
-	@discord.ui.button(label="request evidence", style=discord.ButtonStyle.danger, custom_id="custom_ID")
+	@discord.ui.button(label="Request Evidence", style=discord.ButtonStyle.danger, custom_id="custom_ID")
 	async def evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		reason = await send_modal(interaction, confirmation="Thank you for providing a reason",
 		                          title="What evidence do we require?")
