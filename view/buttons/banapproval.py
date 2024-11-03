@@ -18,7 +18,7 @@ class BanApproval(View) :
 		self.create_thread = create_thread
 		self.silent = silent
 
-	@discord.ui.button(label="Verify", style=discord.ButtonStyle.success, custom_id="verify_ban")
+	@discord.ui.button(label="Approve with Proof (Verify)", style=discord.ButtonStyle.success, custom_id="verify_ban")
 	async def verify(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		await interaction.response.defer(ephemeral=True)
 		if self.bot is None or self.wait_id is None :
@@ -47,7 +47,7 @@ class BanApproval(View) :
 			return
 		await Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, self.create_thread, verified=True)
 
-	@discord.ui.button(label="approve", style=discord.ButtonStyle.success, custom_id="approve_ban")
+	@discord.ui.button(label="Approve without proof", style=discord.ButtonStyle.success, custom_id="approve_ban")
 	async def approve_no_proof(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		await interaction.response.defer(ephemeral=True)
 		if self.bot is None or self.wait_id is None :
