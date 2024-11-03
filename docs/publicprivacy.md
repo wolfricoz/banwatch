@@ -78,6 +78,7 @@ information, we may request the server owner to update the ban to remove the per
 * Q: Can the bot see my credit card information?
 * A: No, the bot does not have access to your credit card information; discord hides this information from bots.
 * Q: How are fraudulant or misleading bans handled?
+* A: If we are informed about a fraudulant/misleading ban we will investigate the claims, and if found that these claims have merrit we will hide the bans, and remove our bot from the offending server if needed.
 * Q: Is Banwatch a spy bot?
 * A: No, Banwatch is not a spy bot. Banwatch is a bot that helps server owners keep their servers safe by informing them of potential threats to their server.
 * Q: is Banwatch verified?
