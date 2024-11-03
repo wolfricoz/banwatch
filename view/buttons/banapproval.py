@@ -69,7 +69,7 @@ class BanApproval(View) :
 		await interaction.followup.send(
 			f"Approved without proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}",
 			ephemeral=False)
-		await self.update_embed(interaction, "approved")
+		await self.update_embed(interaction, "approve")
 		if self.silent :
 			return
 		await Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, False)
@@ -119,7 +119,7 @@ class BanApproval(View) :
 		await denial_channel.send(embed=banembed)
 		await interaction.followup.send("Denied", ephemeral=True)
 
-	async def update_embed(self, interaction, action="Verified") :
+	async def update_embed(self, interaction, action="verify") :
 		self.update_buttons(action)
 		interaction.message.embeds[0].set_footer(text=f"action `{action}` was performed by {interaction.user}")
 		await interaction.message.edit(embed=interaction.message.embeds[0], view=self)
