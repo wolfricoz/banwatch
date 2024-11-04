@@ -188,8 +188,15 @@ class Bans(metaclass=Singleton) :
 		return match.group(1) if match else None
 
 	async def find_ban_record(self, bot, ban_id, channel=None) :
+		"""This function searches through channels for messages with embeds matching the ban id, when found it returns the message and embed.
+		:param bot:
+		:param ban_id:
+		:param channel:
+		:return:
+		"""
 		if channel is None :
 			channel = bot.get_channel(int(os.getenv("APPROVED")))
+
 		async for message in channel.history() :
 			if message.author.id != bot.user.id :
 				continue
@@ -205,6 +212,14 @@ class Bans(metaclass=Singleton) :
 		return None, None
 
 	async def search_messages(self, bot, channel: discord.TextChannel, banid: str, reason: str) :
+		"""
+
+		:param bot:
+		:param channel:
+		:param banid:
+		:param reason:
+		:return:
+		"""
 		banid = str(banid)
 		try :
 			message, embed = await self.find_ban_record(bot, banid, channel)
