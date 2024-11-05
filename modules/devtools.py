@@ -212,11 +212,7 @@ class dev(commands.GroupCog, name="dev"):
         await interaction.response.send_message("Test ban complete", ephemeral=True)
 
     # TODO: Move this into the staff section, it should revoke the ban and set approved to False; as well as send it into the approval channel where staff can decide.
-    @app_commands.command(name="revokeban", description="[DEV] Revokes a ban message. This does not unban the user.")
-    @in_guild()
-    async def revokeban(self, interaction: discord.Interaction, banid: str, reason: str):
-        message = await interaction.response.send_message("Queueing the search for the embed")
-        await Bans().revoke_bans(self.bot, banid, reason)
+
 
     @app_commands.command(name="pendingbans", description="[DEV] Lists all pending bans")
     @in_guild()
@@ -230,20 +226,7 @@ class dev(commands.GroupCog, name="dev"):
         await Bans().update(self.bot, override=True)
         await interaction.response.send_message("Bans refresh queued", ephemeral=True)
 
-    @app_commands.command(name="rpsecentrysearch", description="[DEV] Searches the rp security threads for a specific entry")
-    @in_guild()
-    async def rpseclookup(self, interaction: discord.Interaction, id: str):
-        await send_response(interaction, f"Checking threads", ephemeral=True)
-        dev_guild: discord.Guild = self.bot.get_guild(self.bot.SUPPORTGUILD)
-        all_threads = await get_all_threads(dev_guild)
-        for thread in all_threads:
-            print(f"checking {thread} in {thread.parent.name}")
-            async for message in thread.history(limit=5, oldest_first=True):
-                print(message.content)
-                if id in message.content:
-                    await interaction.followup.send(f"Found in {thread.mention}: {message.jump_url}")
-                    return
-        await send_message(interaction.channel, "Not found")
+
 
     @app_commands.command(name="add_staff", description="[DEV] Adds a staff member to the team")
     @app_commands.choices(role=[Choice(name=x, value=x.lower()) for x in ["Dev", "Rep"]])
@@ -260,9 +243,7 @@ class dev(commands.GroupCog, name="dev"):
         await send_response(interaction, f"Staff member {user.mention} successfully removed!")
         AccessControl().reload()
 
-    @app_commands.command(name="amistaff", description="[DEV] check if you're a banwatch staff member.")
-    async def amistaff(self, interaction: discord.Interaction):
-        return await send_response(interaction, "You are a staff member" if AccessControl().access_all(interaction.user) else "You are not a staff member")
+
 
 
 async def setup(bot: commands.Bot):

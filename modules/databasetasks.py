@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import datetime, timedelta
 
@@ -5,7 +6,7 @@ from discord.ext import commands, tasks
 
 from classes.queue import queue
 from database.databaseController import BanDbTransactions, ServerDbTransactions
-
+import asyncio
 
 class DatabaseTasks(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -21,6 +22,7 @@ class DatabaseTasks(commands.Cog):
         servers = ServerDbTransactions().get_deleted_servers()
         logging.info(f"Checking soft-deleted entries for removal")
         for ban in bans:
+            await asyncio.sleep(0.1)
             if ban.deleted_at is None:
                 continue
             if ban.deleted_at < datetime.now() - timedelta(days=30):

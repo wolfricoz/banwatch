@@ -6,8 +6,12 @@ from discord import app_commands
 from discord.ext import commands
 
 from classes.access import AccessControl
+from classes.bans import Bans
 from classes.evidence import EvidenceController
+from classes.queue import queue
+from classes.rpsec import RpSec
 from classes.support.discord_tools import await_message, send_message, send_response
+from classes.tasks import pending_bans
 from database.databaseController import BanDbTransactions, ServerDbTransactions
 
 GUILD = int(os.getenv("GUILD"))
@@ -127,6 +131,31 @@ class staff(commands.GroupCog, name="staff") :
 			return await send_response(interaction, f"Ban not found.")
 		BanDbTransactions().update(ban, hidden=status)
 		await send_response(interaction, f"{ban_id} hidden status changed to {status} by {interaction.user.mention}")
+
+	@app_commands.command(name="rpsecsearch",
+	                      description="[DEV] Searches the rp security threads for a specific entry")
+	@AccessControl().check_access()
+	async def rpseclookup(self, interaction: discord.Interaction, user: discord.User) :
+		await send_response(interaction, f"Checking threads", ephemeral=True)
+		dev_guild: discord.Guild = self.bot.get_guild(self.bot.SUPPORTGUILD)
+		record = dev_guild.get_thread(RpSec.get_user(user.id))
+		if record is None :
+			await send_response(interaction, "No Roleplay Security Bot entry found")
+		await send_response(interaction, f"Roleplay Security Bot entry: {record.mention}")
+
+
+	@app_commands.command(name="revokeban", description="[DEV] Revokes a ban message. This does not unban the user.")
+	@AccessControl().check_access()
+	async def revokeban(self, interaction: discord.Interaction, banid: str, reason: str):
+		await interaction.response.send_message("Queueing the search for the embed")
+		await Bans().revoke_bans(self.bot, banid, reason, staff=True)
+		queue().add(pending_bans(self.bot, True))
+
+
+	@app_commands.command(name="amistaff", description="[DEV] check if you're a banwatch staff member.")
+	async def amistaff(self, interaction: discord.Interaction) :
+		return await send_response(interaction, "You are a staff member" if AccessControl().access_all(
+			interaction.user) else "You are not a staff member")
 
 
 async def setup(bot: commands.Bot) :

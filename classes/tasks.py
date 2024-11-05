@@ -2,18 +2,22 @@ import discord
 
 from classes.cacher import LongTermCache
 from classes.queue import queue
+from classes.support.discord_tools import send_message
 from database.current import Bans
 from database.databaseController import BanDbTransactions
 from view.buttons.banapproval import BanApproval
 
 
-async def pending_bans(bot):
+async def pending_bans(bot, revoked=False):
     bans: Bans = BanDbTransactions().get_all()
+    channel = bot.get_channel(bot.BANCHANNEL)
+
+    if revoked:
+        await send_message(channel, "fetching pending bans after revoking ban")
     for ban in bans:
         if ban.approved is True:
             continue
         reason = ban.reason
-        channel = bot.get_channel(bot.BANCHANNEL)
         wait_id = ban.ban_id
         user_id =  ban.uid
         guild_id = ban.gid

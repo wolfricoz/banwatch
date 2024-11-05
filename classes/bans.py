@@ -174,14 +174,13 @@ class Bans(metaclass=Singleton) :
 		return invite
 
 	async def delete_message(self, message: discord.Message) :
-		try:
+		try :
 			thread = await message.fetch_thread()
 			await thread.delete()
-		except:
+		except :
 			pass
 		await message.delete()
 		print(f"deleted {message.id}")
-
 
 	def get_ban_id(self, embed: discord.Embed) :
 		match = re.search(r'ban ID: (\w+)', embed.footer.text)
@@ -203,10 +202,10 @@ class Bans(metaclass=Singleton) :
 			if len(message.embeds) < 1 :
 				continue
 			embed = message.embeds[0]
-			if not embed.footer.text:
+			if not embed.footer.text :
 				continue
 			result = self.get_ban_id(embed)
-			if result and int(ban_id) == int(result):
+			if result and int(ban_id) == int(result) :
 				print(f"Found {message.id} in {channel.name} ({channel.guild.name})")
 				return message, embed
 		return None, None
@@ -237,12 +236,14 @@ class Bans(metaclass=Singleton) :
 		print(f"[revoke_ban] Queued deletion of {message.id} in {channel.name} ({channel.guild.name})")
 		logging.info(f"[revoke_ban] Queued deletion of {message.id} in {channel.name} ({channel.guild.name})")
 
-	async def revoke_bans(self, bot, banid, reason) :
+	async def revoke_bans(self, bot, banid, reason, staff=False) :
 		for guild in bot.guilds :
 			modchannel = await Configer.get(guild.id, "modchannel")
 			channel = bot.get_channel(int(modchannel))
 			if channel is None :
 				continue
+			if staff :
+				BanDbTransactions().update(int(banid), approved=False)
 			queue().add(self.search_messages(bot, channel, banid, reason), priority=2)
 		channel = bot.get_channel(bot.APPROVALCHANNEL)
 		queue().add(self.search_messages(bot, channel, banid, reason), priority=2)
