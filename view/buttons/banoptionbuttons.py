@@ -94,7 +94,7 @@ class BanOptionButtons(View) :
 		if not evidence :
 			return
 		channel = interaction.client.get_channel(int(os.getenv("BANS")))
-		queue().add(EvidenceController.add_evidence(interaction, evidence, self.wait_id, channel, self.user))
+		queue().add(EvidenceController.add_evidence(interaction, evidence, self.wait_id, self.user))
 
 	async def check_checklisted_words(self, ban) :
 		found = None

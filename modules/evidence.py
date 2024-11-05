@@ -30,7 +30,7 @@ class Evidence(commands.GroupCog, name="evidence"):
         evidence_message = f"Please send a message with the evidence you would like to add to {user.name}'s record, this will be added to the ban ID {ban_id} in our support server. \n Type `cancel` to cancel.\n-# By responding to this message you agree to the evidence being stored in our support server."
         evidence = await await_message(interaction, evidence_message)
         channel = self.bot.get_channel(int(os.getenv("APPROVED")))
-        await EvidenceController.add_evidence(interaction, evidence, ban_id, channel, user)
+        await EvidenceController.add_evidence(interaction, evidence, ban_id, user)
 
     @app_commands.command(name="get", description="Get the proof for an user's ban!")
     @app_commands.checks.has_permissions(ban_members=True)
