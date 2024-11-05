@@ -3,7 +3,7 @@ import os
 
 import discord
 import requests
-from sqlalchemy.testing.plugin.plugin_base import logging
+import logging
 
 from classes.bans import Bans
 from classes.queue import queue
