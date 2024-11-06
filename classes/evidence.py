@@ -4,7 +4,6 @@ import os
 
 import discord
 import requests
-from Doc.pycurl.examples.smtp import message
 
 from classes.bans import Bans
 from classes.queue import queue
