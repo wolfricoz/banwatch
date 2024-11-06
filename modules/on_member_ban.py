@@ -5,6 +5,7 @@ from discord.ext import commands
 
 from classes.bans import Bans
 from classes.configer import Configer
+from database.databaseController import ServerDbTransactions
 from view.buttons.baninform import BanInform
 from view.buttons.banoptionbuttons import BanOptionButtons
 
@@ -27,8 +28,10 @@ class BanEvents(commands.Cog) :
 			logging.warning(f"I was banned in {guild.name}")
 			return
 		ban = await guild.fetch_ban(user)
+		if ServerDbTransactions().is_hidden(guild.id):
+			await Bans().add_ban(user.id, guild.id, ban.reason, "Unknown")
 		if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(
-				ban.reason).lower().startswith('[silent]') or str(ban.reason).lower().startswith('[hidden]') :
+				ban.reason).lower().startswith('[silent]') or str(ban.reason).lower().startswith('[hidden]'):
 			print("silent or hidden ban/no reason, not prompting")
 			await Bans().add_ban(user.id, guild.id, "Hidden Ban", "Unknown")
 			return

@@ -70,6 +70,7 @@ class Servers(Base):
     owner: Mapped[str] = mapped_column(String(1024, collation='utf8mb4_unicode_ci'))
     name: Mapped[str] = mapped_column(String(1024, collation='utf8mb4_unicode_ci'))
     member_count: Mapped[int] = mapped_column(BigInteger)
+    hidden: Mapped[bool] = mapped_column(Boolean, default=False)
     invite: Mapped[str] = mapped_column(String(256, collation='utf8mb4_unicode_ci'), default="")
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     deleted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=None, nullable=True)

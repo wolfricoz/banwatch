@@ -5,6 +5,7 @@ from classes.configer import Configer
 from discord.app_commands import Choice
 
 from classes.support.discord_tools import send_response
+from database.databaseController import ServerDbTransactions
 
 
 class config(commands.GroupCog, name="config"):
@@ -28,6 +29,13 @@ class config(commands.GroupCog, name="config"):
     async def command(self, interaction: discord.Interaction, allow: bool):
         await interaction.response.defer(ephemeral=True)
         await Configer.change(interaction.guild.id, interaction, allow, "allow_appeals")
+
+    @app_commands.command(name="visibility", description="[Config Command] Allows you to hide all bans from banwatch")
+    @app_commands.checks.has_permissions(manage_guild=True)
+    async def command(self, interaction: discord.Interaction, hide: bool):
+        ServerDbTransactions().update(interaction.guild.id, hidden=hide)
+        await send_response(interaction, f"Your server's visibility has ben set to: {'hidden' if hide is True else 'Visible'}\n\n"
+                                         f"Your bans may temporarily still be available in the checkall cache, which is reloaded every 10 minutes")
 
 
 async def setup(bot: commands.Bot):
