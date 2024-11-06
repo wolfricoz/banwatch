@@ -40,7 +40,7 @@ class BanOptionButtons(View) :
 
 	@button(label="Share with proof", custom_id="share_with_proof", style=discord.ButtonStyle.success)
 	async def share_with_proof(self, interaction: discord.Interaction, button: button) :
-		evidence_message = f"Please send a message with the evidence you would like to add to the record \nType `cancel` to cancel.\n-# By responding to this message you agree to the evidence being stored in our support server."
+		evidence_message = f"Please send a message with the evidence you would like to add to the record \nType `cancel` to cancel.\n-# By responding to this message you agree to the evidence being stored in our support server.\n\n**Do __not__ use forwarded messages, as these are currently not supported.**"
 		evidence = await await_message(interaction, evidence_message)
 		queue().add(self.process(interaction), priority=2)
 		queue().add(self.provide_proof(interaction, evidence), priority=0)

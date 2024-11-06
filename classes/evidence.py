@@ -1,9 +1,10 @@
 import io
+import logging
 import os
 
 import discord
 import requests
-import logging
+from Doc.pycurl.examples.smtp import message
 
 from classes.bans import Bans
 from classes.queue import queue
@@ -21,9 +22,11 @@ class EvidenceController() :
 			                          f"Ban ID {ban_id} not found, please check if the user is banned. If this error persists please open a ticket in the support server."))
 			return
 		attachments, result = await EvidenceController.create_evidence_entry(ban_id, evidence, interaction, user)
-		if result is not None :
+		if result is None :
 			logging.error(f"Failed to create proof for {ban_id}")
 			return
+		queue().add(send_message(interaction.channel, f"Proof for {user.name}({user.id}) has been added to the evidence channel."), priority=2)
+		del evidence
 		ban_entry, embed = await Bans().find_ban_record(interaction.client, ban_id)
 		result: Proof
 		if ban.approved is False :
@@ -31,18 +34,15 @@ class EvidenceController() :
 			channel = interaction.client.get_channel(approval_channel)
 			queue().add(send_message(channel,
 			                         f"Ban ID {ban_id} has been updated with new evidence:\n"
-			                         f"{evidence.content}", files=attachments))
-			queue().add(
-				send_message(interaction.channel, f"Proof for {user.name}({user.id}) has been added to the evidence channel."))
-			await evidence.delete()
+			                         f"{result.proof}", files=attachments))
+			return
 		if ban_entry is None :
 			logging.info(f"pre-banwatch ban {ban_id} added evidence: {result.id}")
 			return
 		thread = await ban_entry.fetch_thread()
 		if thread is None :
 			thread = await ban_entry.create_thread(name=f"Evidence for {user.name}({user.id})")
-		queue().add(thread.send(f"{evidence.content}", files=attachments))
-		await evidence.delete()
+		queue().add(thread.send(f"Ban ID {ban_id} has been updated with new evidence:\n{result.proof}", files=attachments))
 
 	@staticmethod
 	async def create_evidence_entry(ban_id, evidence, interaction, user) :
@@ -54,6 +54,7 @@ class EvidenceController() :
 		attachments_urls = [a.url for a in stored.attachments]
 		result = ProofDbTransactions().add(ban_id=ban_id, user_id=user.id, proof=evidence.content,
 		                                   attachments=attachments_urls)
+		await evidence.delete()
 		return attachments, result
 
 	async def retrieve_proof(self, evidence: Proof) :

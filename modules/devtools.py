@@ -199,8 +199,7 @@ class dev(commands.GroupCog, name="dev"):
             pass
 
     @app_commands.command(name="testban", description="[DEV] unbans and rebans the test account")
-    @in_guild()
-    async def testban(self, interaction: discord.Interaction):
+    async def testban(self, interaction: discord.Interaction, checklist:bool = True):
         if interaction.user.id != 188647277181665280:
             return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
         user = self.bot.get_user(474365489670389771)
@@ -208,10 +207,8 @@ class dev(commands.GroupCog, name="dev"):
             await interaction.guild.unban(user, reason="Test unban")
         except Exception:
             pass
-        await interaction.guild.ban(user, reason="Test ban")
+        await interaction.guild.ban(user, reason=f"{'Test Ban' if checklist else 'dev ban'}")
         await interaction.response.send_message("Test ban complete", ephemeral=True)
-
-    # TODO: Move this into the staff section, it should revoke the ban and set approved to False; as well as send it into the approval channel where staff can decide.
 
 
     @app_commands.command(name="pendingbans", description="[DEV] Lists all pending bans")
