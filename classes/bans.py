@@ -56,7 +56,7 @@ class Bans(metaclass=Singleton) :
 
 			embed.add_field(name=f"{guild.name} ({ban.guild.invite})",
 			                value=f"{ban.reason}\n"
-			                      f"verified: {'Yes' if ban.verified else 'No'}, date: {created_at}")
+			                      f"verified: {'Yes' if ban.verified else 'No'}, date: {created_at}", inline=False)
 		sr = "\n".join(bans)
 		if excess :
 			sr = f"This user has {count} bans that aren't shown to prevent spam. Please use `/user lookup`"
