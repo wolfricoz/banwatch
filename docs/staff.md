@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Staff Guidelines
-nav_order: 4
+nav_order: 7
 ---
 
 <h1 style="text-align: center">Staff Guidelines</h1>
