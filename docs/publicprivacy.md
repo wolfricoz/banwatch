@@ -1,7 +1,7 @@
 ---
 layout: default
 title: privacy
-nav_order: 2
+nav_order: 6
 ---
 
 <h1 align="center">Privacy Policy</h1>
@@ -9,80 +9,101 @@ nav_order: 2
 ### Short Version:
 
 All the data collected by Ban Watch is strictly used to inform other server owners of potential threats to their
-servers. We do not sell or distribute any data to third parties and we do not store any Personal Identifying
-Information - any and all information given is provided by discord's API. Bans are temporarily cached on the server for
-24 hours to prevent spamming the discord API. If you have any questions or concerns, please contact the developers in
-our support discord.
+servers. We do not sell or distribute any data to third parties. Any data we collect is provided by Discord's API and
+may now be stored long-term to improve the bot’s functionality. If you have any questions or concerns, please contact
+the developers in our support Discord.
 
-Banwatch follows all of GDPR's guidelines and regulations; especially as we do not store any personal information; the
-information is provided by discord's API.
+Banwatch complies with all GDPR guidelines and regulations, particularly as we do not store any personal identifying
+information (PII) beyond Discord-provided data.
 
 # What data do we collect?
 
-We collect the following data from the discord API every two hours or when a ban is detected:
+We collect the following data, categorized by the primary database tables:
 
-- User ID
-- Ban reason
-- Guild ID
+* Bans:
+    * Ban ID
+    * User ID of the banned user
+    * Guild ID where the ban was issued
+    * Ban reason
+    * Related message ID (if applicable)
+    * Approval and verification status of the ban
+    * Visibility status (hidden or not)
+    * Date the ban was created
+    * Staff notes (added by the server owner or moderators)
+    * Proof associated with the ban (details stored in the Proof table)
+    * Appeal records (stored in the Appeals table)
+    * Deletion date (if the ban is marked as removed)
 
-Next to that we also collect information in our support server that is provided by the server owner:
+* Staff:
+    * User ID of staff members
+    * Role or title of staff members
 
-- Proof about the ban, to ensure that the ban is legitimate
-- User ID and username
-- the ban reason
-- the guild name, the guild owner, and the guild ID
+* Proof:
+    * Proof ID (unique identifier)
+    * Ban ID (linked to the Bans table)
+    * User ID of the person submitting the proof
+    * Proof description (details or evidence supporting the ban)
+    * Attachments, such as images or other files relevant to the proof
+
+* Servers:
+    * Server ID (Guild ID)
+    * Owner's information (username or ID)
+    * Server name and member count
+    * Server visibility status (hidden or not)
+    * Invite link (if provided)
+    * Last updated timestamp
+    * Deletion timestamp (if the server entry is marked as removed)
+
+* Appeals:
+    * Appeal ID
+    * Ban ID (linked to the Bans table)
+    * Appeal message submitted by the user
+    * Appeal status (approved, pending, or denied)
 
 # How do we use this data?
 
-<b>The data we collect is used to inform other server owners of potential threats to their servers.</b>
+<b>The data we collect is used solely to inform other server owners of potential threats to their servers.</b>
 
-We do not sell or
-distribute any data to third parties and we do not store any Personal Identifying Information - any and all information
-is provided by discord's API. Bans are temporarily cached on the server for 24 hours to prevent spamming the discord API
-and to improve the start up times of the bot to ensure that the bot is always available. After 24 hours this cache is
-deleted and rebuilt.
+We do not sell or distribute data to third parties. Ban information is stored long-term in our database to ensure consistency, efficiency, and improved access for server owners. This data is kept secure and used only within the scope of Banwatch's purpose.
 
-User messages are <b>not</b> stored in any way, shape, or form. the `message_content intent` is currently used for a
-handful of commands to provide context about the ban, which is stored on the server under the ban entry to provide
-context about the ban. It also uses this intent to search for information from a partnered bot which can provide more
-context to bans. Be sure to check out the RP Security Bot!
+User messages are <b>not</b> stored. The `message_content` intent is used for a few commands that provide context about bans, with relevant information stored only within the corresponding ban entry to assist with ban verification.
 
 # Consenting to the data collection
 
-If you run one of the commands that require the `message_content` intent, you are consenting to the data being collected
-and stored.
-these commands are:
+By running specific commands that require the message_content intent, you consent to data collection and storage. These commands include:
 
-- `/evidence add`
+- /evidence add
 
 # How can I request my data to be removed?
 
-To have your data removed, you can contact the owner of the server who banned you, as they can remove the ban from their
-server; banwatch will automatically remove the ban from the cache within 24 hours. As bans do not fall under personal
-identifying information, we do not have to remove the data from the cache per GDPR guidelines.
+To remove your data, contact the server owner who issued the ban. Banwatch will automatically remove the ban from its database if the server removes it. As bans do not include PII, GDPR does not require us to delete this data. If personal data is present in a ban, we may ask the server owner to redact it.
 
-Personal information is defined as any information that can be used to identify a person, such as a name, address, phone
-number, email address, or IP address, credit cards, social security numbers. As we do not store any personal
-information, we do not have to remove any data from the cache. If a ban may have the potential to contain personal
-information, we may request the server owner to update the ban to remove the personal information.
+If harmful rumors are being spread through banwatch without evidence to substantiate it, you may contact the banwatch staff team to have this ban message hidden from servers. We verify most bans with serious reasons to prevent harmful rumors.
 
 # Q&A
+
 * Q: Can the bot read my messages?
-* A: While the bot has permission to read PUBLIC messages, it does not read them as server moderation is outside of banwatch's scope. The bot only reads messages when a command is run that requires the `message_content` intent.
+  * A: While the bot has permission to read PUBLIC messages, it does not read them as server moderation is outside of
+  banwatch's scope. The bot only reads messages when a command is run that requires the `message_content` intent.
 * Q: Can the bot read my DMs?
-* A: If you DM the bot, the bot can read your messages. The bot does not have access to your private dms with other users.
+  * A: If you DM the bot, the bot can read your messages. The bot does not have access to your private dms with other
+    users.
 * Q: Can the bot see my IP address?
-* A: No, the bot does not have access to your IP address; discord hides this information from bots.
+  * A: No, the bot does not have access to your IP address; discord hides this information from bots.
 * Q: Can the bot see my email address?
-* A: No, the bot does not have access to your email address; discord hides this information from bots.
+  * A: No, the bot does not have access to your email address; discord hides this information from bots.
 * Q: Can the bot see my credit card information?
-* A: No, the bot does not have access to your credit card information; discord hides this information from bots.
+  * A: No, the bot does not have access to your credit card information; discord hides this information from bots.
 * Q: How are fraudulant or misleading bans handled?
-* A: If we are informed about a fraudulant/misleading ban we will investigate the claims, and if found that these claims have merrit we will hide the bans, and remove our bot from the offending server if needed.
+  * A: If we are informed about a fraudulant/misleading ban we will investigate the claims, and if found that these claims
+    have merrit we will hide the bans, and remove our bot from the offending server if needed.
 * Q: Is Banwatch a spy bot?
-* A: No, Banwatch is not a spy bot. Banwatch is a bot that helps server owners keep their servers safe by informing them of potential threats to their server.
+  * A: No, Banwatch is not a spy bot. Banwatch is a bot that helps server owners keep their servers safe by informing them
+    of potential threats to their server.
 * Q: is Banwatch verified?
-* A: Yes, Banwatch is verified by discord. You can see this by the checkmark next to the bot's name. This means that discord has looked at the bot and has verified that it is safe to use.
+  * A: Yes, Banwatch is verified by discord. You can see this by the checkmark next to the bot's name. This means that
+    discord has looked at the bot and has verified that it is safe to use.
+
 # What if I have more questions?
 
 If you have any questions or concerns, please contact the developers in our support discord. You can join the support

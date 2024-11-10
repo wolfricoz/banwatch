@@ -1,3 +1,5 @@
+import os
+
 import discord
 
 from classes.cacher import LongTermCache
@@ -51,6 +53,6 @@ async def pending_bans(bot, revoked=False):
             embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
                                   description=f"{reason}")
             embed.set_footer(text=f"/approve_ban {wait_id}")
-            queue().add(channel.send(embed=embed, view=BanApproval(bot, wait_id, True)), priority=2)
+            queue().add(channel.send(f"<@&{os.getenv('STAFF_ROLE')}>",embed=embed, view=BanApproval(bot, wait_id, True)), priority=2)
         except Exception as e:
             print(f"Error: {e}")

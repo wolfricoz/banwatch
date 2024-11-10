@@ -20,9 +20,6 @@ class queueTask(commands.Cog):
     @tasks.loop(seconds=3)
     async def display_status(self):
         await self.bot.wait_until_ready()
-
-        # Setting `Watching ` status
-
         status = "Watching over the community"
         if not queue().empty():
             status = queue().status()

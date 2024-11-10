@@ -78,7 +78,7 @@ class BanOptionButtons(View) :
 			                      description=f"{ban.reason}")
 			embed.set_footer(text=f"invite: {guild_db.invite} To approve it manually: /approve_ban {wait_id} ")
 			queue().add(
-				send_message(channel, embed=embed, view=BanApproval(interaction.client, wait_id, True, silent=silent)))
+				send_message(channel, f"<@&{os.getenv('STAFF_ROLE')}>", embed=embed, view=BanApproval(interaction.client, wait_id, True, silent=silent)))
 			return
 
 		queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name))
