@@ -174,6 +174,7 @@ class Tools(commands.Cog):
                 user = ban_entry.user
                 reason = ban_entry.reason if ban_entry.reason else "No reason provided"
                 file.write(f"User: {user} (ID: {user.id}) - Reason: {reason}\n")
+
         # Send the file to the channel
         await interaction.followup.send("Here are all your bans!", file=discord.File("bans.txt"))
 

@@ -20,11 +20,11 @@ class refresher(commands.Cog):
         """Updates banlist when user is unbanned"""
         if self.ban_update_task.current_loop == 0:
             return
-        print(f"[auto refresh]refreshing banlist")
+        logging.info(f"[auto refresh]refreshing banlist")
         bot = self.bot
         await Bans().update(bot)
         BanDbTransactions().populate_cache()
-        print(f"[auto refresh]Bans Updated")
+        logging.info(f"[auto refresh]Bans Updated")
 
     @tasks.loop(minutes=10)
     async def ban_update_task(self) :
