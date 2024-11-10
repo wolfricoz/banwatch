@@ -35,3 +35,7 @@ These commands unban users, either a singular user or multiple users at a time.
 This will unban the user and ban them again to update their ban reason, you will be prompted with a modal to fill in the ban reason. the reason option in the command is what will be shown when the ban is revoked.
 
 ### `/kick user:(ping user or userid)`
+This command is used to kick users from your server.
+
+### `/export_bans`
+This will give you a text file with all the bans in your server, you can use this to quickly find bans.
