@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Home
+title: Bans
 nav_order: 3
 ---
 
