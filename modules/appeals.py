@@ -1,3 +1,4 @@
+import os
 import typing
 from datetime import datetime
 
@@ -32,11 +33,11 @@ class Appeals(commands.GroupCog, name="appeal") :
 
 		return data
 
-	@app_commands.command()
+	@app_commands.command(description="You can use this command to appeal a ban")
 	@app_commands.autocomplete(guild=autocomplete_appeal)
 	async def create(self, interaction: discord.Interaction, guild: str) :
 		appeals_allowed = await Configer.get(int(guild), "allow_appeals")
-		if appeals_allowed is False:
+		if appeals_allowed is False :
 			return await send_response(interaction, "This server does not allow appeals.")
 		if guild.lower() == "none" :
 			await interaction.response.send_message("No bans to appeal", ephemeral=True)
@@ -55,6 +56,23 @@ class Appeals(commands.GroupCog, name="appeal") :
 		embed.set_footer(text=ban_id)
 		await modchannel.send(embed=embed, view=AppealButtons(self.bot, interaction.user))
 		await interaction.followup.send(f"Ban appeal sent to moderators of {guild.name}", ephemeral=True)
+
+	@app_commands.command(description="Report a harmful ban here!")
+	@app_commands.autocomplete(guild=autocomplete_appeal)
+	async def report(self, interaction: discord.Interaction, guild: str) :
+		if guild.lower() == "none" :
+			await interaction.response.send_message("No bans to report", ephemeral=True)
+			return
+		reason = await inputmodal.send_modal(interaction,
+		                                     "Thank you for the report, we will investigate this and get back to you.")
+		ban_id = interaction.user.id + int(guild)
+		guild = self.bot.get_guild(int(guild))
+		ban = BanDbTransactions().get(ban_id, override=True)
+		staff_channel = self.bot.get_channel(int(os.getenv("BANS")))
+		embed = discord.Embed(title=f"{interaction.user.name} wants to report {ban_id}", description=reason)
+		embed.add_field(name=f"{interaction.user.name}({interaction.user.id}) banned in {guild.name}({guild.id})",
+		                value=ban.reason)
+		await send_message(staff_channel, embed=embed)
 
 
 async def setup(bot: commands.Bot) :
