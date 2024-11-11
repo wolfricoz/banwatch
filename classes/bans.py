@@ -43,7 +43,7 @@ class Bans(metaclass=Singleton) :
 		count = 0
 		bans = []
 		embed = discord.Embed(title=f"{member.name}({member.id})'s ban history",
-		                      description="Please ensure to reach out to the respective servers for proof or check the support server.")
+		                      description="Please ensure to reach out to the respective servers for proof or check the support server before taking any action.")
 		embed.set_footer(f"If you ban based upon a ban, please include 'Cross-ban from (server-name):' in front of it.")
 		for i, ban in enumerate(sr) :
 			guild = bot.get_guild(ban.gid)
@@ -75,7 +75,7 @@ class Bans(metaclass=Singleton) :
 		characters = 0
 		bans = []
 		embed = discord.Embed(title=f"{member.name}'s ban history",
-		                      description="Please ensure to reach out to the respective servers for proof or check the support server.")
+		                      description="Please ensure to reach out to the respective servers for proof or check the support server before taking any action.")
 		for i, ban in enumerate(sr) :
 			guild = interaction.client.get_guild(ban.gid)
 			if i >= 25 :
