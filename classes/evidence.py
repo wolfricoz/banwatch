@@ -53,7 +53,10 @@ class EvidenceController() :
 		attachments_urls = [a.url for a in stored.attachments]
 		result = ProofDbTransactions().add(ban_id=ban_id, user_id=user.id, proof=evidence.content,
 		                                   attachments=attachments_urls)
-		await evidence.delete()
+		try:
+			await evidence.delete()
+		except discord.Forbidden:
+			await send_message(interaction.channel, "Failed to clean up evidence in channel, please grant me the ability to manage messages.")
 		return attachments, result
 
 	async def retrieve_proof(self, evidence: Proof) :
