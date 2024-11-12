@@ -158,4 +158,9 @@ async def run():
         await bot.start(DISCORD_TOKEN)
     except KeyboardInterrupt:
         quit(0)
-asyncio.run(run())
+
+try:
+    asyncio.get_running_loop()
+    asyncio.create_task(run())
+except:
+    asyncio.run(run())
