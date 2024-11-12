@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import threading
 
 import discord
 from discord.ext import commands
@@ -159,8 +160,7 @@ async def run():
     except KeyboardInterrupt:
         quit(0)
 
-try:
-    asyncio.get_running_loop()
-    asyncio.create_task(run())
-except RuntimeError:
-    asyncio.run(run())
+@app.on_event("startup")
+async def app_startup():
+    # Start Discord bot in a separate thread
+    threading.Thread(target=lambda: asyncio.run(run())).start()
