@@ -27,4 +27,4 @@ async def bans_get(ban_request: BanRequest) :
 	bans = BanDbTransactions().get_all_user(ban_request.id)
 	if bans is None :
 		return HTTPException(404)
-	return json.dumps([ban.message for ban in bans if ban.message is not None])
+	return json.dumps({ban.ban_id : ban.message for ban in bans if ban.message is not None})
