@@ -2,8 +2,9 @@
 import json
 import os
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
+import logging
 
 from database.databaseController import BanDbTransactions
 
@@ -21,10 +22,14 @@ async def example_route() :
 
 
 @router.post("/bans/get/", )
-async def bans_get(ban_request: BanRequest) :
+async def bans_get(ban_request: BanRequest, request: Request) :
 	if ban_request.token != os.getenv("RPSECSECRET") :
+		logging.warning(f"{request.client.host} failed to connect with {ban_request}, failed at token")
 		return HTTPException(404)
 	bans = BanDbTransactions().get_all_user(ban_request.id)
-	if bans is None :
-		return HTTPException(404)
-	return json.dumps({ban.ban_id : ban.message for ban in bans if ban.message is not None})
+	bans = {ban.ban_id : ban.message for ban in bans if ban.message is not None}
+	if bans is None or len(bans) < 1:
+		logging.warning(f"{request.client.host} failed to connect with {ban_request}, No bans found")
+		return HTTPException(404, detail="No bans found for this user id")
+	logging.info(f"{request.client.host} connected with {ban_request} and returned {bans}")
+	return json.dumps(bans)
