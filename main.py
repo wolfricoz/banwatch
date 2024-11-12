@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 
@@ -5,6 +6,7 @@ import discord
 from discord.ext import commands
 # IMPORT LOAD_DOTENV FUNCTION FROM DOTENV MODULE.
 from dotenv import load_dotenv
+from fastapi import FastAPI
 
 from classes.bans import Bans
 from classes.blacklist import blacklist_check
@@ -13,7 +15,7 @@ from classes.queue import queue
 from database.current import create_bot_database
 from database.databaseController import ServerDbTransactions
 from view.buttons.serverinfo import ServerInfo
-
+from api import bans_router
 # LOADS THE .ENV FILE THAT RESIDES ON THE SAME LEVEL AS THE SCRIPT.
 load_dotenv('main.env')
 # GRAB THE API TOKEN FROM THE .ENV FILE.
@@ -29,6 +31,9 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 bot = commands.Bot(command_prefix=PREFIX, case_insensitive=False, intents=intents)
+app = FastAPI()
+app.include_router(bans_router)
+
 bot.SUPPORTGUILD = int(os.getenv('GUILD'))
 bot.BANCHANNEL = int(os.getenv('BANS'))
 bot.DENIALCHANNEL = int(os.getenv('DENIED'))
@@ -148,4 +153,10 @@ async def cogreload(ctx):
 
 
 # EXECUTES THE BOT WITH THE SPECIFIED TOKEN.
-bot.run(DISCORD_TOKEN)
+async def run():
+    try:
+        await bot.start(DISCORD_TOKEN)
+    except KeyboardInterrupt:
+        quit(0)
+
+asyncio.create_task(run())
