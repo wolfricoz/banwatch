@@ -162,5 +162,5 @@ async def run():
 try:
     asyncio.get_running_loop()
     asyncio.create_task(run())
-except:
+except RuntimeError:
     asyncio.run(run())
