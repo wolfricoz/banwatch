@@ -30,6 +30,7 @@ class BanEvents(commands.Cog) :
 		ban = await guild.fetch_ban(user)
 		if ServerDbTransactions().is_hidden(guild.id):
 			await Bans().add_ban(user.id, guild.id, ban.reason, "Unknown")
+			return
 		if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(
 				ban.reason).lower().startswith('[silent]') or str(ban.reason).lower().startswith('[hidden]'):
 			print("silent or hidden ban/no reason, not prompting")
