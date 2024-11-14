@@ -62,7 +62,7 @@ logging.basicConfig(handlers=handlers, level=logging.INFO, format='%(asctime)s:%
 logging.getLogger().setLevel(logging.INFO)
 
 logger = logging.getLogger('discord')
-logger.setLevel(logging.WARN)
+logger.setLevel(logging.INFO)
 logger2 = logging.getLogger('sqlalchemy')
 logger2.setLevel(logging.WARN)
 
