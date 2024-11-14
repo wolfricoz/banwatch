@@ -150,7 +150,8 @@ class Logging(commands.Cog) :
 			f"\n{interaction.guild.name} {interaction.guild.id} {interaction.command.name} with arguments {formatted_data}: {traceback.format_exc()}")
 
 		await self.on_fail_message(interaction, f"Command failed: {error} \nreport this to Rico")
-		# raise error
+
+	# raise error
 
 	@commands.Cog.listener(name='on_command')
 	async def print(self, ctx: commands.Context) :

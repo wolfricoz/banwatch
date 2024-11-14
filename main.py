@@ -47,6 +47,7 @@ bot.DEV = DEV
 
 @bot.event
 async def on_ready() :
+	print("Bot starting")
 	logging.info("Bot is starting")
 	devroom = bot.get_channel(DEV)
 	# CREATES A COUNTER TO KEEP TRACK OF HOW MANY GUILDS / SERVERS THE BOT IS CONNECTED TO.
