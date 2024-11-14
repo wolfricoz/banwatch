@@ -45,35 +45,35 @@ bot.DEV = DEV
 
 # EVENT LISTENER FOR WHEN THE BOT HAS SWITCHED FROM OFFLINE TO ONLINE.
 
-# @bot.event
-# async def on_ready() :
-# 	logging.info("Bot is starting")
-# 	devroom = bot.get_channel(DEV)
-# 	# CREATES A COUNTER TO KEEP TRACK OF HOW MANY GUILDS / SERVERS THE BOT IS CONNECTED TO.
-# 	guild_count = 0
-# 	guilds = []
-# 	# LOOPS THROUGH ALL THE GUILD / SERVERS THAT THE BOT IS ASSOCIATED WITH.
-# 	await Configer.create_appeals()
-# 	await Configer.create_bot_config()
-# 	logging.info("Finished creating configs")
-# 	queue().add(Bans().update(bot))
-# 	logging.info("added bans update to the queue")
-# 	for guild in bot.guilds :
-# 		# add invites
-# 		# logging.info THE SERVER'S ID AND NAME.
-# 		guilds.append(f"- {guild.id} (name: {guild.name}, owner: {guild.owner}({guild.owner.id}))")
-# 		await Configer.create(guild.id, guild.name)
-# 		if await blacklist_check(guild, devroom) :
-# 			continue
-# 		bot.tree.clear_commands(guild=guild)
-#
-# 		# INCREMENTS THE GUILD COUNTER.
-# 		guild_count += 1
-#
-# 	formguilds = "\n".join(guilds)
-# 	logging.info(f"Bot is in {guild_count} guilds:\n{formguilds}")
-# 	queue().add(devroom.send(f"Banwatch is in {guild_count} guilds. Version 3.0: Now I remember!"), priority=2)
-# 	bot.add_view(ServerInfo())
+@bot.event
+async def on_ready() :
+	logging.info("Bot is starting")
+	devroom = bot.get_channel(DEV)
+	# CREATES A COUNTER TO KEEP TRACK OF HOW MANY GUILDS / SERVERS THE BOT IS CONNECTED TO.
+	guild_count = 0
+	guilds = []
+	# LOOPS THROUGH ALL THE GUILD / SERVERS THAT THE BOT IS ASSOCIATED WITH.
+	await Configer.create_appeals()
+	await Configer.create_bot_config()
+	logging.info("Finished creating configs")
+	queue().add(Bans().update(bot))
+	logging.info("added bans update to the queue")
+	for guild in bot.guilds :
+		# add invites
+		# logging.info THE SERVER'S ID AND NAME.
+		guilds.append(f"- {guild.id} (name: {guild.name}, owner: {guild.owner}({guild.owner.id}))")
+		await Configer.create(guild.id, guild.name)
+		if await blacklist_check(guild, devroom) :
+			continue
+		bot.tree.clear_commands(guild=guild)
+
+		# INCREMENTS THE GUILD COUNTER.
+		guild_count += 1
+
+	formguilds = "\n".join(guilds)
+	logging.info(f"Bot is in {guild_count} guilds:\n{formguilds}")
+	queue().add(devroom.send(f"Banwatch is in {guild_count} guilds. Version 3.0: Now I remember!"), priority=2)
+	bot.add_view(ServerInfo())
 
 
 @bot.event
