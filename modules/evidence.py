@@ -16,7 +16,7 @@ class Evidence(commands.GroupCog, name="evidence"):
         self.bot = bot
 
     @app_commands.command(name="add", description="Adds evidence to a user's record")
-    @app_commands.checks.has_permissions(ban_members=True)
+    @app_commands.checks.has_permissions(moderate_members=True)
     async def add(self, interaction: discord.Interaction, user: discord.User, ban_id: str = None):
         """Adds evidence to a user's record"""
         ban_entry: discord.Message
@@ -35,7 +35,7 @@ class Evidence(commands.GroupCog, name="evidence"):
         await EvidenceController.add_evidence(interaction, evidence, ban_id, user)
 
     @app_commands.command(name="get", description="Get the proof for an user's ban!")
-    @app_commands.checks.has_permissions(ban_members=True)
+    @app_commands.checks.has_permissions(moderate_members=True)
     async def get(self, interaction: discord.Interaction, user: discord.User = None, ban_id: str = None):
         if user is None and ban_id is None:
             await send_response(interaction, "Please fill in the user or ban_id field to get the user.")
@@ -50,7 +50,7 @@ class Evidence(commands.GroupCog, name="evidence"):
 
     # Add a way to manage bans, both for staff of a server as well as the banwatch staff
     @app_commands.command(name="manage", description="View evidence and manage evidence")
-    @app_commands.checks.has_permissions(ban_members=True)
+    @app_commands.checks.has_permissions(moderate_members=True)
     async def manage(self, interaction: discord.Interaction, user: discord.User = None, ban_id: str = None):
         if ban_id:
             entries = ProofDbTransactions().get(ban_id=ban_id)
