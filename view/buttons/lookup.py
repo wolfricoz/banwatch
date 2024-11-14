@@ -31,11 +31,14 @@ class LookUp(View) :
 		embed.set_footer(text=f"{user.id}")
 		for i, ban in enumerate(sr) :
 			guild = bot.get_guild(ban.gid)
-			if i >= 25 :
-				if excess :
-					count += 1
-				bans.append(
-					f"{guild.name}: {ban.reason}\n-# Verified: {'Yes' if ban.verified else 'No'}, invite: {ban.invite} ban_id: {ban.ban_id}")
+			if count >= 10 :
+				await send_message(channel, embed=embed, view=self)
+				embed.clear_fields()
+				count = 0
+
+			count += 1
+			bans.append(
+				f"{guild.name}: {ban.reason}\n-# Verified: {'Yes' if ban.verified else 'No'}, invite: {ban.invite} ban_id: {ban.ban_id}")
 			guild = bot.get_guild(ban.gid)
 			created_at = ban.created_at.strftime(
 				'%m/%d/%Y') if ban.message else 'pre-banwatch, please check with server owner.'
