@@ -32,7 +32,7 @@ create_bot_database()
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
-bot = commands.Bot(command_prefix=PREFIX, case_insensitive=False, intents=intents)
+bot = commands.Bot(command_prefix=PREFIX, case_insensitive=False, intents=intents, shard_id=1)
 app = FastAPI()
 app.include_router(bans_router)
 
@@ -47,7 +47,6 @@ bot.DEV = DEV
 
 @bot.event
 async def on_ready() :
-	print("Bot starting")
 	logging.info("Bot is starting")
 	devroom = bot.get_channel(DEV)
 	# CREATES A COUNTER TO KEEP TRACK OF HOW MANY GUILDS / SERVERS THE BOT IS CONNECTED TO.
@@ -58,7 +57,7 @@ async def on_ready() :
 	await Configer.create_bot_config()
 	logging.info("Finished creating configs")
 	queue().add(Bans().update(bot))
-	logging.info("added bans update to the queue")
+	logging.info("Configs and cache created")
 	for guild in bot.guilds :
 		# add invites
 		# logging.info THE SERVER'S ID AND NAME.
@@ -128,18 +127,18 @@ async def on_guild_remove(guild) :
 # cogloader
 
 
-# @bot.event
-# async def setup_hook() :
-# 	loaded = []
-# 	for filename in os.listdir("modules") :
-# 		if filename.endswith('.py') :
-# 			await bot.load_extension(f"modules.{filename[:-3]}")
-# 			loaded.append(filename[:-3])
-# 		else :
-# 			logging.info(f'Unable to load {filename[:-3]}')
-#
-# 	loaded = ", ".join(loaded)
-# 	logging.info(f"Loaded Modules: {loaded}")
+@bot.event
+async def setup_hook() :
+	loaded = []
+	for filename in os.listdir("modules") :
+		if filename.endswith('.py') :
+			await bot.load_extension(f"modules.{filename[:-3]}")
+			loaded.append(filename[:-3])
+		else :
+			logging.info(f'Unable to load {filename[:-3]}')
+
+	loaded = ", ".join(loaded)
+	logging.info(f"Loaded Modules: {loaded}")
 
 
 @bot.command(aliases=["cr", "reload"])
