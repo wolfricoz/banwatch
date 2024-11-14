@@ -2,6 +2,7 @@ import logging
 import os
 import time
 from abc import ABC
+from importlib.metadata import Lookup
 
 import discord
 from discord import app_commands
@@ -10,6 +11,7 @@ from discord.ext import commands
 from classes.bans import Bans
 from classes.support.discord_tools import send_message, send_response
 from database.databaseController import BanDbTransactions
+from view.buttons.lookup import LookUp
 
 
 class BanCheck(ABC):
@@ -51,18 +53,19 @@ class User(commands.GroupCog, name="user"):
 
     @app_commands.command(name="lookup", description="Looks up user's bans and displays them in the channel")
     @app_commands.checks.has_permissions(ban_members=True)
-    async def lookup(self, interaction: discord.Interaction, member: discord.User):
-        logging.info(f"{interaction.user} from {interaction.guild.name} is looking up {member.name}")
-        if interaction.user.id == member.id and not interaction.guild.id == self.bot.SUPPORTGUILD:
+    async def lookup(self, interaction: discord.Interaction, user: discord.User):
+        logging.info(f"{interaction.user} from {interaction.guild.name} is looking up {user.name}")
+        if interaction.user.id == user.id and not interaction.guild.id == self.bot.SUPPORTGUILD:
             logging.warning(f"{interaction.user} tried to look up themselves")
             return await send_response(interaction, "You can not look up yourself!",
                                        ephemeral=True)
-        sr =  BanDbTransactions().get_all_user(user_id=member.id)
+        sr =  BanDbTransactions().get_all_user(user_id=user.id)
         if sr is None:
-            await send_response(interaction, f"<@{member.id}> is not banned in any servers the bot is in.")
+            await send_response(interaction, f"<@{user.id}> is not banned in any servers the bot is in.")
             return
         await send_response(interaction, "⌛ Fetching bans, please wait.", ephemeral=True)
-        await Bans().send_to_interaction_channel(interaction, sr, member)
+        view: LookUp = LookUp()
+        await view.send_message(interaction.client, interaction.channel, sr, user)
 
     @app_commands.command(name="checkall", description="checks ALL users")
     @app_commands.checks.has_permissions(ban_members=True)

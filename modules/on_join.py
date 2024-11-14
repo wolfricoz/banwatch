@@ -4,6 +4,7 @@ from discord.ext import commands
 
 from classes.bans import Bans
 from classes.configer import Configer
+from view.buttons.lookup import LookUp
 
 
 class Events(commands.Cog):
@@ -25,7 +26,9 @@ class Events(commands.Cog):
             return
         if channel is None:
             await member.guild.owner.send('No mod channel set, please set one to receive banwatch notifications')
-        await Bans().send_to_channel(bot, channel, sr, member, excess=False)
+            return
+        view: LookUp = LookUp()
+        await view.send_message(bot, channel, sr, member)
 
 
 async def setup(bot):
