@@ -6,6 +6,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from classes.access import AccessControl
+from classes.autocorrect import autocomplete_appeal, autocomplete_guild
 from classes.bans import Bans
 from classes.evidence import EvidenceController
 from classes.queue import queue
@@ -22,14 +23,7 @@ class staff(commands.GroupCog, name="staff") :
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
 
-	async def server_autocompletion(self, interaction: discord.Interaction, current: str) -> typing.List[
-		app_commands.Choice[str]] :
-		"""generates the options for autocomplete."""
-		data = []
-		for x in interaction.client.guilds :
-			if current.lower() in x.name.lower() or current.lower() == x.name.lower() :
-				data.append(app_commands.Choice(name=x.name.lower(), value=str(x.id)))
-		return data
+
 
 	@app_commands.command(name="servers", description="[staff] View all servers banwatch is in")
 	@app_commands.guilds(GUILD)
@@ -50,7 +44,7 @@ class staff(commands.GroupCog, name="staff") :
 
 	@app_commands.command(name="serverinfo", description="[staff] View server info of a specific server")
 	@app_commands.guilds(GUILD)
-	@app_commands.autocomplete(server=server_autocompletion)
+	@app_commands.autocomplete(server=autocomplete_guild)
 	@AccessControl().check_access()
 	async def serverinfo(self, interaction: discord.Interaction, server: str) :
 		await send_response(interaction, "Retrieving server data")
@@ -143,20 +137,23 @@ class staff(commands.GroupCog, name="staff") :
 			await send_response(interaction, "No Roleplay Security Bot entry found")
 		await send_response(interaction, f"Roleplay Security Bot entry: {record.mention}")
 
-
 	@app_commands.command(name="revokeban", description="[DEV] Revokes a ban message. This does not unban the user.")
 	@AccessControl().check_access()
-	async def revokeban(self, interaction: discord.Interaction, banid: str, reason: str):
+	async def revokeban(self, interaction: discord.Interaction, banid: str, reason: str) :
 		await interaction.response.send_message("Queueing the search for the embed")
 		await Bans().revoke_bans(self.bot, banid, reason, staff=True)
 		queue().add(pending_bans(self.bot, True))
-
 
 	@app_commands.command(name="amistaff", description="[DEV] check if you're a banwatch staff member.")
 	async def amistaff(self, interaction: discord.Interaction) :
 		return await send_response(interaction, "You are a staff member" if AccessControl().access_all(
 			interaction.user) else "You are not a staff member")
 
+	@app_commands.command(name="calculate_banid", description="Calculates the ban id with user id and guild id")
+	@AccessControl().check_access()
+	@app_commands.autocomplete(guild=autocomplete_guild)
+	async def calc_banid(self, interaction: discord.Interaction, user: discord.User, guild: str):
+		await send_response(interaction, f"The ban_id would be: {user.id + int(guild)}")
 
 async def setup(bot: commands.Bot) :
 	await bot.add_cog(staff(bot))

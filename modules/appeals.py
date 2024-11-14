@@ -6,6 +6,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from classes.autocorrect import autocomplete_appeal
 from classes.bans import Bans
 from classes.configer import Configer
 from classes.support.discord_tools import send_message, send_response
@@ -19,19 +20,7 @@ class Appeals(commands.GroupCog, name="appeal") :
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
 
-	async def autocomplete_appeal(self, interaction: discord.Interaction, text: str) -> typing.List[
-		app_commands.Choice[str]] :
-		ban: Bans
-		data = []
-		bans = BanDbTransactions().get_all_user(interaction.user.id)
-		for ban in bans :
-			if ban == "name" :
-				continue
-			data.append(app_commands.Choice(name=ban.guild.name, value=str(ban.gid)))
-		if len(data) == 0 :
-			data.append(app_commands.Choice(name="No bans", value="None"))
 
-		return data
 
 	@app_commands.command(description="You can use this command to appeal a ban")
 	@app_commands.autocomplete(guild=autocomplete_appeal)

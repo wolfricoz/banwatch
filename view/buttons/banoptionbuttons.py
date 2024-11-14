@@ -64,6 +64,8 @@ class BanOptionButtons(View) :
 			await interaction.response.send_message(f"Ban for {user.mention} has been successfully hidden.", ephemeral=True)
 			await interaction.message.delete()
 			return
+		if user.bot:
+			checklist_check = "User is a bot"
 
 		wait_id = Bans().create_ban_id(user.id, guild.id)
 		check = AccessControl().access_all(user)
