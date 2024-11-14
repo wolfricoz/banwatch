@@ -50,8 +50,9 @@ class LookUp(View) :
 		if len(sr) == 0 :
 			await send_message(channel, embed=embed, view=self)
 			return
+		await send_message(channel, embed=embed, view=self)
 		while characters < len(sr) :
-			await send_message(channel, sr[characters :characters + 1800], embed=embed, view=self)
+			await send_message(channel, sr[characters :characters + 1800])
 			characters += 1800
 
 	async def get_user_id(self, interaction: discord.Interaction) :

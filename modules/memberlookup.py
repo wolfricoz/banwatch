@@ -2,7 +2,6 @@ import logging
 import os
 import time
 from abc import ABC
-from importlib.metadata import Lookup
 
 import discord
 from discord import app_commands
