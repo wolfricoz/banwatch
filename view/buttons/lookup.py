@@ -30,7 +30,6 @@ class LookUp(View) :
 		                      description="Please ensure to reach out to the respective servers for proof or check the support server before taking any action.\n\nIf you ban based upon a ban, please include 'Cross-ban from (server-name):' in front of it.")
 		embed.set_footer(text=f"{user.id}")
 		for i, ban in enumerate(sr) :
-			guild = bot.get_guild(ban.gid)
 			if count >= 10 :
 				await send_message(channel, embed=embed, view=self)
 				embed.clear_fields()
@@ -43,8 +42,6 @@ class LookUp(View) :
 			                value=f"{ban.reason}\n"
 			                      f"verified: {'Yes' if ban.verified else 'No'}, date: {created_at}", inline=False)
 		sr = "\n".join(bans)
-		if excess :
-			sr = f"This user has {count} bans that aren't shown to prevent spam. Please use `/user lookup`"
 
 		if len(sr) == 0 :
 			await send_message(channel, embed=embed, view=self)
