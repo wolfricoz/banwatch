@@ -38,7 +38,7 @@ class LookUp(View) :
 			guild = bot.get_guild(ban.gid)
 			created_at = ban.created_at.strftime(
 				'%m/%d/%Y') if ban.message else 'pre-banwatch, please check with server owner.'
-			embed.add_field(name=f"{guild.name} ({ban.guild.invite})",
+			embed.add_field(name=f"{guild.name} ({ban.guild.invite})(ban_id: {ban.ban_id})",
 			                value=f"{ban.reason}\n"
 			                      f"verified: {'Yes' if ban.verified else 'No'}, date: {created_at}", inline=False)
 		sr = "\n".join(bans)
