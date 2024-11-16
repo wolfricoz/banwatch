@@ -22,8 +22,8 @@ class LookUp(View) :
 	async def send_message(self, bot: commands.Bot, channel: discord.TextChannel, sr,
 	                       user: discord.Member | discord.User, excess=True) :
 		if len(sr) <= 0 or not sr :
-			embed = discord.Embed(title=f"{user.name}({user.id})'s ban history.",description="No bans found.")
-			await send_message(channel, embed=embed)
+			nfembed = discord.Embed(title=f"{user.name}({user.id})'s ban history.",description="No bans found.")
+			await send_message(channel, embed=nfembed)
 			return
 		characters = 0
 		count = 0
