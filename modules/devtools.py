@@ -200,6 +200,7 @@ class dev(commands.GroupCog, name="dev") :
 			pass
 
 	@app_commands.command(name="testban", description="[DEV] unbans and rebans the test account")
+	@AccessControl().check_access("dev")
 	async def testban(self, interaction: discord.Interaction, checklist: bool = True) :
 		if interaction.user.id != 188647277181665280 :
 			return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)

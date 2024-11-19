@@ -39,7 +39,7 @@ class AccessControl(metaclass=Singleton) :
 		return True if user.id in self.staff.get('dev', []) or user.id in self.staff.get('rep', []) else False
 
 	def access_dev(self, user) -> bool :
-		return True if user.id in self.staff['dev'] else False
+		return True if user.id in self.staff.get('dev', []) else False
 
 	def check_access(self, role="") -> (T) :
 		async def pred(interaction: discord.Interaction) :
