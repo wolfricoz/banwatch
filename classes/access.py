@@ -1,9 +1,9 @@
+import logging
 import os
 from typing import T
 
 import discord
 from discord import app_commands
-import logging
 
 from classes.singleton import Singleton
 from database.databaseController import StaffDbTransactions
@@ -39,16 +39,21 @@ class AccessControl(metaclass=Singleton) :
 		return True if user.id in self.staff.get('dev', []) or user.id in self.staff.get('rep', []) else False
 
 	def access_dev(self, user) -> bool :
+		print(user.id)
+		print(self.staff.get('dev', []))
+		if user.id in self.staff.get('dev', []) :
+			return True
 		return True if user.id in self.staff.get('dev', []) else False
 
-	def check_access(self, role="") -> (T) :
-		async def pred(interaction: discord.Interaction) :
+	def check_access(self, role="") -> T :
+		def pred(interaction: discord.Interaction) -> bool:
 			match role.lower() :
 				case "owner" :
 					return self.access_all(interaction.user)
 				case "dev" :
-					return self.access_dev(interaction.user)
+					result = self.access_dev(interaction.user)
+					print(result)
+					return result
 				case _ :
 					return self.access_all(interaction.user)
-
 		return app_commands.check(pred)

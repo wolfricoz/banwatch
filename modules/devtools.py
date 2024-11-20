@@ -19,20 +19,6 @@ from view.modals.inputmodal import send_modal
 OWNER = int(os.getenv("OWNER"))
 GUILD = int(os.getenv("GUILD"))
 
-
-def in_guild() :
-	async def predicate(interaction: discord.Interaction) :
-		if interaction.guild is None :
-			return False
-		if interaction.guild.id != GUILD :
-			return False
-		if interaction.user.id != OWNER :
-			return False
-		return True
-
-	return app_commands.check(predicate)
-
-
 SUPPORT_GUILD = discord.Object(GUILD)
 
 
@@ -102,8 +88,6 @@ class dev(commands.GroupCog, name="dev") :
 	@app_commands.command(name="leave_server", description="[DEV] Leave a server")
 	@AccessControl().check_access("dev")
 	async def leave_server(self, interaction: discord.Interaction, guildid: int) :
-		if interaction.user.id != 188647277181665280 :
-			return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
 		guild = self.bot.get_guild(guildid)
 		await guild.leave()
 		await interaction.response.send_message(f"Left {guild}")
@@ -111,8 +95,6 @@ class dev(commands.GroupCog, name="dev") :
 	@app_commands.command(name="blacklist_server", description="[DEV] Blacklist a server")
 	@AccessControl().check_access("dev")
 	async def blacklist_server(self, interaction: discord.Interaction, guildid: str) :
-		if interaction.user.id != 188647277181665280 :
-			return await interaction.response.send_message(f"You are not allowed to use this command.", ephemeral=True)
 		guildid = int(guildid)
 		guild = self.bot.get_guild(guildid)
 		await Configer.add_to_blacklist(guildid)
@@ -122,8 +104,6 @@ class dev(commands.GroupCog, name="dev") :
 	@app_commands.command(name="unblacklist_server", description="[DEV] Remove a server from the blacklist")
 	@AccessControl().check_access("dev")
 	async def unblacklist_server(self, interaction: discord.Interaction, guildid: str) :
-		if interaction.user.id != 188647277181665280 :
-			return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
 		guildid = int(guildid)
 		await Configer.remove_from_blacklist(guildid)
 		await interaction.response.send_message(f"Unblacklisted {guildid}")
@@ -132,10 +112,6 @@ class dev(commands.GroupCog, name="dev") :
 	@app_commands.command(name="blacklist_user", description="[DEV] Blacklist a user")
 	@AccessControl().check_access("dev")
 	async def blacklist_user(self, interaction: discord.Interaction, userid: str) :
-		if interaction.user.id != 188647277181665280 :
-			logging.info(f"{interaction.user.name}({interaction.user.id}) tried to blacklist a user")
-			return await send_response(interaction, "You are not allowed to use this command.", ephemeral=True)
-
 		userid = int(userid)
 		await Configer.add_to_user_blacklist(userid)
 		await send_response(interaction, f"Blacklisted {userid}")
@@ -143,9 +119,6 @@ class dev(commands.GroupCog, name="dev") :
 	@app_commands.command(name="unblacklist_user", description="[DEV] Remove a user from the blacklist")
 	@AccessControl().check_access("dev")
 	async def unblacklist_user(self, interaction: discord.Interaction, userid: str) :
-		if interaction.user.id != 188647277181665280 :
-			logging.info(f"{interaction.user.name}({interaction.user.id}) tried to unblacklist a user")
-			return await send_response(interaction, "You are not allowed to use this command.", ephemeral=True)
 		userid = int(userid)
 		await Configer.remove_from_user_blacklist(userid)
 		await send_response(interaction, f"Unblacklisted {userid}")
@@ -157,10 +130,8 @@ class dev(commands.GroupCog, name="dev") :
 		Choice(name="remove", value="remove"),
 		Choice(name="list", value="list")
 	])
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access(role="dev")
 	async def checklist(self, interaction: discord.Interaction, operation: Choice[str], word: str) :
-		if interaction.user.id != 188647277181665280 :
-			return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
 		match operation.value :
 			case "add" :
 				await Configer.add_checklist(word)
@@ -176,8 +147,6 @@ class dev(commands.GroupCog, name="dev") :
 	@app_commands.command(name="migrate_ban")
 	@AccessControl().check_access("dev")
 	async def copy(self, interaction: discord.Interaction) :
-		if interaction.user.id != 188647277181665280 :
-			return await send_response(interaction, "You are not allowed to use this command.", ephemeral=True)
 		await send_response(interaction, "Migration Started")
 		dev_guild: discord.Guild = self.bot.get_guild(int(os.getenv("GUILD")))
 		ban_channel: discord.TextChannel = dev_guild.get_channel(int(os.getenv("APPROVED")))
@@ -202,8 +171,6 @@ class dev(commands.GroupCog, name="dev") :
 	@app_commands.command(name="testban", description="[DEV] unbans and rebans the test account")
 	@AccessControl().check_access("dev")
 	async def testban(self, interaction: discord.Interaction, checklist: bool = True) :
-		if interaction.user.id != 188647277181665280 :
-			return await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
 		user = self.bot.get_user(474365489670389771)
 		try :
 			await interaction.guild.unban(user, reason="Test unban")
