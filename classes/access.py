@@ -39,10 +39,6 @@ class AccessControl(metaclass=Singleton) :
 		return True if user.id in self.staff.get('dev', []) or user.id in self.staff.get('rep', []) else False
 
 	def access_dev(self, user) -> bool :
-		print(user.id)
-		print(self.staff.get('dev', []))
-		if user.id in self.staff.get('dev', []) :
-			return True
 		return True if user.id in self.staff.get('dev', []) else False
 
 	def check_access(self, role="") -> T :
@@ -51,9 +47,7 @@ class AccessControl(metaclass=Singleton) :
 				case "owner" :
 					return self.access_all(interaction.user)
 				case "dev" :
-					result = self.access_dev(interaction.user)
-					print(result)
-					return result
+					return self.access_dev(interaction.user)
 				case _ :
 					return self.access_all(interaction.user)
 		return app_commands.check(pred)
