@@ -191,7 +191,8 @@ class Tools(commands.Cog) :
 	@app_commands.command(name="search_bans",
 	                      description="Search bans for specific words, useful to find and remove bad bans")
 	@app_commands.checks.has_permissions(ban_members=True)
-	async def command(self, interaction: discord.Interaction, word: str, hide:bool = False) :
+	async def search_bans(self, interaction: discord.Interaction, word: str, hide:bool = False) :
+		await send_response(interaction, f"Checking bans for the word `{word}`")
 		bans = ServerDbTransactions().get_bans(interaction.guild.id)
 		with open("bans.txt", "w", encoding='utf-16') as file :
 			for ban_entry in bans :
