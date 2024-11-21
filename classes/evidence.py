@@ -67,6 +67,7 @@ class EvidenceController() :
 		for i, url in enumerate(evidence.get_attachments()) :
 			response = requests.get(url, stream=True)
 			if response.status_code != 200 :
+				print("Could not fetch image")
 				continue
 			image_data = io.BytesIO(response.content)
 			image_data.seek(0)
@@ -81,8 +82,10 @@ class EvidenceController() :
 		await send_message(interaction.channel, f"## __Proof for {id}__")
 		evidence: Proof
 		for evidence in entries :
-			attachments = await EvidenceController().retrieve_proof(evidence)
+			# attachments = await EvidenceController().retrieve_proof(evidence)
+			proof = '\n'.join(evidence.get_attachments())
 			content = (f"**{evidence.ban_id}**:"
 			           f"\n**ban reason**: {evidence.ban.reason}"
-			           f"\n**Provided Proof**: {evidence.proof}")
-			await send_message(interaction.channel, content, files=attachments)
+			           f"\n**Provided Proof**: {evidence.proof}"
+			           f"\n**attachments:**\n {proof}")
+			await send_message(interaction.channel, content)
