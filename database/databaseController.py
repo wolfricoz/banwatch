@@ -125,7 +125,7 @@ class ServerDbTransactions(DatabaseTransactions) :
 		if uid_only :
 			return [uid[0] for uid in
 			        session.query(Bans.uid).filter(and_(Bans.gid == guild_id, Bans.deleted_at.is_(None))).all()]
-		return session.query(Bans).filter(and_(Bans.gid == guild_id, Bans.hidden == False, Bans.deleted_at.is_(None), Servers.deleted_at.is_(None))).all()
+		return session.query(Bans).join(Servers).filter(and_(Bans.gid == guild_id, Bans.hidden == False, Bans.deleted_at.is_(None), Servers.deleted_at.is_(None))).all()
 
 	def get_all_servers(self) :
 		return [id[0] for id in session.query(Servers.id).filter(and_(Servers.deleted_at.is_(None))).all()]
