@@ -79,5 +79,6 @@ class User(commands.GroupCog, name="user"):
                                                 f"\n-# Reminder: You should reach out to the owner of the server for more information on the ban. Some of these bans may be older than the bot and have not been verified.")
 
 
+
 async def setup(bot: commands.Bot):
     await bot.add_cog(User(bot))
