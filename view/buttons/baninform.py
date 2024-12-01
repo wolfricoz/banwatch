@@ -6,9 +6,10 @@ import discord
 import requests
 from discord.ui import View
 
-from classes.support.discord_tools import ban_member, send_message, send_response
+from classes.support.discord_tools import ban_member, ban_user, send_message, send_response
 from database.current import Proof
 from database.databaseController import BanDbTransactions, ProofDbTransactions
+from view.modals.inputmodal import send_modal
 
 
 class BanInform(View) :
@@ -23,7 +24,21 @@ class BanInform(View) :
 		match = re.search(r'ban ID: (\w+)', embed.footer.text)
 		return match.group(1) if match else None
 
-	@discord.ui.button(label="Ban", style=discord.ButtonStyle.success, custom_id="ban_user")
+	@discord.ui.button(label="Ban with reason", style=discord.ButtonStyle.success, custom_id="ban_user")
+	async def ban_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
+		ban_id = await self.get_ban_id(interaction)
+		print(ban_id)
+		if ban_id is None :
+			logging.error(f"Could not find ban id in {interaction.guild.name}.")
+			await send_response(interaction, f"[REGEX ERROR] Could not retrieve ban_id!")
+		entry = BanDbTransactions().get(ban_id)
+		user = interaction.client.get_user(entry.uid)
+		guild = interaction.client.get_guild(entry.gid)
+		reason_modal = await send_modal(interaction, "What is the reason for the ban?", "Ban Reason")
+		await ban_user(interaction, user, "", reason_modal, clean=False)
+		await interaction.message.delete()
+
+	@discord.ui.button(label="Cross Ban", style=discord.ButtonStyle.success, custom_id="ban_user")
 	async def ban_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		ban_id = await self.get_ban_id(interaction)
 		print(ban_id)
