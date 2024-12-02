@@ -132,11 +132,14 @@ class Logging(commands.Cog) :
 		if isinstance(error, app_commands.TransformerError) :
 			return await self.on_fail_message(interaction,
 			                                  "Failed to transform given input to member, please select the user from the list, or use the user's ID.")
-		elif isinstance(error, commands.MemberNotFound) :
+		if isinstance(error, commands.MemberNotFound) :
 			return await self.on_fail_message(interaction, "User not found.")
-		elif isinstance(error, discord.app_commands.errors.TransformerError) :
+		if isinstance(error, discord.app_commands.errors.TransformerError) :
 			return await self.on_fail_message(interaction,
 			                                  "Failed to transform given input to member, please select the user from the list, or use the user's ID.")
+		if isinstance(error.original, discord.Forbidden) :
+			return await self.on_fail_message(interaction,
+			                                  f"The bot does not have sufficient permission to run this command. Please check: \n* if the bot has permission to post in the channel \n* if the bot is above the role its trying to assign\n* If trying to ban, ensure the bot has the ban permission")
 
 		with open('error.txt', 'w', encoding='utf-8') as file :
 			file.write(traceback.format_exc())
