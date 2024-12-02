@@ -24,7 +24,7 @@ class BanInform(View) :
 		match = re.search(r'ban ID: (\w+)', embed.footer.text)
 		return match.group(1) if match else None
 
-	@discord.ui.button(label="Ban with reason", style=discord.ButtonStyle.success, custom_id="ban_user")
+	@discord.ui.button(label="Ban with Reason", style=discord.ButtonStyle.success, custom_id="ban_user")
 	async def ban_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		ban_id = await self.get_ban_id(interaction)
 		print(ban_id)
@@ -35,11 +35,10 @@ class BanInform(View) :
 		user = interaction.client.get_user(entry.uid)
 		guild = interaction.client.get_guild(entry.gid)
 		reason_modal = await send_modal(interaction, "What is the reason for the ban?", "Ban Reason")
-		await ban_user(interaction, user, "", reason_modal, clean=False)
-		await interaction.message.delete()
+		await ban_user(interaction, user, "", f"Cross-ban with reason: {reason_modal}", self.ban_class, clean=False)
 
-	@discord.ui.button(label="Cross Ban", style=discord.ButtonStyle.success, custom_id="ban_user")
-	async def ban_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
+	@discord.ui.button(label="Cross-Ban", style=discord.ButtonStyle.success, custom_id="cross_ban_user")
+	async def cross_ban_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		ban_id = await self.get_ban_id(interaction)
 		print(ban_id)
 		if ban_id is None :
@@ -51,7 +50,6 @@ class BanInform(View) :
 		reason = f"Cross-ban from {guild.name} with ban id: {ban_id}"
 		await ban_member(self.ban_class, interaction, user, reason, days=0)
 		await send_response(interaction, f"Banning user")
-		await interaction.message.delete()
 
 	@discord.ui.button(label="view evidence", style=discord.ButtonStyle.primary, custom_id="evidence")
 	async def evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :

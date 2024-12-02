@@ -3,8 +3,6 @@ import logging
 import discord
 from discord.ext.commands.help import MISSING
 
-from classes.bans import Bans
-
 max_length = 1800
 
 
@@ -122,7 +120,7 @@ async def await_message(interaction, message) -> discord.Message | bool :
 		return False
 	return m
 
-async def ban_user(interaction: discord.Interaction, user: discord.User, ban_type, reason_modal, inform=True,
+async def ban_user(interaction: discord.Interaction, user: discord.User, ban_type, reason_modal, ban_class,inform=True,
                    clean=False) :
 	if interaction.guild is None :
 		await send_message(interaction.channel, "This command can only be used in a server")
@@ -141,7 +139,7 @@ async def ban_user(interaction: discord.Interaction, user: discord.User, ban_typ
 
 	reason = f"{ban_type}{reason_modal}"
 
-	await ban_member(Bans(), interaction, user, reason, days=1 if clean else 0)
+	await ban_member(ban_class, interaction, user, reason, days=1 if clean else 0)
 	# await interaction.channel.send(f"DEBUG: BAN FUNCTION DISABLED FOR TESTING.`")
 	embed = discord.Embed(title=f"{user.name} ({user.id}) banned!", description=f"{reason}", color=discord.Color.red())
 	embed.set_footer(text=f"Moderator: {interaction.user.name}, was the user informed? {'Yes' if inform else 'No'}")
