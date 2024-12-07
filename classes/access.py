@@ -5,6 +5,8 @@ from typing import T
 import discord
 from discord import app_commands
 
+from classes.blacklist import blacklist_check
+from classes.configer import Configer
 from classes.singleton import Singleton
 from database.databaseController import StaffDbTransactions
 
@@ -50,4 +52,12 @@ class AccessControl(metaclass=Singleton) :
 					return self.access_dev(interaction.user)
 				case _ :
 					return self.access_all(interaction.user)
+		return app_commands.check(pred)
+
+	def check_blacklist(self):
+		async def pred(interaction: discord.Interaction) -> bool:
+			if await Configer.is_user_blacklisted(interaction.user.id):
+				return False
+			return True
+
 		return app_commands.check(pred)
