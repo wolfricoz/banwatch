@@ -119,12 +119,12 @@ class staff(commands.GroupCog, name="staff") :
 	@app_commands.command(name="banvisibility", description="[staff] Change if a ban is hidden or not.")
 	@AccessControl().check_access()
 	@app_commands.guilds(GUILD)
-	async def banvisibility(self, interaction: discord.Interaction, ban_id: str, status: bool) :
+	async def banvisibility(self, interaction: discord.Interaction, ban_id: str, hide: bool) :
 		ban = BanDbTransactions().get(int(ban_id), override=True)
 		if not ban :
 			return await send_response(interaction, f"Ban not found.")
-		BanDbTransactions().update(ban, hidden=status)
-		await send_response(interaction, f"{ban_id} hidden status changed to {status} by {interaction.user.mention}")
+		BanDbTransactions().update(ban, hidden=hide)
+		await send_response(interaction, f"{ban_id} hidden status changed to {hide} by {interaction.user.mention}")
 
 	@app_commands.command(name="rpsecsearch",
 	                      description="[DEV] Searches the rp security threads for a specific entry")

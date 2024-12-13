@@ -1,4 +1,5 @@
 import logging
+import re
 
 import discord
 from discord.ext import commands
@@ -31,10 +32,16 @@ class BanEvents(commands.Cog) :
 		if ServerDbTransactions().is_hidden(guild.id):
 			await Bans().add_ban(user.id, guild.id, ban.reason, "Unknown")
 			return
+		match = re.match(r"Cross-ban from (?P<guild_name>.+?) with ban id: (?P<ban_id>\d+)", ban.reason)
+		if match:
+			logging.info("Cross-ban with no additional info, this ban has been hidden")
+			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name, hidden=True)
+			return
+
 		if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(
 				ban.reason).lower().startswith('[silent]') or str(ban.reason).lower().startswith('[hidden]'):
-			print("silent or hidden ban/no reason, not prompting")
-			await Bans().add_ban(user.id, guild.id, "Hidden Ban", "Unknown")
+			logging.info("silent or hidden ban/no reason, not prompting")
+			await Bans().add_ban(user.id, guild.id, "Hidden Ban", "Unknown", hidden=True)
 			return
 		logging.info("starting to update banlist and informing other servers")
 		view = BanOptionButtons()

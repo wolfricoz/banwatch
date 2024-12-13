@@ -6,6 +6,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from classes.access import AccessControl
 from classes.autocorrect import autocomplete_appeal
 from classes.bans import Bans
 from classes.configer import Configer
@@ -24,6 +25,7 @@ class Appeals(commands.GroupCog, name="appeal") :
 
 	@app_commands.command(description="You can use this command to appeal a ban")
 	@app_commands.autocomplete(guild=autocomplete_appeal)
+	@AccessControl().check_blacklist()
 	async def create(self, interaction: discord.Interaction, guild: str) :
 		appeals_allowed = await Configer.get(int(guild), "allow_appeals")
 		if appeals_allowed is False :
@@ -48,6 +50,7 @@ class Appeals(commands.GroupCog, name="appeal") :
 
 	@app_commands.command(description="Report a harmful ban here!")
 	@app_commands.autocomplete(guild=autocomplete_appeal)
+	@AccessControl().check_blacklist()
 	async def report(self, interaction: discord.Interaction, guild: str) :
 		if guild.lower() == "none" :
 			await interaction.response.send_message("No bans to report", ephemeral=True)
