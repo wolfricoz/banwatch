@@ -76,7 +76,7 @@ class EvidenceController() :
 
 	async def send_proof(self, interaction, entries, id) :
 		if not entries :
-			await send_response(interaction, f"Ban for {id} not found!")
+			await send_response(interaction, f"No proof available for ban id: {id}! Please reach out to the server where the user is banned. ")
 			return
 		await send_response(interaction, f"Succesfully retrieved proof!", ephemeral=True)
 		await send_message(interaction.channel, f"## __Proof for {id}__")
