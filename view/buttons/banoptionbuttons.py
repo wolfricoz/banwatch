@@ -40,7 +40,8 @@ class BanOptionButtons(View) :
 
 	@button(label="Share with proof", custom_id="share_with_proof", style=discord.ButtonStyle.success)
 	async def share_with_proof(self, interaction: discord.Interaction, button: button) :
-		evidence_message = (f"Please send a message with the evidence you would like to add to {self.user.name}'s record, this will be added to the ban ID {self.wait_id} in our support server. \n Type `cancel` to cancel.\n-# By responding to this message you agree to the evidence being stored in our support server."
+		guild, user, ban = await self.get_data(interaction)
+		evidence_message = (f"Please send a message with the evidence you would like to add to {user.name}'s record, this will be added to the ban ID {self.wait_id} in our support server. \n Type `cancel` to cancel.\n-# By responding to this message you agree to the evidence being stored in our support server."
 		                    f"\nPlease avoid uploading:"
 		                    f"\n* Personal information (irl information such as a persons name, date of birth, where they live, government documentation, etc)"
 		                    f"\n\n**Do __not__ use forwarded messages, as these are currently not supported.**")
