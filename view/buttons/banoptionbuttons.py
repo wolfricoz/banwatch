@@ -46,6 +46,8 @@ class BanOptionButtons(View) :
 		                    f"\n* Personal information (irl information such as a persons name, date of birth, where they live, government documentation, etc)"
 		                    f"\n\n**Do __not__ use forwarded messages, as these are currently not supported.**")
 		evidence = await await_message(interaction, evidence_message)
+		if evidence is False:
+			return
 		queue().add(self.process(interaction), priority=2)
 		queue().add(self.provide_proof(interaction, evidence), priority=0)
 
