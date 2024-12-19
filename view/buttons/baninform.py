@@ -71,16 +71,17 @@ class BanInform(View) :
 			attachments.append(discord.File(image_data, filename=f"image_{i}.jpg"))
 		return attachments
 
-	async def send_proof(self, interaction, entries, ban_id: int) :
+	async def send_proof(self, interaction: discord.Interaction, entries: list, ban_id: int) :
 		if not entries :
-			await send_response(interaction, f"Ban for {ban_id} not found!")
+			await send_response(interaction, f"No proof available for ban id: {ban_id}! Please reach out to the server where the user is banned. ")
 			return
 		await send_response(interaction, f"Succesfully retrieved proof!", ephemeral=True)
 		await send_message(interaction.channel, f"## __Proof for {ban_id}__")
 		evidence: Proof
 		for evidence in entries :
-			attachments = await self.retrieve_proof(evidence)
+			proof = '\n'.join(evidence.get_attachments())
 			content = (f"**{evidence.ban_id}**:"
 			           f"\n**ban reason**: {evidence.ban.reason}"
-			           f"\n**Provided Proof**: {evidence.proof}")
-			await send_message(interaction.channel, content, files=attachments)
+			           f"\n**Provided Proof**: {evidence.proof}"
+			           f"\n**attachments:**\n {proof}")
+			await send_message(interaction.channel, content)
