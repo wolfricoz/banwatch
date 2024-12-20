@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import threading
+from contextlib import asynccontextmanager
 
 import discord
 from discord.ext import commands
@@ -32,8 +33,15 @@ create_bot_database()
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
-bot = commands.Bot(command_prefix=PREFIX, case_insensitive=False, intents=intents, shard_id=1)
-app = FastAPI()
+bot = commands.AutoShardedBot(command_prefix=PREFIX, case_insensitive=False, intents=intents, shard_id=1)
+@asynccontextmanager
+async def lifespan(app: FastAPI) :
+	threading.Thread(target=lambda : asyncio.run(run())).start()
+	yield
+	await bot.close()
+
+
+app = FastAPI(lifespan=lifespan)
 app.include_router(bans_router)
 
 bot.SUPPORTGUILD = int(os.getenv('GUILD'))
@@ -74,6 +82,7 @@ async def on_ready() :
 	logging.info(f"Bot is in {guild_count} guilds:\n{formguilds}")
 	queue().add(devroom.send(f"Banwatch is in {guild_count} guilds. Version 3.0: Now I remember!"), priority=2)
 	bot.add_view(ServerInfo())
+	logging.info(f"Commands synced, start up done! Connected to {len(guild_count)} guilds and {bot.shard_count} shards.")
 
 
 @bot.event
@@ -159,9 +168,3 @@ async def run() :
 		await bot.start(DISCORD_TOKEN)
 	except KeyboardInterrupt :
 		quit(0)
-
-
-@app.on_event("startup")
-async def app_startup() :
-	# Start Discord bot in a separate thread
-	threading.Thread(target=lambda : asyncio.run(run())).start()
