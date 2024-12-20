@@ -35,10 +35,12 @@ intents.message_content = True
 intents.members = True
 bot = commands.AutoShardedBot(command_prefix=PREFIX, case_insensitive=False, intents=intents, shard_id=1)
 @asynccontextmanager
-async def lifespan(app: FastAPI) :
-	threading.Thread(target=lambda : asyncio.run(run())).start()
+async def lifespan(app: FastAPI):
+	loop = asyncio.get_event_loop()
+	thread = threading.Thread(target=lambda: asyncio.run(run()))
+	thread.start()
 	yield
-	await bot.close()
+	asyncio.run_coroutine_threadsafe(bot.close(), loop).result()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -83,6 +85,7 @@ async def on_ready() :
 	queue().add(devroom.send(f"Banwatch is in {guild_count} guilds. Version 3.0: Now I remember!"), priority=2)
 	bot.add_view(ServerInfo())
 	logging.info(f"Commands synced, start up done! Connected to {len(guild_count)} guilds and {bot.shard_count} shards.")
+	await bot.tree.sync()
 
 
 @bot.event
