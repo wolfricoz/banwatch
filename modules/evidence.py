@@ -57,7 +57,9 @@ class Evidence(commands.GroupCog, name="evidence"):
     async def manage(self, interaction: discord.Interaction, user: discord.User = None, ban_id: str = None):
         if ban_id:
             entries = ProofDbTransactions().get(ban_id=ban_id)
-            return
+            view = Pagination(entries)
+            view.interaction = interaction
+            return await view.send_view()
         # user goes here
         entries = ProofDbTransactions().get(user_id=user.id)
         view = Pagination(entries)
