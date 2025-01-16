@@ -172,7 +172,7 @@ class dev(commands.GroupCog, name="dev") :
 		bans = BanDbTransactions().get_all(override=True)
 		async for message in ban_history :
 			queue().add(
-				backupbans.send(message.content, files=[await attachment.to_file() for attachment in message.attachments],
+				backupbans.send(f"BACKUP {message.created_at.strftime('%m/%d/%Y')}: {message.content}", files=[await attachment.to_file() for attachment in message.attachments],
 				                embeds=message.embeds))
 		async for message in evidence_history :
 			queue().add(
