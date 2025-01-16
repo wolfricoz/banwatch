@@ -144,16 +144,40 @@ class dev(commands.GroupCog, name="dev") :
 				l = "\n".join(checklist)
 				await interaction.response.send_message(f"Checklist: {l}", ephemeral=True)
 
-	@app_commands.command(name="migrate_ban")
+	@app_commands.command(name="backup")
 	@AccessControl().check_access("dev")
 	async def copy(self, interaction: discord.Interaction) :
-		await send_response(interaction, "Migration Started")
+		await send_response(interaction, "Backup Started", ephemeral=True)
 		dev_guild: discord.Guild = self.bot.get_guild(int(os.getenv("GUILD")))
+		print(f"dev_guild: {dev_guild}")
+
+		backup_guild: discord.Guild = self.bot.get_guild(int(os.getenv("BACKUPGUILD")))
+		print(f"backup_guild: {backup_guild}")
+
 		ban_channel: discord.TextChannel = dev_guild.get_channel(int(os.getenv("APPROVED")))
-		history = ban_channel.history(limit=10000)
+		print(f"ban_channel: {ban_channel}")
+
+		evidence_channel: discord.TextChannel = dev_guild.get_channel(int(os.getenv("EVIDENCE")))
+		print(f"evidence_channel: {evidence_channel}")
+
+		backupbans: discord.TextChannel = backup_guild.get_channel(int(os.getenv("BACKUP_BANS")))
+		print(f"backupbans: {backupbans}")
+
+		backupevidence: discord.TextChannel = backup_guild.get_channel(int(os.getenv("BACKUP_EVIDENCE")))
+		print(f"backupevidence: {backupevidence}")
+		if None in (dev_guild, backup_guild, ban_channel, evidence_channel, backupbans, backupevidence) :
+			return await send_response(interaction, "Failed to load variables")
+		ban_history = ban_channel.history(limit=10000)
+		evidence_history = evidence_channel.history(limit=10000)
 		bans = BanDbTransactions().get_all(override=True)
-		for ban in bans :
-			await self.find_ban_id(history, ban.ban_id)
+		async for message in ban_history :
+			queue().add(
+				backupbans.send(message.content, files=[await attachment.to_file() for attachment in message.attachments],
+				                embeds=message.embeds))
+		async for message in evidence_history :
+			queue().add(
+				backupevidence.send(message.content, files=[await attachment.to_file() for attachment in message.attachments],
+				                    embeds=message.embeds))
 
 	async def find_ban_id(self, history, ban_id) :
 		try :

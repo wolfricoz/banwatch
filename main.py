@@ -82,7 +82,8 @@ async def on_ready() :
 	logging.info(f"Bot is in {guild_count} guilds:\n{formguilds}")
 	queue().add(devroom.send(f"Banwatch is in {guild_count} guilds. Version 3.0: Now I remember!"), priority=2)
 	bot.add_view(ServerInfo())
-	logging.info(f"Commands synced, start up done! Connected to {len(guild_count)} guilds and {bot.shard_count} shards.")
+	logging.info(f"Commands synced, start up done! Connected to {guild_count} guilds and {bot.shard_count} shards.")
+	queue().add(bot.tree.sync())
 
 
 @bot.event
