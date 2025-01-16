@@ -35,8 +35,10 @@ intents.message_content = True
 intents.members = True
 bot = commands.AutoShardedBot(command_prefix=PREFIX, case_insensitive=False, intents=intents, shard_id=1)
 @asynccontextmanager
-async def lifespan(app: FastAPI) :
-	threading.Thread(target=lambda : asyncio.run(run())).start()
+async def lifespan(app: FastAPI):
+	loop = asyncio.get_event_loop()
+	thread = threading.Thread(target=lambda: asyncio.run(run()))
+	thread.start()
 	yield
 	await bot.close()
 
