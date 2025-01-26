@@ -3,6 +3,8 @@ import logging
 import discord
 from discord.ext.commands.help import MISSING
 
+from classes.bans import Bans
+
 max_length = 1800
 
 
@@ -100,10 +102,20 @@ async def get_all_threads(guild: discord.Guild) :
 	return all_threads
 
 
-async def ban_member(bans_class, interaction, user, reason, days=1) :
+async def ban_member(bans_class, interaction, user, reason, days=1, inform=False) :
 	try :
 		await bans_class.add_ban(user.id, interaction.guild.id, reason, interaction.user.name)
 		await interaction.guild.ban(user, reason=reason, delete_message_days=days)
+		embed = discord.Embed(title=f"{user.name} ({user.id}) banned!", description=f"{reason}", color=discord.Color.red())
+		embed.set_footer(text=f"Moderator: {interaction.user.name}, was the user informed? {'Yes' if inform else 'No'}")
+		await send_message(interaction.channel, embed=embed)
+		if not inform :
+			return
+		try :
+			await user.send(f"You have been banned from {interaction.guild.name} for `{reason}`")
+		except discord.errors.Forbidden :
+			pass
+
 	except discord.Forbidden :
 		error = f"Missing permission to ban user {user.name}({user.id}). Check permissions: ban_members or if the bot is higher in the hierarchy than the user."
 		logging.error(error)
@@ -120,7 +132,7 @@ async def await_message(interaction, message) -> discord.Message | bool :
 		return False
 	return m
 
-async def ban_user(interaction: discord.Interaction, user: discord.User, ban_type, reason_modal, ban_class,inform=True,
+async def ban_user(interaction: discord.Interaction, user: discord.User, ban_type, reason_modal, ban_class = Bans(),inform=True,
                    clean=False) :
 	if interaction.guild is None :
 		await send_message(interaction.channel, "This command can only be used in a server")
@@ -139,14 +151,8 @@ async def ban_user(interaction: discord.Interaction, user: discord.User, ban_typ
 
 	reason = f"{ban_type}{reason_modal}"
 
-	await ban_member(ban_class, interaction, user, reason, days=1 if clean else 0)
+	await ban_member(ban_class, interaction, user, reason, days=1 if clean else 0, inform=inform)
 	# await interaction.channel.send(f"DEBUG: BAN FUNCTION DISABLED FOR TESTING.`")
-	embed = discord.Embed(title=f"{user.name} ({user.id}) banned!", description=f"{reason}", color=discord.Color.red())
-	embed.set_footer(text=f"Moderator: {interaction.user.name}, was the user informed? {'Yes' if inform else 'No'}")
-	await send_message(interaction.channel, embed=embed)
-	if not inform :
-		return
-	await dm_user(interaction, reason_modal, user)
 
 async def dm_user(interaction, reason_modal, user) :
 	try :
