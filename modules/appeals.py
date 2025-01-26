@@ -55,6 +55,9 @@ class Appeals(commands.GroupCog, name="appeal") :
 		if guild.lower() == "none" :
 			await interaction.response.send_message("No bans to report", ephemeral=True)
 			return
+		appeal = AppealsDbTransactions().exist(interaction.user.id + int(guild))
+		if not appeal:
+			return await send_response(interaction, "You must appeal your ban with the server; please only report bans after all possible appeal options have been exhausted.")
 		reason = await inputmodal.send_modal(interaction,
 		                                     "Thank you for the report, we will investigate this and get back to you.")
 		ban_id = interaction.user.id + int(guild)
