@@ -38,7 +38,7 @@ class BanEvents(commands.Cog) :
 			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name, hidden=True)
 			return
 
-		if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(
+		if ban.reason is None or len(ban.reason.split(" ")) < 6 or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(
 				ban.reason).lower().startswith('[silent]') or str(ban.reason).lower().startswith('[hidden]'):
 			logging.info("silent or hidden ban/no reason, not prompting")
 			await Bans().add_ban(user.id, guild.id, "Hidden Ban", "Unknown", hidden=True)
