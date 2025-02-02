@@ -58,13 +58,13 @@ class User(commands.GroupCog, name="user") :
 		if ban_id is None and user is None :
 			return await send_response(interaction, "You need to provide a user or ban id to look up.")
 		if ban_id :
-			ban = BanDbTransactions().get(int(ban_id))
+			ban = BanDbTransactions().get(int(ban_id), override=override)
 			if ban is None :
 				return await send_response(interaction, "Ban not found.")
 			await send_response(interaction, "⌛ Fetching bans, please wait.", ephemeral=True)
 			view: LookUp = LookUp()
 			user = await self.bot.fetch_user(ban.uid)
-			await view.send_message(interaction.client, interaction.channel, [ban], user)
+			await view.send_message(interaction.client, interaction.channel, [ban], user, override=override)
 			return
 		logging.info(f"{interaction.user} from {interaction.guild.name} is looking up {user.name}")
 		if interaction.user.id == user.id and not interaction.guild.id == self.bot.SUPPORTGUILD :
