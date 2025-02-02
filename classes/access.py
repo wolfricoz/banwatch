@@ -47,7 +47,7 @@ class AccessControl(metaclass=Singleton) :
 		def pred(interaction: discord.Interaction) -> bool:
 			match role.lower() :
 				case "owner" :
-					return self.access_all(interaction.user)
+					return self.access_owner(interaction.user)
 				case "dev" :
 					return self.access_dev(interaction.user)
 				case _ :

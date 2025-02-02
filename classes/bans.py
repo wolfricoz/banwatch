@@ -180,14 +180,15 @@ class Bans(metaclass=Singleton) :
 		logging.info(f"[revoke_ban] Queued deletion of {message.id} in {channel.name} ({channel.guild.name})")
 
 	async def revoke_bans(self, bot, banid, reason, staff=False) :
+		print("revoking bans")
 		for guild in bot.guilds :
 			modchannel = await Configer.get(guild.id, "modchannel")
 			channel = bot.get_channel(int(modchannel))
 			if channel is None :
 				continue
-			if staff :
-				BanDbTransactions().update(int(banid), approved=False)
 			queue().add(self.search_messages(bot, channel, banid, reason), priority=2)
+		if staff :
+			BanDbTransactions().update(int(banid), approved=False)
 		channel = bot.get_channel(bot.APPROVALCHANNEL)
 		queue().add(self.search_messages(bot, channel, banid, reason), priority=2)
 

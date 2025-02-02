@@ -7,6 +7,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from classes.access import AccessControl
 from classes.support.discord_tools import send_message, send_response
 from database.databaseController import BanDbTransactions
 from view.buttons.lookup import LookUp
@@ -51,7 +52,9 @@ class User(commands.GroupCog, name="user") :
 
 	@app_commands.command(name="lookup", description="Looks up user's bans and displays them in the channel")
 	@app_commands.checks.has_permissions(ban_members=True)
-	async def lookup(self, interaction: discord.Interaction, user: discord.User = None, ban_id: str = None) :
+	async def lookup(self, interaction: discord.Interaction, user: discord.User = None, ban_id: str = None, override:bool = False) :
+		if override and not AccessControl().check_access():
+			return await send_response(interaction, "Only Banwatch staff may use the override toggle.")
 		if ban_id is None and user is None :
 			return await send_response(interaction, "You need to provide a user or ban id to look up.")
 		if ban_id :
@@ -68,13 +71,13 @@ class User(commands.GroupCog, name="user") :
 			logging.warning(f"{interaction.user} tried to look up themselves")
 			return await send_response(interaction, "You can not look up yourself!",
 			                           ephemeral=True)
-		sr = BanDbTransactions().get_all_user(user_id=user.id)
+		sr = BanDbTransactions().get_all_user(user_id=user.id, override=override)
 		if sr is None :
 			await send_response(interaction, f"<@{user.id}> is not banned in any servers the bot is in.")
 			return
 		await send_response(interaction, "⌛ Fetching bans, please wait.", ephemeral=True)
 		view: LookUp = LookUp()
-		await view.send_message(interaction.client, interaction.channel, sr, user)
+		await view.send_message(interaction.client, interaction.channel, sr, user, override=override)
 
 
 	@app_commands.command(name="checkall", description="checks ALL users")

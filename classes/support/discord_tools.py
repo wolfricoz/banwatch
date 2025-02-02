@@ -3,7 +3,6 @@ import logging
 import discord
 from discord.ext.commands.help import MISSING
 
-from classes.bans import Bans
 
 max_length = 1800
 
@@ -132,7 +131,7 @@ async def await_message(interaction, message) -> discord.Message | bool :
 		return False
 	return m
 
-async def ban_user(interaction: discord.Interaction, user: discord.User, ban_type, reason_modal, ban_class = Bans(),inform=True,
+async def ban_user(interaction: discord.Interaction, user: discord.User, ban_type, reason_modal, ban_class,inform=True,
                    clean=False) :
 	if interaction.guild is None :
 		await send_message(interaction.channel, "This command can only be used in a server")

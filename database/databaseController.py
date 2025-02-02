@@ -186,13 +186,13 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 		if override :
 			return session.scalars(Select(Bans).where(Bans.uid == user_id)).all()
 		return session.query(Bans).join(Servers).filter(
-			and_(Bans.uid == user_id, Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None), Servers.hidden.is_(False))).all()
+			and_(Bans.uid == user_id, Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None), Bans.approved.is_(True), Servers.hidden.is_(False))).all()
 
 	def get_all(self, override=False) :
 		if override :
 			return session.scalars(Select(Bans).join(Servers)).all()
 		return session.scalars(
-			Select(Bans).join(Servers).where(and_(Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None), Servers.hidden.is_(False)))).all()
+			Select(Bans).join(Servers).where(and_(Bans.deleted_at.is_(None), Bans.hidden.is_(False), Bans.approved.is_(True), Servers.deleted_at.is_(None), Servers.hidden.is_(False)))).all()
 
 	def count_bans(self, result_type="all") :
 		"""
@@ -242,6 +242,7 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 		if isinstance(ban, int) :
 			ban = self.get(ban, override=True)
 		if not ban :
+			logging.error(f"Ban {ban} not found.")
 			return False
 		updates = {
 			'approved'   : approved,

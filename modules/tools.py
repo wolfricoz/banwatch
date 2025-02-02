@@ -31,7 +31,7 @@ class Tools(commands.Cog) :
 		if isinstance(ban_type, Choice) :
 			ban_type = ban_type.value
 		reason_modal = await send_modal(interaction, "What is the reason for the ban?", "Ban Reason")
-		await ban_user(interaction, user, ban_type, reason_modal, inform=inform, clean=clean)
+		await ban_user(interaction, user, ban_type, reason_modal, inform=inform, clean=clean, ban_class=Bans())
 
 	@app_commands.command(name="mass_ban", description="bans multiple users, separated by a space")
 	@app_commands.checks.has_permissions(ban_members=True)
@@ -58,7 +58,7 @@ class Tools(commands.Cog) :
 				await interaction.channel.send(
 					f"An error occurred while fetching user with id {user_id}, please ban them manually")
 				continue
-			await ban_user(interaction, user, ban_type, reason_modal, inform=inform, clean=clean)
+			await ban_user(interaction, user, ban_type, reason_modal, inform=inform, clean=clean, ban_class=Bans())
 
 	@app_commands.command(name="unban", description="Unbans a user from the server")
 	@app_commands.checks.has_permissions(ban_members=True)
@@ -116,7 +116,7 @@ class Tools(commands.Cog) :
 		except discord.errors.NotFound :
 			pass
 		try :
-			await ban_user(interaction, user, ban_type, reason_modal, inform=False)
+			await ban_user(interaction, user, ban_type, reason_modal, inform=False, ban_class=Bans())
 		except discord.Forbidden :
 			await send_response(interaction, "I don't have permission to ban this user")
 

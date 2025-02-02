@@ -20,7 +20,7 @@ class LookUp(View) :
 		super().__init__(timeout=None)
 
 	async def send_message(self, bot: commands.Bot, channel: discord.TextChannel, sr,
-	                       user: discord.Member | discord.User, excess=True) :
+	                       user: discord.Member | discord.User, excess=True, override=False) :
 		if len(sr) <= 0 or not sr :
 			nfembed = discord.Embed(title=f"{user.name}({user.id})'s ban history.",description="No bans found.")
 			await send_message(channel, embed=nfembed)
@@ -38,11 +38,13 @@ class LookUp(View) :
 				count = 0
 			count += 1
 			guild = bot.get_guild(ban.gid)
+			staff_data = f"approved: {ban.approved}, hidden: {ban.hidden}"
+
 			created_at = ban.created_at.strftime(
 				'%m/%d/%Y') if ban.message else 'pre-banwatch, please check with server owner.'
 			embed.add_field(name=f"{guild.name} ({ban.guild.invite}) (ban_id: {ban.ban_id})",
 			                value=f"{ban.reason}\n"
-			                      f"verified: {'Yes' if ban.verified else 'No'}, date: {created_at}", inline=False)
+			                      f"verified: {'Yes' if ban.verified else 'No'}, date: {created_at}{f', {staff_data}' if override else ''}" , inline=False)
 		sr = "\n".join(bans)
 
 		if len(sr) == 0 :
