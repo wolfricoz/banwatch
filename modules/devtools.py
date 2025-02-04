@@ -172,7 +172,8 @@ class dev(commands.GroupCog, name="dev") :
 		bans = BanDbTransactions().get_all(override=True)
 		async for message in ban_history :
 			queue().add(
-				backupbans.send(f"BACKUP {message.created_at.strftime('%m/%d/%Y')}: {message.content}", files=[await attachment.to_file() for attachment in message.attachments],
+				backupbans.send(f"BACKUP {message.created_at.strftime('%m/%d/%Y')}: {message.content}",
+				                files=[await attachment.to_file() for attachment in message.attachments],
 				                embeds=message.embeds))
 		async for message in evidence_history :
 			queue().add(
@@ -200,7 +201,13 @@ class dev(commands.GroupCog, name="dev") :
 			await interaction.guild.unban(user, reason="Test unban")
 		except Exception :
 			pass
-		await interaction.guild.ban(user, reason=f"{'Test Ban' if checklist else 'dev ban'}")
+		try :
+			await interaction.guild.ban(user,
+			                            reason=f"{'Test Ban that is longer than four words' if checklist else 'dev ban that is longer than four words'}")
+		except AttributeError :
+			user = await self.bot.fetch_user(474365489670389771)
+			await interaction.guild.ban(user,
+			                            reason=f"{'Test Ban that is longer than four words' if checklist else 'dev ban that is longer than four words'}")
 		await interaction.response.send_message("Test ban complete", ephemeral=True)
 
 	@app_commands.command(name="pendingbans", description="[DEV] Lists all pending bans")

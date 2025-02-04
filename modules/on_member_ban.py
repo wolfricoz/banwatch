@@ -6,6 +6,7 @@ from discord.ext import commands
 
 from classes.bans import Bans
 from classes.configer import Configer
+from classes.support.discord_tools import send_message
 from database.databaseController import ServerDbTransactions
 from view.buttons.baninform import BanInform
 from view.buttons.banoptionbuttons import BanOptionButtons
@@ -28,7 +29,7 @@ class BanEvents(commands.Cog) :
 		if user == bot.user :
 			logging.warning(f"I was banned in {guild.name}")
 			return
-		ban = await guild.fetch_ban(user)
+		ban: discord.BanEntry = await guild.fetch_ban(user)
 		if ServerDbTransactions().is_hidden(guild.id):
 			await Bans().add_ban(user.id, guild.id, ban.reason, "Unknown")
 			return
@@ -37,16 +38,20 @@ class BanEvents(commands.Cog) :
 			logging.info("Cross-ban with no additional info, this ban has been hidden")
 			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name, hidden=True)
 			return
-
-		if ban.reason is None or len(ban.reason.split(" ")) < 6 or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(
+		modchannel = await Configer.get(guild.id, "modchannel")
+		modchannel = bot.get_channel(int(modchannel))
+		word_count = len(ban.reason.split(" ")) < 4
+		if ban.reason is None or word_count or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(
 				ban.reason).lower().startswith('[silent]') or str(ban.reason).lower().startswith('[hidden]'):
 			logging.info("silent or hidden ban/no reason, not prompting")
 			await Bans().add_ban(user.id, guild.id, "Hidden Ban", "Unknown", hidden=True)
+			if modchannel is None :
+				logging.error(f"{guild.name}({guild.id}) doesn't have modchannel set.")
+				return
+			await send_message(modchannel, f"Hidden ban for {user}({user.id}). {'Reason: Ban was under 4 words' if word_count < 4 else ''}")
 			return
 		logging.info("starting to update banlist and informing other servers")
 		view = BanOptionButtons()
-		modchannel = await Configer.get(guild.id, "modchannel")
-		modchannel = bot.get_channel(int(modchannel))
 		if modchannel is None :
 			logging.error(f"{guild.name}({guild.id}) doesn't have modchannel set.")
 			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name)
