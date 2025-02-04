@@ -72,18 +72,21 @@ class BanOptionButtons(View) :
 			return
 		if user.bot:
 			checklist_check = "User is a bot"
-
+		word_count = len(ban.reason.split(" ")) < 4
+		if word_count :
+			checklist_check = "Short ban reason"
 		wait_id = Bans().create_ban_id(user.id, guild.id)
-		check = AccessControl().access_all(user)
-		if checklist_check or check :
-			if check :
-				checklist_check = "Banwatch Staff Member"
+		if  AccessControl().access_all(user):
+			checklist_check = "Banwatch Staff Member"
+		if checklist_check  :
+
 			channel = interaction.client.get_channel(int(os.getenv("BANS")))
 			queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=False), priority=2)
 			queue().add(self.status(interaction.client, guild, user, "waiting_approval", ban.reason, word=checklist_check,
 			                        message=message, silent=silent))
 			embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
 			                      description=f"{ban.reason}")
+			embed.add_field(name="flagged word", value=checklist_check, inline=False)
 			embed.set_footer(text=f"invite: {guild_db.invite} To approve it manually: /approve_ban {wait_id} ")
 			queue().add(
 				send_message(channel, f"<@&{os.getenv('STAFF_ROLE')}>", embed=embed, view=BanApproval(interaction.client, wait_id, True, silent=silent)))

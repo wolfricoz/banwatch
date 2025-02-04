@@ -40,15 +40,14 @@ class BanEvents(commands.Cog) :
 			return
 		modchannel = await Configer.get(guild.id, "modchannel")
 		modchannel = bot.get_channel(int(modchannel))
-		word_count = len(ban.reason.split(" ")) < 4
-		if ban.reason is None or word_count or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(
+		if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(
 				ban.reason).lower().startswith('[silent]') or str(ban.reason).lower().startswith('[hidden]'):
 			logging.info("silent or hidden ban/no reason, not prompting")
 			await Bans().add_ban(user.id, guild.id, "Hidden Ban", "Unknown", hidden=True)
 			if modchannel is None :
 				logging.error(f"{guild.name}({guild.id}) doesn't have modchannel set.")
 				return
-			await send_message(modchannel, f"Hidden ban for {user}({user.id}). {'Reason: Ban was under 4 words' if word_count < 4 else ''}")
+			await send_message(modchannel, f"Hidden ban for {user}({user.id}).")
 			return
 		logging.info("starting to update banlist and informing other servers")
 		view = BanOptionButtons()
