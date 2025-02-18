@@ -38,20 +38,19 @@ class BanEvents(commands.Cog) :
 			logging.info("Cross-ban with no additional info, this ban has been hidden")
 			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name, hidden=True)
 			return
-		modchannel = await Configer.get(guild.id, "modchannel")
-		modchannel = bot.get_channel(int(modchannel))
+		mod_channel = bot.get_channel(int(await Configer.get(guild.id, "modchannel")))
 		if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(
 				ban.reason).lower().startswith('[silent]') or str(ban.reason).lower().startswith('[hidden]'):
 			logging.info("silent or hidden ban/no reason, not prompting")
 			await Bans().add_ban(user.id, guild.id, "Hidden Ban", "Unknown", hidden=True)
-			if modchannel is None :
+			if mod_channel is None :
 				logging.error(f"{guild.name}({guild.id}) doesn't have modchannel set.")
 				return
-			await send_message(modchannel, f"Hidden ban for {user}({user.id}).")
+			await send_message(mod_channel, f"Hidden ban for {user}({user.id}).")
 			return
 		logging.info("starting to update banlist and informing other servers")
 		view = BanOptionButtons()
-		if modchannel is None :
+		if mod_channel is None :
 			logging.error(f"{guild.name}({guild.id}) doesn't have modchannel set.")
 			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name)
 			try :
@@ -70,7 +69,7 @@ class BanEvents(commands.Cog) :
 		embed = discord.Embed(title=f"Do you want to share {user}'s ({user.id}) ban with other servers?",
 		                      description=f"{ban.reason}")
 		embed.set_footer(text=f"{guild.id}-{user.id}")
-		await modchannel.send(embed=embed, view=view)
+		await mod_channel.send(embed=embed, view=view)
 
 
 async def setup(bot) :

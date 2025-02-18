@@ -74,7 +74,7 @@ class BanApproval(View) :
 			return
 		await Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, False)
 
-	@discord.ui.button(label="Request Evidence", style=discord.ButtonStyle.danger, custom_id="custom_ID")
+	@discord.ui.button(label="Inform Server", style=discord.ButtonStyle.danger, custom_id="custom_ID")
 	async def evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		reason = await send_modal(interaction, confirmation="Thank you for providing a reason",
 		                          title="What evidence do we require?")
@@ -95,8 +95,7 @@ class BanApproval(View) :
 
 	@discord.ui.button(label="Hide Ban", style=discord.ButtonStyle.danger, custom_id="deny_broadcast")
 	async def hide(self, interaction: discord.Interaction, button: discord.ui.Button) :
-		await interaction.response.defer(ephemeral=True)
-
+		deny_reason = await send_modal(interaction, confirmation="Thank you for providing a reason", title="Denial Reason", max_length=1000)
 		if self.bot is None or self.wait_id is None :
 			await interaction.followup.send("Error: The bot has restarted, the data of this button was lost", ephemeral=True)
 			return
@@ -110,18 +109,22 @@ class BanApproval(View) :
 		guild = self.bot.get_guild(guildid)
 		owner = guild.owner
 		user = await self.bot.fetch_user(userid)
+		mod_channel = guild.get_channel(int(await Configer.get(guild.id, "modchannel")))
 		denial_channel = self.bot.get_channel(self.bot.DENIALCHANNEL)
 		banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
 		                         description=f"{reason}")
-		banembed.set_footer(text="Denied")
+		banembed.set_footer(text=f"Denied: {deny_reason}")
 		BanDbTransactions().update(self.wait_id, approved=True, hidden=True)
 		await self.update_embed(interaction, "hide")
 		await denial_channel.send(embed=banembed)
-		await interaction.followup.send("Denied", ephemeral=True)
+		await mod_channel.send(embed=banembed)
+		await interaction.followup.send(f"Denied: \n `{deny_reason}`", ephemeral=True)
 
 	async def update_embed(self, interaction, action="verify") :
 		self.update_buttons(action)
-		interaction.message.embeds[0].set_footer(text=f"action `{action}` was performed by {interaction.user}")
+		embed:discord.Embed = interaction.message.embeds[0]
+		embed.set_footer(text=f"action `{action}` was performed by {interaction.user}")
+		embed.add_field(name="Banwatch ID", value=self.wait_id, inline=False)
 		await interaction.message.edit(embed=interaction.message.embeds[0], view=self)
 
 	def update_buttons(self, selected) :
