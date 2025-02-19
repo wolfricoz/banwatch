@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 import discord
@@ -155,7 +154,7 @@ async def ban_user(interaction: discord.Interaction, user: discord.User, ban_typ
 
 	await ban_member(ban_class, interaction, user, reason, days=1 if clean else 0, inform=inform)
 	# await interaction.channel.send(f"DEBUG: BAN FUNCTION DISABLED FOR TESTING.`")
-	await asyncio.sleep(1)
+
 
 async def dm_user(interaction, reason_modal, user) :
 	try :

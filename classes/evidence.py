@@ -1,3 +1,4 @@
+import asyncio
 import io
 import logging
 import os
@@ -16,6 +17,7 @@ from database.databaseController import BanDbTransactions, ProofDbTransactions
 class EvidenceController() :
 	@staticmethod
 	async def add_evidence(interaction: discord.Interaction, evidence, ban_id, user) :
+		await asyncio.sleep(5)
 		ban = BanDbTransactions().get(ban_id)
 		if ban is None :
 			queue().add(send_response(interaction,
