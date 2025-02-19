@@ -5,7 +5,9 @@ from discord import app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
 
+from classes.autocorrect import autocomplete_guild
 from classes.bans import Bans
+from classes.queue import queue
 from classes.support.discord_tools import ban_user, dm_user, send_message, send_response
 from database.databaseController import BanDbTransactions, ServerDbTransactions
 from view.modals.inputmodal import send_modal
@@ -15,8 +17,6 @@ class Tools(commands.Cog) :
 
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
-
-
 
 	@app_commands.command(name="ban", description="Bans a user from the server, by default informs the user.")
 	@app_commands.checks.has_permissions(ban_members=True)
@@ -159,18 +159,38 @@ class Tools(commands.Cog) :
 	@app_commands.command(name="search_bans",
 	                      description="Search bans for specific words, useful to find and remove bad bans")
 	@app_commands.checks.has_permissions(ban_members=True)
-	async def search_bans(self, interaction: discord.Interaction, word: str, hide:bool = False) :
+	async def search_bans(self, interaction: discord.Interaction, word: str, hide: bool = False) :
 		await send_response(interaction, f"Checking bans for the word `{word}`")
 		bans = ServerDbTransactions().get_bans(interaction.guild.id)
 		with open("bans.txt", "w", encoding='utf-16') as file :
 			for ban_entry in bans :
-				if word in ban_entry.reason:
+				if word in ban_entry.reason :
 					file.write(f"ban id: {ban_entry.uid} - Reason: {ban_entry.reason}\n")
-					if hide:
+					if hide :
 						BanDbTransactions().update(ban_entry, hidden=True)
-			# Send the file to the channel
+		# Send the file to the channel
 		await interaction.followup.send(f"Here are all your bans with `{word}`!", file=discord.File("bans.txt"))
 
+	@app_commands.command(name="copy_bans",
+	                      description="Copy all bans from a server you own to another server you own!")
+	@app_commands.checks.has_permissions(ban_members=True)
+	@app_commands.autocomplete(guild=autocomplete_guild)
+	async def search_bans(self, interaction: discord.Interaction, guild: str) :
+		guild = interaction.client.get_guild(int(guild))
+		if interaction.guild.owner_id != guild.owner_id :
+			return await send_response(interaction, "You can only copy bans between servers you own.")
+		current_bans = [ban.user.id async for ban in interaction.guild.bans(limit=None)]
+		bans = [ban async for ban in guild.bans(limit=None) if ban.user.id not in current_bans]
+		await send_response(interaction, f"Copying {len(bans)} bans, this may take a while! Expected time: {len(bans) * 1} seconds")
+		for ban in bans :
+			user = interaction.client.get_user(ban.user.id)
+			if user is None :
+				await asyncio.sleep(1)
+				user = await interaction.client.fetch_user(ban.user.id)
+
+			queue().add(ban_user(interaction, user, ban_type="",
+			                   reason_modal=f"[Migrated from {guild.name}]{ban.reason}", inform=False, clean=False,
+			                   ban_class=Bans()))
 
 async def setup(bot: commands.Bot) :
 	await bot.add_cog(Tools(bot))

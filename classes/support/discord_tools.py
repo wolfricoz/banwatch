@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 import discord
@@ -136,6 +137,8 @@ async def ban_user(interaction: discord.Interaction, user: discord.User, ban_typ
 	if interaction.guild is None :
 		await send_message(interaction.channel, "This command can only be used in a server")
 		return
+	if user is None :
+		await send_message(interaction.channel, "User not found, bot may not be able to fetch user or an invalid id was provided.")
 	if user.id == interaction.user.id :
 		await send_message(interaction.channel, "You can't ban yourself")
 		return
@@ -152,6 +155,7 @@ async def ban_user(interaction: discord.Interaction, user: discord.User, ban_typ
 
 	await ban_member(ban_class, interaction, user, reason, days=1 if clean else 0, inform=inform)
 	# await interaction.channel.send(f"DEBUG: BAN FUNCTION DISABLED FOR TESTING.`")
+	await asyncio.sleep(1)
 
 async def dm_user(interaction, reason_modal, user) :
 	try :

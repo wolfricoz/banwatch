@@ -38,6 +38,10 @@ class BanEvents(commands.Cog) :
 			logging.info("Cross-ban with no additional info, this ban has been hidden")
 			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name, hidden=True)
 			return
+		if str(ban.reason).lower().startswith('[Migrated'):
+			logging.info("Migrated ban, not prompting")
+			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name,)
+
 		mod_channel = bot.get_channel(int(await Configer.get(guild.id, "modchannel")))
 		if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(
 				ban.reason).lower().startswith('[silent]') or str(ban.reason).lower().startswith('[hidden]'):

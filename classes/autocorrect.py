@@ -27,6 +27,6 @@ async def autocomplete_guild(interaction: discord.Interaction, current: str) -> 
 	"""generates the options for autocomplete."""
 	data = []
 	for x in interaction.client.guilds :
-		if current.lower() in x.name.lower() or current.lower() == x.name.lower() :
+		if current.lower() in x.name.lower() or x.name.lower().startswith(current.lower()) :
 			data.append(app_commands.Choice(name=x.name.lower(), value=str(x.id)))
 	return data
