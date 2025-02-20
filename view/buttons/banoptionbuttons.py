@@ -48,8 +48,7 @@ class BanOptionButtons(View) :
 		evidence = await await_message(interaction, evidence_message)
 		if evidence is False:
 			return
-		queue().add(self.process(interaction), priority=2)
-		queue().add(self.provide_proof(interaction, evidence), priority=0)
+		queue().add(self.process(interaction, evidence), priority=2)
 
 	@button(label="Silent", custom_id="silent", style=discord.ButtonStyle.primary)
 	async def silent(self, interaction: discord.Interaction, button: button) :
@@ -59,7 +58,7 @@ class BanOptionButtons(View) :
 	async def hidden(self, interaction: discord.Interaction, button: button) :
 		await self.process(interaction, hidden=True)
 
-	async def process(self, interaction, hidden=False, silent=False) :
+	async def process(self, interaction, evidence= None, hidden=False, silent=False) :
 		guild, user, ban = await self.get_data(interaction)
 		guild_db = ServerDbTransactions().get(guild.id)
 		checklist_check = await self.check_checklisted_words(ban)
@@ -92,14 +91,16 @@ class BanOptionButtons(View) :
 				send_message(channel, f"<@&{os.getenv('STAFF_ROLE')}>", embed=embed, view=BanApproval(interaction.client, wait_id, True, silent=silent)))
 			return
 
-		queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name))
+		queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=True), priority=2)
+		if evidence:
+			queue().add(self.provide_proof(interaction, evidence), priority=2)
 		if silent :
 			return
 		embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
 		                      description=f"{ban.reason}")
 		embed.set_footer(text=f"Server Invite: {guild_db.invite} Staff member: {staff_member} ban ID: {wait_id}")
 		queue().add(Bans().check_guilds(interaction, interaction.client, guild, user, embed, wait_id))
-		queue().add(self.status(interaction.client, guild, user))
+		queue().add(self.status(interaction.client, guild, user), priority=0)
 
 	async def provide_proof(self, interaction, evidence) :
 		if not evidence :

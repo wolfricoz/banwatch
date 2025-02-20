@@ -62,7 +62,7 @@ class User(commands.GroupCog, name="user") :
 			if ban is None :
 				return await send_response(interaction, "Ban not found.")
 			await send_response(interaction, "⌛ Fetching bans, please wait.", ephemeral=True)
-			view: LookUp = LookUp()
+			view: LookUp = LookUp(user_id=user.id)
 			user = await self.bot.fetch_user(ban.uid)
 			await view.send_message(interaction.client, interaction.channel, [ban], user, override=override)
 			return
@@ -76,7 +76,7 @@ class User(commands.GroupCog, name="user") :
 			await send_response(interaction, f"<@{user.id}> is not banned in any servers the bot is in.")
 			return
 		await send_response(interaction, "⌛ Fetching bans, please wait.", ephemeral=True)
-		view: LookUp = LookUp()
+		view: LookUp = LookUp(user_id=user.id)
 		await view.send_message(interaction.client, interaction.channel, sr, user, override=override)
 
 

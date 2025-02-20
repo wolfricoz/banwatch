@@ -6,8 +6,9 @@ from discord.ext import commands
 
 from classes.bans import Bans
 from classes.configer import Configer
+from classes.queue import queue
 from classes.support.discord_tools import send_message
-from database.databaseController import ServerDbTransactions
+from database.databaseController import BanDbTransactions, ServerDbTransactions
 from view.buttons.baninform import BanInform
 from view.buttons.banoptionbuttons import BanOptionButtons
 
@@ -29,6 +30,9 @@ class BanEvents(commands.Cog) :
 		if user == bot.user :
 			logging.warning(f"I was banned in {guild.name}")
 			return
+		ban_entry = BanDbTransactions().get(user.id + guild.id, override=True)
+		if ban_entry is not None :
+			BanDbTransactions().delete_permanent(ban_entry)
 		ban: discord.BanEntry = await guild.fetch_ban(user)
 		if ServerDbTransactions().is_hidden(guild.id):
 			await Bans().add_ban(user.id, guild.id, ban.reason, "Unknown")
@@ -73,7 +77,7 @@ class BanEvents(commands.Cog) :
 		embed = discord.Embed(title=f"Do you want to share {user}'s ({user.id}) ban with other servers?",
 		                      description=f"{ban.reason}")
 		embed.set_footer(text=f"{guild.id}-{user.id}")
-		await mod_channel.send(embed=embed, view=view)
+		queue().add(mod_channel.send(embed=embed, view=view))
 
 
 async def setup(bot) :

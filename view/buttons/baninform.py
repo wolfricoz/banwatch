@@ -1,12 +1,13 @@
 import io
 import logging
 import re
+import time
 
 import discord
 import requests
 from discord.ui import View
 
-from classes.support.discord_tools import ban_member, ban_user, send_message, send_response
+from classes.support.discord_tools import await_message, ban_member, ban_user, send_message, send_response
 from database.current import Proof
 from database.databaseController import BanDbTransactions, ProofDbTransactions
 from view.modals.inputmodal import send_modal
@@ -15,9 +16,16 @@ from view.modals.inputmodal import send_modal
 class BanInform(View) :
 	bot = None
 
-	def __init__(self, ban_class) :
+	def __init__(self, ban_class, ban_id= None) :
 		super().__init__(timeout=None)
 		self.ban_class = ban_class
+		self.ban_id = ban_id
+		if ban_id is None:
+			return
+		entries = ProofDbTransactions().get(ban_id=ban_id)
+		if not entries:
+			self.evidence.disabled = True
+
 
 	async def get_ban_id(self, interaction: discord.Interaction) :
 		embed = interaction.message.embeds[0]

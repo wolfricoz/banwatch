@@ -45,7 +45,7 @@ class Evidence(commands.GroupCog, name="evidence") :
 		evidence = await await_message(interaction, evidence_message)
 		if evidence is False :
 			return
-		await EvidenceController.add_evidence(interaction, evidence, ban_id, user)
+		queue().add(EvidenceController.add_evidence(interaction, evidence, ban_id, user), priority=2)
 
 	@app_commands.command(name="get", description="Get the proof for an user's ban!")
 	@app_commands.checks.has_permissions(moderate_members=True)

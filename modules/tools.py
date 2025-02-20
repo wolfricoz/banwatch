@@ -110,11 +110,12 @@ class Tools(commands.Cog) :
 		"""Bans a user from the server"""
 		if isinstance(ban_type, Choice) :
 			ban_type = ban_type.value
-		reason_modal = await send_modal(interaction, "What is the reason for the ban?", "Ban Reason")
+		reason_modal = await send_modal(interaction, "⏳ Processing Reban!", "Ban Reason")
 		try :
 			await interaction.guild.unban(user, reason=reason)
 		except discord.errors.NotFound :
 			pass
+		await asyncio.sleep(3)
 		try :
 			await ban_user(interaction, user, ban_type, reason_modal, inform=False, ban_class=Bans())
 		except discord.Forbidden :

@@ -27,7 +27,7 @@ class Events(commands.Cog):
         if channel is None:
             await member.guild.owner.send('No mod channel set, please set one to receive banwatch notifications')
             return
-        view: LookUp = LookUp()
+        view: LookUp = LookUp(user_id=member.id)
         await view.send_message(bot, channel, sr, member)
 
 

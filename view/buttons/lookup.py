@@ -16,8 +16,14 @@ from database.databaseController import BanDbTransactions, ProofDbTransactions
 class LookUp(View) :
 	bot = None
 
-	def __init__(self) :
+	def __init__(self, user_id = None) :
 		super().__init__(timeout=None)
+		if not user_id:
+			return
+		entries = ProofDbTransactions().get(user_id=user_id)
+		if not entries:
+			self.evidence.disabled = True
+
 
 	async def send_message(self, bot: commands.Bot, channel: discord.TextChannel, sr,
 	                       user: discord.Member | discord.User, excess=True, override=False) :

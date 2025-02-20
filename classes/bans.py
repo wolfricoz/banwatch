@@ -38,11 +38,11 @@ class Bans(metaclass=Singleton) :
 	def create_ban_id(self, user_id, guild_id) :
 		return user_id + guild_id
 
-	async def inform_server(self, bot, guilds, banembed) :
+	async def inform_server(self, bot, guilds, banembed, ban_id) :
 		config = await Configer.get(guilds.id, "modchannel")
 		modchannel = bot.get_channel(int(config))
-		options = BanInform(ban_class=Bans())
-		await modchannel.send(embed=banembed, view=options)
+		options = BanInform(ban_class=Bans(), ban_id=ban_id)
+		queue().add(modchannel.send(embed=banembed, view=options), priority=0)
 
 	async def check_guilds(self, interaction, bot, guild, user, banembed, wait_id, open_thread=False, verified=False) :
 		approved_channel = bot.get_channel(bot.APPROVALCHANNEL)
@@ -50,7 +50,7 @@ class Bans(metaclass=Singleton) :
 			if guilds.id == guild.id :
 				continue
 			if user in guilds.members :
-				queue().add(self.inform_server(bot, guilds, banembed))
+				queue().add(self.inform_server(bot, guilds, banembed, wait_id), priority=0)
 		await Bans().change_ban_approval_status(wait_id, True, verified=verified)
 		if interaction is not None :
 			await interaction.message.delete()
@@ -199,7 +199,7 @@ class Bans(metaclass=Singleton) :
 		async for banentry in guild.bans(limit=None) :
 			if server.check_ban(banentry.user.id) :
 				continue
-			await self.add_ban(banentry.user.id, guild.id, banentry.reason, guild.owner.name)
+			await self.add_ban(banentry.user.id, guild.id, banentry.reason, guild.owner.name, approved=True)
 			count += 1
 		queue().add(server.remove_missing_ids(), priority=0)
 		logging.info(f"Found {count} new bans in {guild.name}({guild.id})")
@@ -233,7 +233,7 @@ class Bans(metaclass=Singleton) :
 		except Exception as e :
 			logging.error(f"Error creating invite: {e}")
 
-	async def add_ban(self, user_id, guild_id, reason, staff, hidden=False, approved=True, remove_deleted=True) :
+	async def add_ban(self, user_id, guild_id, reason, staff, hidden=False, approved=False, remove_deleted=True) :
 		"""Adds a ban to the database"""
 		if reason is None or reason == "" or reason.lower() == "none" :
 			hidden = True
@@ -242,6 +242,7 @@ class Bans(metaclass=Singleton) :
 		if reason.lower().startswith('[hidden]') :
 			hidden = True
 			reason = reason[8 :]
+		logging.info(f"Adding ban for {user_id} in {guild_id} with reason: {reason} and approval status: {approved}")
 		BanDbTransactions().add(user_id, guild_id, reason, staff, hidden=hidden, approved=approved,
 		                        remove_deleted=remove_deleted)
 
