@@ -67,6 +67,7 @@ class Bans(metaclass=Singleton) :
 		rpsec = dev_guild.get_thread(RpSec.get_user(user.id))
 		evidence_channel = bot.get_channel(bot.BANCHANNEL)
 		wait_id = guild.id + user.id
+		mod_channel = guild.get_channel(int(await Configer.get(guild.id, "modchannel")))
 
 		thread = await approved_message.create_thread(name=f"Ban Information for {user.name}")
 		logging.info(f"Created thread {thread.name} in {thread.guild.name}")
@@ -79,6 +80,8 @@ class Bans(metaclass=Singleton) :
 			text_bans = '\n'.join([f"{ban.jump_url}" for ban in prev_bans])
 			await send_message(thread, f"Previous bans for {user.name}:"
 			                           f"\n{text_bans}")
+		await send_message(mod_channel,
+			f"Your ban for {user.name} has been approved and has been broadcasted, You can provide the proof by using the `/evidence add user:{user.id}` command here!")
 		if not provide_proof :
 			logging.info(f"Approved without proof for {user.name}")
 			return
@@ -88,9 +91,7 @@ class Bans(metaclass=Singleton) :
 			if str(wait_id) in p.content :
 				await send_message(thread, p.content, files=[await a.to_file() for a in p.attachments])
 				await p.delete()
-		mod_channel = guild.get_channel(int(await Configer.get(guild.id, "modchannel")))
-		await send_message(mod_channel,
-			f"Your ban for {user.name} has been approved and has been broadcasted, You can provide the proof by using the `/evidence add user:{user.id}` command here!")
+
 
 	async def check_previous_bans(self, original_message, dev_guild: discord.Guild, user_id) -> list[discord.Message] :
 		ban_record = BanDbTransactions().get_all_user(user_id)
