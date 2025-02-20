@@ -125,7 +125,9 @@ async def ban_member(bans_class, interaction, user, reason, days=1, inform=False
 async def await_message(interaction, message) -> discord.Message | bool :
 	msg: discord.Message = await send_message(interaction.channel,
 	                                          message)
-	m = await interaction.client.wait_for('message', check=lambda m : m.author == interaction.user, timeout=600)
+	def check_message(m, interaction) :
+		return m.author == interaction.user and m.channel == interaction.channel
+	m = await interaction.client.wait_for('message', check=lambda m : check_message(m, interaction), timeout=600)
 	await msg.delete()
 	if m.content.lower() == "cancel" :
 		return False

@@ -18,10 +18,10 @@ class EvidenceController() :
 	@staticmethod
 	async def add_evidence(interaction: discord.Interaction, evidence, ban_id, user) :
 		await asyncio.sleep(5)
-		ban = BanDbTransactions().get(ban_id)
+		ban = BanDbTransactions().get(ban_id, override=True)
 		if ban is None :
 			queue().add(send_response(interaction,
-			                          f"Ban ID {ban_id} not found, please check if the user is banned. If this error persists please open a ticket in the support server."))
+			                          f"Ban ID {ban_id} not found, please check if the user is banned. If this error persists please open a ticket in the support server."), priority=2)
 			return
 		attachments, result = await EvidenceController.create_evidence_entry(ban_id, evidence, interaction, user)
 		if result is None :
@@ -31,12 +31,13 @@ class EvidenceController() :
 		del evidence
 		ban_entry, embed = await Bans().find_ban_record(interaction.client, ban_id)
 		result: Proof
-		if ban.approved is False :
+		if ban.approved is False or ban.hidden is True :
 			approval_channel = int(os.getenv('BANS'))
 			channel = interaction.client.get_channel(approval_channel)
 			queue().add(send_message(channel,
 			                         f"Ban ID {ban_id} has been updated with new evidence:\n"
-			                         f"{result.proof}", files=attachments))
+			                         f"{result.proof}\n\n"
+			                         f"{'**This ban is currently hidden, use /staff banvisibility ban_id: hide: if you wish to edit visibility status**' if ban.hidden else ''}", files=attachments))
 			return
 		if ban_entry is None :
 			logging.info(f"pre-banwatch ban {ban_id} added evidence: {result.id}")
@@ -47,14 +48,19 @@ class EvidenceController() :
 		queue().add(thread.send(f"Ban ID {ban_id} has been updated with new evidence:\n{result.proof}", files=attachments))
 
 	@staticmethod
-	async def create_evidence_entry(ban_id, evidence, interaction, user) :
+	async def create_evidence_entry(ban_id, evidence: discord.Message, interaction, user) :
+		snapshot_message = None
 		attachments = [await a.to_file() for a in evidence.attachments]
 		evidence_channel = interaction.client.get_channel(int(os.getenv("EVIDENCE")))
-		stored = await send_message(evidence_channel, f"Evidence for {ban_id}: \n```{evidence.content}```",
-		                            files=attachments)
+		if evidence.message_snapshots:
+			snapshot_attach = [await a.to_file() for a in evidence.message_snapshots[0].attachments]
+			attachments.extend(snapshot_attach)
+			snapshot_message = evidence.message_snapshots[0].content
+		reason = f"Evidence for {ban_id}: \n```{evidence.content} {f'forwarded: {snapshot_message}' if snapshot_message else ''}```"
+		stored = await send_message(evidence_channel, reason, files=attachments)
 		attachments = [await a.to_file() for a in stored.attachments]
 		attachments_urls = [a.url for a in stored.attachments]
-		result = ProofDbTransactions().add(ban_id=ban_id, user_id=user.id, proof=evidence.content,
+		result = ProofDbTransactions().add(ban_id=ban_id, user_id=user.id, proof=f"{evidence.content} {f'forwarded: {snapshot_message}' if snapshot_message else ''}",
 		                                   attachments=attachments_urls)
 		try:
 			await evidence.delete()
