@@ -197,6 +197,8 @@ class Bans(metaclass=Singleton) :
 		server = Server(guild.id)
 
 		async for banentry in guild.bans(limit=None) :
+			if banentry.user.bot :
+				continue
 			if server.check_ban(banentry.user.id) :
 				continue
 			await self.add_ban(banentry.user.id, guild.id, banentry.reason, guild.owner.name, approved=True)

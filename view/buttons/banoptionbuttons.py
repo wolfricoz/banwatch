@@ -9,6 +9,7 @@ from classes.configer import Configer
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from classes.support.discord_tools import await_message, send_message
+from data.variables.messages import evidence_message_template
 from database.databaseController import ServerDbTransactions
 from view.buttons.banapproval import BanApproval
 
@@ -41,11 +42,8 @@ class BanOptionButtons(View) :
 	@button(label="Share with proof", custom_id="share_with_proof", style=discord.ButtonStyle.success)
 	async def share_with_proof(self, interaction: discord.Interaction, button: button) :
 		guild, user, ban = await self.get_data(interaction)
-		evidence_message = (f"Please send a message with the evidence you would like to add to {user.name}'s record, this will be added to the ban ID {self.wait_id} in our support server. \n Type `cancel` to cancel.\n-# By responding to this message you agree to the evidence being stored in our support server."
-		                    f"\nPlease avoid uploading:"
-		                    f"\n* Personal information (irl information such as a persons name, date of birth, where they live, government documentation, etc)"
-		                    f"\n\n**Do __not__ use forwarded messages, as these are currently not supported.**")
-		evidence = await await_message(interaction, evidence_message)
+
+		evidence = await await_message(interaction, evidence_message_template.format(user=user.name, ban_id=self.wait_id))
 		if evidence is False:
 			return
 		queue().add(self.process(interaction, evidence), priority=2)
@@ -54,6 +52,14 @@ class BanOptionButtons(View) :
 	async def silent(self, interaction: discord.Interaction, button: button) :
 		await self.process(interaction, silent=True)
 
+	@button(label="Silent with proof", custom_id="silent_with_proof", style=discord.ButtonStyle.primary)
+	async def silent_with_proof(self, interaction: discord.Interaction, button: button) :
+		guild, user, ban = await self.get_data(interaction)
+		evidence = await await_message(interaction, evidence_message_template.format(user=user.name, ban_id=self.wait_id))
+		if evidence is False:
+			return
+		queue().add(self.process(interaction, evidence, silent=True), priority=2)
+
 	@button(label="Hide", custom_id="hide", style=discord.ButtonStyle.danger)
 	async def hidden(self, interaction: discord.Interaction, button: button) :
 		await self.process(interaction, hidden=True)
@@ -61,26 +67,32 @@ class BanOptionButtons(View) :
 	async def process(self, interaction, evidence= None, hidden=False, silent=False) :
 		guild, user, ban = await self.get_data(interaction)
 		guild_db = ServerDbTransactions().get(guild.id)
-		checklist_check = await self.check_checklisted_words(ban)
+
 		staff_member: discord.User = await self.get_staff_member(guild, user)
 		message: discord.Message = interaction.message
+		# check is ban has to be hidden
 		if hidden :
 			queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, hidden=True), priority=2)
 			await interaction.response.send_message(f"Ban for {user.mention} has been successfully hidden.", ephemeral=True)
 			await interaction.message.delete()
 			return
-		if user.bot:
+		# Additional check to see if user is a bot; technically not needed.
+		# check if the ban has a checklisted word
+		checklist_check = await self.check_checklisted_words(ban)
+		if user.bot and not checklist_check:
 			checklist_check = "User is a bot"
 		word_count = len(ban.reason.split(" ")) < 4
-		if word_count :
+		if word_count and not checklist_check:
 			checklist_check = "Short ban reason"
 		wait_id = Bans().create_ban_id(user.id, guild.id)
-		if  AccessControl().access_all(user):
+		if  AccessControl().access_all(user) and not checklist_check:
 			checklist_check = "Banwatch Staff Member"
 		if checklist_check  :
 
 			channel = interaction.client.get_channel(int(os.getenv("BANS")))
 			queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=False), priority=2)
+			if evidence :
+				queue().add(self.provide_proof(interaction, evidence), priority=2)
 			queue().add(self.status(interaction.client, guild, user, "waiting_approval", ban.reason, word=checklist_check,
 			                        message=message, silent=silent))
 			embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",

@@ -13,6 +13,7 @@ from classes.queue import queue
 from classes.rpsec import RpSec
 from classes.support.discord_tools import await_message, send_message, send_response
 from classes.tasks import pending_bans
+from data.variables.messages import evidence_message_template
 from database.databaseController import BanDbTransactions, ServerDbTransactions
 
 GUILD = int(os.getenv("GUILD"))
@@ -106,8 +107,7 @@ class staff(commands.GroupCog, name="staff") :
 			return await send_response(interaction, f"This ban already has that status.")
 		user = self.bot.get_user(ban.uid)
 		if provide_proof :
-			evidence_message = f"Please send a message with the evidence you would like to add to {user.name}'s record, this will be added to the ban ID {ban_id} in our support server. \n Type `cancel` to cancel.\n-# By responding to this message you agree to the evidence being stored in our support server.\n\n**Do __not__ use forwarded messages, as these are currently not supported.**"
-			evidence = await await_message(interaction, evidence_message)
+			evidence = await await_message(interaction, evidence_message_template.format(user=user.name, ban_id=ban_id))
 			channel = self.bot.get_channel(int(os.getenv("APPROVED")))
 			await EvidenceController.add_evidence(interaction, evidence, ban_id, user)
 			ban = BanDbTransactions().get(int(ban_id))

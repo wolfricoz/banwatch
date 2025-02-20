@@ -8,6 +8,7 @@ from discord.ext import commands
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from classes.support.discord_tools import await_message, send_response
+from data.variables.messages import evidence_message_template
 from database.databaseController import BanDbTransactions, ProofDbTransactions
 from view.pagination.pagination import Pagination
 
@@ -36,13 +37,8 @@ class Evidence(commands.GroupCog, name="evidence") :
 			            priority=2)
 			return
 		queue().add(send_response(interaction, f"⏳ Processing Evidence, please wait.", ephemeral=True), priority=2)
-		evidence_message = (
-			f"Please send a message with the evidence you would like to add to {user.name}'s record, this will be added to the ban ID {ban_id} in our support server. \n Type `cancel` to cancel.\n-# By responding to this message you agree to the evidence being stored in our support server."
-			f"\nPlease avoid uploading:"
-			f"\n* Personal information (irl information such as a persons name, date of birth, where they live, government documentation, etc)"
-			f"\n* We recommend you blur out any usernames or profile pictures of other users in the evidence for user safety."
-			f"\n\n**Forwarded Messages are now officially supported.**")
-		evidence = await await_message(interaction, evidence_message)
+
+		evidence = await await_message(interaction, evidence_message_template.format(user=user.name, ban_id=ban_id))
 		if evidence is False :
 			return
 		queue().add(EvidenceController.add_evidence(interaction, evidence, ban_id, user), priority=2)
