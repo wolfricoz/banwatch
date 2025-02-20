@@ -80,13 +80,15 @@ class Bans(metaclass=Singleton) :
 			text_bans = '\n'.join([f"{ban.jump_url}" for ban in prev_bans])
 			await send_message(thread, f"Previous bans for {user.name}:"
 			                           f"\n{text_bans}")
-		await send_message(mod_channel,
-			f"Your ban for {user.name} has been approved and has been broadcasted, You can provide the proof by using the `/evidence add user:{user.id}` command here!")
+
 		if not provide_proof :
 			logging.info(f"Approved without proof for {user.name}")
+			await send_message(mod_channel,
+			                   f"Your ban for {user.name} has been **approved** and has been broadcasted, You can provide the proof by using the `/evidence add user:{user.id}` command here!")
 			return
-		guild_owner = guild.owner
-		await send_message(thread, f"To provide evidence of the ban, please use the `/evidence add user:{user.id} ban_id:{wait_id}` command in this thread.")
+		await send_message(mod_channel,
+			f"Your ban for {user.name} has been **verified** and has been broadcasted, You can provide the proof by using the `/evidence add user:{user.id}` command here!")
+		# await send_message(thread, f"To provide evidence of the ban, please use the `/evidence add user:{user.id} ban_id:{wait_id}` command in this thread.")
 		async for p in evidence_channel.history(limit=1000) :
 			if str(wait_id) in p.content :
 				await send_message(thread, p.content, files=[await a.to_file() for a in p.attachments])
