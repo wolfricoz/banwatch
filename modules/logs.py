@@ -168,6 +168,8 @@ class Logging(commands.Cog) :
 	async def appprint(self, interaction: Interaction, commandname: command) :
 		"""logs the app command when finished."""
 		server = interaction.guild
+		if server is None:
+			server = interaction.user
 		user = interaction.user
 		try :
 			logging.debug(

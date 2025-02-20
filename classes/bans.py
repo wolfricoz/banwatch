@@ -83,14 +83,14 @@ class Bans(metaclass=Singleton) :
 			logging.info(f"Approved without proof for {user.name}")
 			return
 		guild_owner = guild.owner
-		await send_message(thread, f"Please provide the proof of the ban here {guild_owner.mention}")
+		await send_message(thread, f"To provide evidence of the ban, please use the `/evidence add user:{user.id} ban_id:{wait_id}` command in this thread.")
 		async for p in evidence_channel.history(limit=1000) :
 			if str(wait_id) in p.content :
 				await send_message(thread, p.content, files=[await a.to_file() for a in p.attachments])
 				await p.delete()
-
-		await guild_owner.send(
-			f"Your ban for {user.name} has been approved and has been broadcasted, please provide the proof of the ban in the thread {thread.mention} in our support server. You can provide the proof by using the /evidence add command in the thread, or by joining our support server (18+).")
+		mod_channel = guild.get_channel(int(await Configer.get(guild.id, "modchannel")))
+		await send_message(mod_channel,
+			f"Your ban for {user.name} has been approved and has been broadcasted, You can provide the proof by using the `/evidence add user:{user.id}` command here!")
 
 	async def check_previous_bans(self, original_message, dev_guild: discord.Guild, user_id) -> list[discord.Message] :
 		ban_record = BanDbTransactions().get_all_user(user_id)
