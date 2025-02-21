@@ -39,3 +39,6 @@ This command is used to kick users from your server.
 
 ### `/export_bans`
 This will give you a text file with all the bans in your server, you can use this to quickly find bans.
+
+### `/copy_bans`
+This will copy the bans from one server you own to another server that you own! This is useful when making a new server and you want to have the same bans.
