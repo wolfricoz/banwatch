@@ -45,11 +45,11 @@ class dev(commands.GroupCog, name="dev") :
 
 		stats = {
 			"servers_total" : ServerDbTransactions().count(),
-			"bans_total"    : BanDbTransactions().count_bans(),
-			"verified_bans" : BanDbTransactions().count_bans(result_type="verified"),
-			"deleted_bans"  : BanDbTransactions().count_bans(result_type="deleted"),
-			"hidden_bans"   : BanDbTransactions().count_bans(result_type="hidden"),
-			"available"     : BanDbTransactions().count_bans(result_type="available"),
+			"bans_total"    : BanDbTransactions().count(),
+			"verified_bans" : BanDbTransactions().count(result_type="verified"),
+			"deleted_bans"  : BanDbTransactions().count(result_type="deleted"),
+			"hidden_bans"   : BanDbTransactions().count(result_type="hidden"),
+			"available"     : BanDbTransactions().count(result_type="available"),
 			"queue-status"  : queue().status()
 		}
 		embed = discord.Embed(title="Banwatch's stats")

@@ -84,7 +84,7 @@ class User(commands.GroupCog, name="user") :
 	@app_commands.checks.has_permissions(ban_members=True)
 	async def checkall(self, interaction: discord.Interaction) :
 		await send_response(interaction,
-		                    f"Checking all users ({len(interaction.guild.members)}), please wait. Looking through {BanDbTransactions().count_bans()} unique bans")
+		                    f"Checking all users ({len(interaction.guild.members)}), please wait. Looking through {BanDbTransactions().count()} unique bans")
 		start = time.time()
 		count = 0
 		count += await BanCheck().checkerall(interaction, self.bot)
