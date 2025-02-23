@@ -24,7 +24,7 @@ class Bans(metaclass=Singleton) :
 	async def update(self, bot, override=False) :
 		"""Updates the ban list"""
 		guild: discord.Guild
-		known_guilds = ServerDbTransactions().get_all_servers()
+		known_guilds = ServerDbTransactions().get_all()
 		for guild in bot.guilds :
 			if guild.id in known_guilds :
 				known_guilds.remove(guild.id)

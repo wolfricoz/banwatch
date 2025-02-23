@@ -19,7 +19,7 @@ class DatabaseTasks(commands.Cog):
     @tasks.loop(hours=2)
     async def delete_old_bans(self):
         bans = BanDbTransactions().get_deleted_bans()
-        servers = ServerDbTransactions().get_deleted_servers()
+        servers = ServerDbTransactions().get_deleted()
         logging.info(f"Checking soft-deleted entries for removal")
         for ban in bans:
             await asyncio.sleep(0.1)

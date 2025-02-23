@@ -44,7 +44,7 @@ class dev(commands.GroupCog, name="dev") :
 			pass
 
 		stats = {
-			"servers_total" : ServerDbTransactions().count_servers(),
+			"servers_total" : ServerDbTransactions().count(),
 			"bans_total"    : BanDbTransactions().count_bans(),
 			"verified_bans" : BanDbTransactions().count_bans(result_type="verified"),
 			"deleted_bans"  : BanDbTransactions().count_bans(result_type="deleted"),

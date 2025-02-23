@@ -31,6 +31,8 @@ class Staff(Base):
     uid: Mapped[int] = mapped_column(BigInteger)
     role: Mapped[str] = mapped_column(String(128))
 
+    def __int__(self):
+        return self.id
 
 class Bans(Base):
     __tablename__ = "bans"
@@ -49,6 +51,8 @@ class Bans(Base):
                                                     cascade="all, save-update, merge, delete, delete-orphan")
     guild: Mapped["Servers"] = relationship("Servers", back_populates="bans")
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None, nullable=True)
+    def __int__(self):
+        return self.ban_id
 
 
 class Proof(Base):
@@ -63,6 +67,8 @@ class Proof(Base):
     def get_attachments(self):
         return json.loads(self.attachments)
 
+    def __int__(self):
+        return self.id
 
 class Servers(Base):
     __tablename__ = "servers"
@@ -76,6 +82,8 @@ class Servers(Base):
     deleted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=None, nullable=True)
     bans: Mapped[List["Bans"]] = relationship("Bans", back_populates="guild", cascade="save-update, merge, delete, delete-orphan")
 
+    def __int__(self):
+        return self.id
 
 class Appeals(Base) :
     __tablename__ = "appeals"
@@ -85,6 +93,9 @@ class Appeals(Base) :
     status: Mapped[str] = mapped_column(Enum('approved', 'pending', 'denied', name='status_enum'), nullable=False,
                                         default='pending')
     ban: Mapped["Bans"] = relationship("Bans", back_populates="appeals", )
+
+    def __int__(self):
+        return self.id
 
 
 

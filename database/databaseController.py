@@ -58,12 +58,25 @@ class DatabaseTransactions() :
 
 class ServerDbTransactions(DatabaseTransactions) :
 
-	def exist(self, guild_id: int) :
+	def exists(self, guild_id: int)  -> object:
+		"""Check if the server exists in the database.
+		@param guild_id:
+		@return:
+		"""
 		return session.query(exists().where(Servers.id == guild_id)).scalar()
 
 	def add(self, guild_id: int, owner: str, name: str, member_count: int, invite: str | None) -> Servers | bool :
+		"""
+		Add a server to the database.
+		@param guild_id:
+		@param owner:
+		@param name:
+		@param member_count:
+		@param invite:
+		@return:
+		"""
 		logging.info(f"Adding entry to server table with data: {guild_id}, {owner}, {name}, {member_count}, {invite}")
-		if self.exist(guild_id) :
+		if self.exists(guild_id) :
 			# Call the update function
 			self.update(guild_id, owner, name, member_count, invite, delete=False)
 			return False
@@ -114,7 +127,7 @@ class ServerDbTransactions(DatabaseTransactions) :
 	def delete_permanent(self, server: int | Type[Servers]) -> bool :
 		if isinstance(server, int) :
 			server = self.get(server)
-		logging.info(f"Permanently removing {server.id}")
+		logging.info(f"Permanently removing {server}")
 		if not server :
 			return False
 		session.delete(server)
@@ -127,13 +140,13 @@ class ServerDbTransactions(DatabaseTransactions) :
 			        session.query(Bans.uid).filter(and_(Bans.gid == guild_id, Bans.deleted_at.is_(None))).all()]
 		return session.query(Bans).join(Servers).filter(and_(Bans.gid == guild_id, Bans.hidden == False, Bans.deleted_at.is_(None), Servers.deleted_at.is_(None))).all()
 
-	def get_all_servers(self) :
+	def get_all(self) :
 		return [sid[0] for sid in session.query(Servers.id).filter(and_(Servers.deleted_at.is_(None))).all()]
 
-	def get_deleted_servers(self) :
+	def get_deleted(self) :
 		return session.query(Servers).filter(Servers.deleted_at.isnot(None)).all()
 
-	def count_servers(self) :
+	def count(self) :
 		return session.execute(text("SELECT count(*) FROM servers")).scalar()
 
 	def is_hidden(self, guild_id: int) :

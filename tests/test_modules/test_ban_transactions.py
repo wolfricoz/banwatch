@@ -3,11 +3,15 @@ import unittest
 import database.databaseController
 from database.current import create_bot_database, drop_bot_database
 from database.databaseController import session
+from database.factories.ban import BanFactory
+from database.factories.guild import ServerFactory
 
 
 class TestDatabaseOperations(unittest.TestCase) :
 	guild_id = 395614061393477632
 	user_id = 188647277181665280
+	server_controller = database.databaseController.ServerDbTransactions()
+	ban_controller = database.databaseController.BanDbTransactions()
 
 	def setUp(self) :
 		create_bot_database()
@@ -19,16 +23,14 @@ class TestDatabaseOperations(unittest.TestCase) :
 	def test_add_ban(self) :
 		guild_id = self.guild_id
 		user_id = self.user_id
-		server_controller = database.databaseController.ServerDbTransactions()
-		ban_controller = database.databaseController.BanDbTransactions()
 
 		# Ensure the guild exists in the servers table
-		server_controller.add(guild_id, "owner", "server_name", 100, "invite")
+		self.server_controller.add(guild_id, "owner", "server_name", 100, "invite")
 
 		# Now add the ban
-		ban = ban_controller.add(user_id, guild_id, "reason", "staff")
+		ban = self.ban_controller.add(user_id, guild_id, "reason", "staff")
 		self.assertEqual(ban.ban_id, user_id + guild_id)
-		ban = ban_controller.add(user_id, guild_id, "reason", "staff")
+		ban = self.ban_controller.add(user_id, guild_id, "reason", "staff")
 		self.assertFalse(ban)
 		session.rollback()
 
@@ -47,6 +49,12 @@ class TestDatabaseOperations(unittest.TestCase) :
 		self.assertIsNotNone(assert_entry)
 		self.assertEqual(assert_entry.ban_id, user_id + guild_id)
 		session.rollback()
+
+	def test_soft_delete_ban(self) :
+		ServerFactory().create()
+		ban = BanFactory().create()
+		self.ban_controller.delete_soft(ban.ban_id)
+		self.assertIsNone(self.ban_controller.get(ban.ban_id))
 
 	def test_delete_ban(self) :
 		guild_id = self.guild_id
