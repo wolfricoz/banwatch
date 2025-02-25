@@ -281,7 +281,7 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 
 class ProofDbTransactions(DatabaseTransactions) :
 
-	def exist(self, ban_id: int) :
+	def exists(self, ban_id: int) :
 		return session.scalar(Select(Proof).where(Proof.ban_id == ban_id))
 
 	def add(self, ban_id: int, user_id: int, proof: str, attachments: list[str]) -> Proof | bool :
@@ -342,12 +342,13 @@ class AppealsDbTransactions(DatabaseTransactions) :
 	def exist(self, ban_id: int) -> Appeals | None :
 		return session.scalar(Select(Appeals).where(Appeals.ban_id == ban_id))
 
-	def add(self, ban_id: int, message: str, status="pending") -> bool | Type[Appeals] :
+	def add(self, ban_id: int, message: str, status="pending") -> bool | Type[Appeals] | Appeals :
 		if self.exist(ban_id) :
 			return False
 		appeal = Appeals(ban_id=ban_id, message=message, status=status)
 		session.add(appeal)
 		self.commit(session)
+		return appeal
 
 	def change_status(self, ban_id, status) :
 		appeal: Appeals = self.get(ban_id)
@@ -355,3 +356,4 @@ class AppealsDbTransactions(DatabaseTransactions) :
 			return False
 		appeal.status = status
 		self.commit(session)
+		return True

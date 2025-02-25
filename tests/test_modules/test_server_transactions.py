@@ -5,7 +5,7 @@ from database.current import create_bot_database, drop_bot_database
 from database.databaseController import session
 
 
-class TestDatabaseOperations(unittest.TestCase) :
+class TestServerDatabaseOperations(unittest.TestCase) :
 	guild_id = 395614061393477632
 	user_id = 188647277181665280
 

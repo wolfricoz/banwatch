@@ -7,7 +7,7 @@ from database.factories.ban import BanFactory
 from database.factories.guild import ServerFactory
 
 
-class TestDatabaseOperations(unittest.TestCase) :
+class TestBanDatabaseOperations(unittest.TestCase) :
 	guild_id = 395614061393477632
 	user_id = 188647277181665280
 	server_controller = database.databaseController.ServerDbTransactions()

@@ -34,24 +34,24 @@ class AccessControl(metaclass=Singleton) :
 		logging.info("Staff information has been reloaded:")
 		logging.info(self.staff)
 
-	def access_owner(self, user) -> bool :
-		return True if user.id == int(os.getenv('OWNER')) else False
+	def access_owner(self, user_id: int) -> bool :
+		return True if user_id == int(os.getenv('OWNER')) else False
 
-	def access_all(self, user) -> bool :
-		return True if user.id in self.staff.get('dev', []) or user.id in self.staff.get('rep', []) else False
+	def access_all(self, user_id: int) -> bool :
+		return True if user_id in self.staff.get('dev', []) or user_id in self.staff.get('rep', []) else False
 
-	def access_dev(self, user) -> bool :
-		return True if user.id in self.staff.get('dev', []) else False
+	def access_dev(self, user_id: int) -> bool :
+		return True if user_id in self.staff.get('dev', []) else False
 
 	def check_access(self, role="") -> T :
 		def pred(interaction: discord.Interaction) -> bool:
 			match role.lower() :
 				case "owner" :
-					return self.access_owner(interaction.user)
+					return self.access_owner(interaction.user.id)
 				case "dev" :
-					return self.access_dev(interaction.user)
+					return self.access_dev(interaction.user.id)
 				case _ :
-					return self.access_all(interaction.user)
+					return self.access_all(interaction.user.id)
 		return app_commands.check(pred)
 
 	def check_blacklist(self):

@@ -14,3 +14,4 @@ error.txt
 countbans.txt
 /.idea/
 /settings/
+/tests/test.db
