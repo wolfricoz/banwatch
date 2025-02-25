@@ -171,7 +171,7 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 				self.local_cache[str(ban.uid)] = {}
 			self.local_cache[str(ban.uid)][str(ban.ban_id)] = data
 
-	def exist(self, ban_id: int, remove_deleted: bool = False) -> bool :
+	def exists(self, ban_id: int, remove_deleted: bool = False) -> bool :
 		ban = session.scalar(Select(Bans).where(Bans.ban_id == ban_id))
 		if ban is not None and ban.deleted_at and remove_deleted :
 			self.delete_permanent(ban_id)
@@ -181,7 +181,7 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 	def add(self, uid: int, gid: int, reason: str, staff: str, approved: bool = False, verified: bool = False,
 	        hidden: bool = False, remove_deleted: bool = False) -> Bans | bool :
 		logging.info(f"Adding ban {uid} in {gid} with reason {reason} by {staff}")
-		if self.exist(uid + gid, remove_deleted=remove_deleted) :
+		if self.exists(uid + gid, remove_deleted=remove_deleted) :
 			return False
 		ban = Bans(ban_id=uid + gid, uid=uid, gid=gid, reason=reason, approved=approved, verified=verified, hidden=hidden,
 		           staff=staff, deleted_at=None)
@@ -207,7 +207,7 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 		return session.scalars(
 			Select(Bans).join(Servers).where(and_(Bans.deleted_at.is_(None), Bans.hidden.is_(False), Bans.approved.is_(True), Servers.deleted_at.is_(None), Servers.hidden.is_(False)))).all()
 
-	def count_bans(self, result_type="all") :
+	def count(self, result_type="all") :
 		"""
 		This function takes: available, approved, hidden, and deleted as result type, leave empty for all bans
 		:param result_type:
