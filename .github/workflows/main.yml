@@ -16,11 +16,6 @@ jobs:
           MYSQL_USER: root
           MYSQL_PASSWORD: ""
           MYSQL_ROOT_PASSWORD: ""
-        options: >-
-          --health-cmd "mysqladmin ping --silent"
-          --health-interval 20s
-          --health-timeout 10s
-          --health-retries 10
 
     env:
       DATABASE_URL: mysql://root@localhost:3306/test_db
