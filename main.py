@@ -20,6 +20,7 @@ from database.databaseController import ServerDbTransactions
 from view.buttons.serverinfo import ServerInfo
 
 # LOADS THE .ENV FILE THAT RESIDES ON THE SAME LEVEL AS THE SCRIPT.
+
 load_dotenv('main.env')
 # GRAB THE API TOKEN FROM THE .ENV FILE.
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
