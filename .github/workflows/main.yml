@@ -14,11 +14,8 @@ jobs:
         env:
           MYSQL_DATABASE: test_db
           MYSQL_USER: root
-          MYSQL_PASSWORD: ""
-          MYSQL_ROOT_PASSWORD: ""
-
-    env:
-      DATABASE_URL: mysql://root@localhost:3306/test_db
+          MYSQL_PASSWORD: root
+          MYSQL_ROOT_PASSWORD: root
 
     steps:
     - name: Checkout code
