@@ -16,7 +16,6 @@ jobs:
           MYSQL_PASSWORD: password
           MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "yes"
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -u bot -p password"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
