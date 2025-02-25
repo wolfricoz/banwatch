@@ -12,12 +12,12 @@ jobs:
         ports:
           - 3306:3306
         env:
-          MYSQL_DATABASE: test_db
-          MYSQL_USER: root
-          MYSQL_PASSWORD: root
-          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: banwatchtest
+          MYSQL_USER: bot
+          MYSQL_PASSWORD: password
+          MYSQL_ROOT_PASSWORD: ""
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -p root"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u bot -p password"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
