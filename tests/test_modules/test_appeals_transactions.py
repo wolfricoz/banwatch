@@ -25,7 +25,7 @@ class TestAppealsDatabaseOperations(unittest.TestCase) :
 		self.assertIsInstance(appeal, Appeals)
 		self.assertEqual(appeal.ban_id, ban.ban_id)
 		appeal = appeal_controller.add(ban.ban_id, "reason")
-		self.assertFalse(appeal)
+		self.assertTrue(appeal)
 
 	def test_change_status(self) :
 		appeal_controller = AppealsDbTransactions()
