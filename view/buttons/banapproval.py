@@ -74,7 +74,7 @@ class BanApproval(View) :
 			return
 		await Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, False)
 
-	@discord.ui.button(label="Inform Server", style=discord.ButtonStyle.danger, custom_id="custom_ID")
+	@discord.ui.button(label="Inform Server", style=discord.ButtonStyle.primary, custom_id="custom_ID")
 	async def evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		reason = await send_modal(interaction, confirmation="Thank you for providing a reason",
 		                          title="What evidence do we require?")
@@ -93,7 +93,7 @@ class BanApproval(View) :
 		await send_message(modchannel, embed=embed)
 		await send_response(interaction, f"Server has been notified with reason:\n{reason}")
 
-	@discord.ui.button(label="Hide Ban", style=discord.ButtonStyle.danger, custom_id="deny_broadcast")
+	@discord.ui.button(label="Hide & Inform", style=discord.ButtonStyle.danger, custom_id="deny_broadcast")
 	async def hide(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		deny_reason = await send_modal(interaction, confirmation="Thank you for providing a reason", title="Denial Reason", max_length=1000)
 		if self.bot is None or self.wait_id is None :
@@ -113,12 +113,37 @@ class BanApproval(View) :
 		denial_channel = self.bot.get_channel(self.bot.DENIALCHANNEL)
 		banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
 		                         description=f"{reason}")
-		banembed.set_footer(text=f"Denied: {deny_reason}")
+		banembed.set_footer(text=f"Ban Hidden: {deny_reason}")
 		BanDbTransactions().update(self.wait_id, approved=True, hidden=True)
 		await self.update_embed(interaction, "hide")
 		await denial_channel.send(embed=banembed)
 		await mod_channel.send(embed=banembed)
-		await interaction.followup.send(f"Denied: \n `{deny_reason}`", ephemeral=True)
+		await interaction.followup.send(f"Ban Hidden: \n `{deny_reason}`", ephemeral=True)
+
+	@discord.ui.button(label="Hide Ban", style=discord.ButtonStyle.danger, custom_id="deny_silent")
+	async def hidesilent(self, interaction: discord.Interaction, button: discord.ui.Button) :
+		if self.bot is None or self.wait_id is None :
+			await interaction.followup.send("Error: The bot has restarted, the data of this button was lost", ephemeral=True)
+			return
+		ban_entry = BanDbTransactions().get(self.wait_id, override=True)
+		if ban_entry is None :
+			await interaction.followup.send("Ban not found", ephemeral=True)
+			return
+		guildid = ban_entry.gid
+		userid = ban_entry.uid
+		reason = ban_entry.reason
+		guild = self.bot.get_guild(guildid)
+		owner = guild.owner
+		user = await self.bot.fetch_user(userid)
+		mod_channel = guild.get_channel(int(await Configer.get(guild.id, "modchannel")))
+		denial_channel = self.bot.get_channel(self.bot.DENIALCHANNEL)
+		banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
+		                         description=f"{reason}")
+		banembed.set_footer(text=f"Ban Hidden")
+		BanDbTransactions().update(self.wait_id, approved=True, hidden=True)
+		await self.update_embed(interaction, "hide")
+		await denial_channel.send(embed=banembed)
+		await mod_channel.send(embed=banembed)
 
 	async def update_embed(self, interaction, action="verify") :
 		self.update_buttons(action)
