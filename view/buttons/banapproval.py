@@ -32,12 +32,8 @@ class BanApproval(View) :
 		if len(ban_entry.proof) < 1 :
 			await interaction.followup.send("No evidence found, please add evidence and try again", ephemeral=True)
 			return
-		guildid = ban_entry.gid
-		userid = ban_entry.uid
-		reason = ban_entry.reason
-		guild = self.bot.get_guild(guildid)
+		guild, user, reason = await self.get_ban_data(ban_entry)
 		owner = guild.owner
-		user = await self.bot.fetch_user(userid)
 		banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
 		                         description=f"{reason}")
 		banembed.add_field(name="Banwatch Verified", value="This ban was verified by banwatch staff")
@@ -57,12 +53,8 @@ class BanApproval(View) :
 		if ban_entry is None :
 			await interaction.followup.send("Ban not found", ephemeral=True)
 			return
-		guildid = ban_entry.gid
-		userid = ban_entry.uid
-		reason = ban_entry.reason
-		guild = self.bot.get_guild(guildid)
+		guild, user, reason = await self.get_ban_data(ban_entry)
 		owner = guild.owner
-		user = await self.bot.fetch_user(userid)
 		banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
 		                         description=f"{reason}")
 		banembed.set_footer(text=f"Server Invite: {ban_entry.guild.invite} Server Owner: {owner} ban ID: {self.wait_id} ")
@@ -103,12 +95,8 @@ class BanApproval(View) :
 		if ban_entry is None :
 			await interaction.followup.send("Ban not found", ephemeral=True)
 			return
-		guildid = ban_entry.gid
-		userid = ban_entry.uid
-		reason = ban_entry.reason
-		guild = self.bot.get_guild(guildid)
+		guild, user, reason = await self.get_ban_data(ban_entry)
 		owner = guild.owner
-		user = await self.bot.fetch_user(userid)
 		mod_channel = guild.get_channel(int(await Configer.get(guild.id, "modchannel")))
 		denial_channel = self.bot.get_channel(self.bot.DENIALCHANNEL)
 		banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
@@ -129,12 +117,8 @@ class BanApproval(View) :
 		if ban_entry is None :
 			await interaction.followup.send("Ban not found", ephemeral=True)
 			return
-		guildid = ban_entry.gid
-		userid = ban_entry.uid
-		reason = ban_entry.reason
-		guild = self.bot.get_guild(guildid)
+		guild, user, reason = await self.get_ban_data(ban_entry)
 		owner = guild.owner
-		user = await self.bot.fetch_user(userid)
 		mod_channel = guild.get_channel(int(await Configer.get(guild.id, "modchannel")))
 		denial_channel = self.bot.get_channel(self.bot.DENIALCHANNEL)
 		banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
@@ -151,6 +135,10 @@ class BanApproval(View) :
 		embed.set_footer(text=f"action `{action}` was performed by {interaction.user}")
 		embed.add_field(name="Banwatch ID", value=self.wait_id, inline=False)
 		await interaction.message.edit(embed=interaction.message.embeds[0], view=self)
+
+
+	async def get_ban_data(self, ban_entry):
+		return self.bot.get_guild(ban_entry.gid), await self.bot.fetch_user(ban_entry.uid), ban_entry.reason
 
 	def update_buttons(self, selected) :
 		self.hide.disabled = True
