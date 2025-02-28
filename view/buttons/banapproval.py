@@ -3,8 +3,9 @@ from discord.ui import View
 
 from classes.bans import Bans
 from classes.configer import Configer
+from classes.evidence import EvidenceController
 from classes.support.discord_tools import send_message, send_response
-from database.databaseController import BanDbTransactions
+from database.databaseController import BanDbTransactions, ProofDbTransactions
 from view.modals.inputmodal import send_modal
 
 
@@ -66,8 +67,8 @@ class BanApproval(View) :
 			return
 		await Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, False)
 
-	@discord.ui.button(label="Inform Server", style=discord.ButtonStyle.primary, custom_id="custom_ID")
-	async def evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
+	@discord.ui.button(label="Inform Server", style=discord.ButtonStyle.primary, custom_id="request_evidence")
+	async def request_evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		reason = await send_modal(interaction, confirmation="Thank you for providing a reason",
 		                          title="What evidence do we require?")
 		if not reason :
@@ -84,6 +85,17 @@ class BanApproval(View) :
 		embed.add_field(name=f"Request reason", value=reason)
 		await send_message(modchannel, embed=embed)
 		await send_response(interaction, f"Server has been notified with reason:\n{reason}")
+
+	@discord.ui.button(label="view evidence", style=discord.ButtonStyle.primary, custom_id="view_evidence")
+	async def view_evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
+		ban_entry = BanDbTransactions().get(self.wait_id, override=True)
+		if ban_entry is None :
+			await interaction.followup.send("Ban not found", ephemeral=True)
+			return
+		guild, user, reason = await self.get_ban_data(ban_entry)
+		user_id = user.id
+		entries = ProofDbTransactions().get(user_id=user_id)
+		await EvidenceController().send_proof(interaction, entries, user_id)
 
 	@discord.ui.button(label="Hide & Inform", style=discord.ButtonStyle.danger, custom_id="deny_broadcast")
 	async def hide(self, interaction: discord.Interaction, button: discord.ui.Button) :
