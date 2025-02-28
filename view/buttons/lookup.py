@@ -1,34 +1,27 @@
-import io
-import logging
-import re
-
 import discord
-import requests
 from discord.ext import commands
 from discord.ui import View
 
 from classes.evidence import EvidenceController
-from classes.support.discord_tools import ban_member, send_message, send_response
-from database.current import Proof
-from database.databaseController import BanDbTransactions, ProofDbTransactions
+from classes.support.discord_tools import send_message
+from database.databaseController import ProofDbTransactions
 
 
 class LookUp(View) :
 	bot = None
 
-	def __init__(self, user_id = None) :
+	def __init__(self, user_id=None) :
 		super().__init__(timeout=None)
-		if not user_id:
+		if not user_id :
 			return
 		entries = ProofDbTransactions().get(user_id=user_id)
-		if not entries:
+		if not entries :
 			self.evidence.disabled = True
-
 
 	async def send_message(self, bot: commands.Bot, channel: discord.TextChannel, sr,
 	                       user: discord.Member | discord.User, excess=True, override=False) :
 		if len(sr) <= 0 or not sr :
-			nfembed = discord.Embed(title=f"{user.name}({user.id})'s ban history.",description="No bans found.")
+			nfembed = discord.Embed(title=f"{user.name}({user.id})'s ban history.", description="No bans found.")
 			await send_message(channel, embed=nfembed)
 			return
 		characters = 0
@@ -50,7 +43,8 @@ class LookUp(View) :
 				'%m/%d/%Y') if ban.message else 'pre-banwatch, please check with server owner.'
 			embed.add_field(name=f"{guild.name} ({ban.guild.invite}) (ban_id: {ban.ban_id})",
 			                value=f"{ban.reason}\n"
-			                      f"verified: {'Yes' if ban.verified else 'No'}, date: {created_at}{f', {staff_data}' if override else ''}" , inline=False)
+			                      f"verified: {'Yes' if ban.verified else 'No'}, date: {created_at}{f', {staff_data}' if override else ''}",
+			                inline=False)
 		sr = "\n".join(bans)
 
 		if len(sr) == 0 :
@@ -70,18 +64,3 @@ class LookUp(View) :
 		user_id = await self.get_user_id(interaction)
 		entries = ProofDbTransactions().get(user_id=user_id)
 		await EvidenceController().send_proof(interaction, entries, user_id)
-
-	async def retrieve_proof(self, evidence: Proof) :
-		"""Gets image from discord CDN and then creates a discord.File"""
-		if len(evidence.get_attachments()) <= 0 :
-			return None
-		attachments = []
-		for i, url in enumerate(evidence.get_attachments()) :
-			response = requests.get(url, stream=True)
-			if response.status_code != 200 :
-				continue
-			image_data = io.BytesIO(response.content)
-			image_data.seek(0)
-			attachments.append(discord.File(image_data, filename=f"image_{i}.jpg"))
-		return attachments
-
