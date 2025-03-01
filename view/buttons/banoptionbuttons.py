@@ -85,7 +85,7 @@ class BanOptionButtons(View) :
 		if word_count and not checklist_check:
 			checklist_check = "Short ban reason"
 		wait_id = Bans().create_ban_id(user.id, guild.id)
-		if  AccessControl().access_all(user) and not checklist_check:
+		if  AccessControl().access_all(user.id) and not checklist_check:
 			checklist_check = "Banwatch Staff Member"
 		if checklist_check  :
 

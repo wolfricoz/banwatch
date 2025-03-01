@@ -33,14 +33,14 @@ class ServerInfo(View) :
 
 	@discord.ui.button(label="Approve", style=discord.ButtonStyle.success, custom_id="approve")
 	async def approve_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
-		if not AccessControl().access_dev(interaction.user) :
+		if not AccessControl().access_dev(interaction.user.id) :
 			return await send_response(interaction, "Only developers may use this button")
 		await send_response(interaction, "Approved Server")
 		await interaction.message.delete()
 
 	@discord.ui.button(label="Leave", style=discord.ButtonStyle.success, custom_id="Leave")
 	async def leave_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
-		if not AccessControl().access_dev(interaction.user) :
+		if not AccessControl().access_dev(interaction.user.id) :
 			return await send_response(interaction, "Only developers may use this button")
 		embed = interaction.message.embeds[0]
 		guild = interaction.client.get_guild(int(embed.footer.text))
@@ -49,8 +49,8 @@ class ServerInfo(View) :
 		await interaction.message.delete()
 
 	@discord.ui.button(label="Leave & Blacklist", style=discord.ButtonStyle.success, custom_id="Leave_blacklist")
-	async def blacklist_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
-		if not AccessControl().access_dev(interaction.user) :
+	async def blacklist_button(self, interaction: discord.Interaction, button: discord.ui.Button.id) :
+		if not AccessControl().access_dev(interaction.user.id) :
 			return await send_response(interaction, "Only developers may use this button")
 		embed = interaction.message.embeds[0]
 		guild = interaction.client.get_guild(int(embed.footer.text))

@@ -62,7 +62,7 @@ class Pagination(View):
     async def delete(self, interaction: discord.Interaction, button: button):
         await interaction.response.defer()
 
-        if interaction.guild.id != self.data[self.current_page].ban.gid and not AccessControl().access_all(interaction.user):
+        if interaction.guild.id != self.data[self.current_page].ban.gid and not AccessControl().access_all(interaction.user.id):
             await interaction.followup.send("Evidence may only be removed by the original server or banwatch staff.", ephemeral=True)
             return
 

@@ -147,7 +147,7 @@ class staff(commands.GroupCog, name="staff") :
 	@app_commands.command(name="amistaff", description="[DEV] check if you're a banwatch staff member.")
 	async def amistaff(self, interaction: discord.Interaction) :
 		return await send_response(interaction, "You are a staff member" if AccessControl().access_all(
-			interaction.user) else "You are not a staff member")
+			interaction.user.id) else "You are not a staff member")
 
 	@app_commands.command(name="calculate_banid", description="Calculates the ban id with user id and guild id")
 	@AccessControl().check_access()
