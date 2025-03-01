@@ -49,7 +49,7 @@ class ServerInfo(View) :
 		await interaction.message.delete()
 
 	@discord.ui.button(label="Leave & Blacklist", style=discord.ButtonStyle.success, custom_id="Leave_blacklist")
-	async def blacklist_button(self, interaction: discord.Interaction, button: discord.ui.Button.id) :
+	async def blacklist_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		if not AccessControl().access_dev(interaction.user.id) :
 			return await send_response(interaction, "Only developers may use this button")
 		embed = interaction.message.embeds[0]
