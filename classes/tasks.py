@@ -11,8 +11,9 @@ from view.buttons.banapproval import BanApproval
 
 
 async def pending_bans(bot, revoked=False):
-    bans: Bans = BanDbTransactions().get_all(override=True)
+    bans = BanDbTransactions().get_all(override=True)
     channel = bot.get_channel(bot.BANCHANNEL)
+    ban: Bans
 
     if revoked:
         await send_message(channel, "fetching pending bans after revoking ban")
