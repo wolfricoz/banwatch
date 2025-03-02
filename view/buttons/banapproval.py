@@ -137,7 +137,7 @@ class BanApproval(View) :
 		                         description=f"{reason}")
 		banembed.set_footer(text=f"Ban Hidden")
 		BanDbTransactions().update(self.wait_id, approved=True, hidden=True)
-		await self.update_embed(interaction, "hide")
+		await self.update_embed(interaction, "hidesilent")
 		await denial_channel.send(embed=banembed)
 		await mod_channel.send(embed=banembed)
 
@@ -154,17 +154,22 @@ class BanApproval(View) :
 
 	def update_buttons(self, selected) :
 		self.hide.disabled = True
-		self.evidence.disabled = True
+		self.view_evidence.disabled = True
+		self.request_evidence.disabled = True
 		self.approve_no_proof.disabled = True
 		self.verify.disabled = True
 
 		self.hide.style = discord.ButtonStyle.gray
-		self.evidence.style = discord.ButtonStyle.gray
+		self.request_evidence.style = discord.ButtonStyle.gray
+		self.view_evidence.style = discord.ButtonStyle.gray
 		self.approve_no_proof.style = discord.ButtonStyle.gray
 		self.verify.style = discord.ButtonStyle.gray
+		self.hidesilent = discord.ButtonStyle.gray
 		match selected :
 			case "hide" :
 				self.hide.style = discord.ButtonStyle.success
+			case "hidesilent" :
+				self.hidesilent.style = discord.ButtonStyle.success
 			case "approve" :
 				self.approve_no_proof.style = discord.ButtonStyle.success
 			case "verify" :
