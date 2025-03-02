@@ -15,6 +15,7 @@ from classes.bans import Bans
 from classes.blacklist import blacklist_check
 from classes.configer import Configer
 from classes.queue import queue
+from classes.tasks import pending_bans
 from database.current import create_bot_database
 from database.databaseController import ServerDbTransactions
 from view.buttons.serverinfo import ServerInfo
@@ -86,6 +87,7 @@ async def on_ready() :
 	bot.add_view(ServerInfo())
 	logging.info(f"Commands synced, start up done! Connected to {guild_count} guilds and {bot.shard_count} shards.")
 	queue().add(bot.tree.sync())
+	queue().add(pending_bans(bot), priority=0)
 
 
 @bot.event
