@@ -207,6 +207,10 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 		return session.scalars(
 			Select(Bans).join(Servers).where(and_(Bans.deleted_at.is_(None), Bans.hidden.is_(False), Bans.approved.is_(True), Servers.deleted_at.is_(None), Servers.hidden.is_(False)))).all()
 
+	def get_all_pending(self):
+		return session.scalars(
+			Select(Bans).join(Servers).where(and_(Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None), Servers.hidden.is_(False)))).all()
+
 	def count(self, result_type="all") :
 		"""
 		This function takes: available, approved, hidden, and deleted as result type, leave empty for all bans

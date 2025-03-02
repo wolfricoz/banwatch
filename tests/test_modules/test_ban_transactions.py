@@ -2,7 +2,7 @@ import unittest
 
 import database.databaseController
 from database.current import create_bot_database, drop_bot_database
-from database.databaseController import session
+from database.databaseController import ServerDbTransactions, session
 from database.factories.ban import BanFactory
 from database.factories.guild import ServerFactory
 
@@ -64,6 +64,14 @@ class TestBanDatabaseOperations(unittest.TestCase) :
 		self.ban_controller.update(bans[0].ban_id, hidden=True)
 		self.assertEqual(len(self.ban_controller.get_all()), 9)
 
+	def test_get_pending_bans(self) :
+		bans = BanFactory().create(amount=10, approved=False)
+		self.ban_controller.update(bans[0].ban_id, hidden=True)
+		bans = BanFactory().create(amount=10, approved=False)
+		self.assertEqual(len(self.ban_controller.get_all_pending()), 19)
+		ServerDbTransactions().update(bans[0].gid, hidden=True)
+		self.assertEqual(len(self.ban_controller.get_all_pending()), 9)
+
 	def test_get_all_user(self):
 		guild1 = ServerFactory().create()
 		guild2 = ServerFactory().create()
@@ -81,7 +89,7 @@ class TestBanDatabaseOperations(unittest.TestCase) :
 
 	def test_ban_exists(self) :
 		ban = BanFactory().create()
-		self.assertNotEquals(self.ban_controller.exists(ban.ban_id), False)
+		self.assertNotEqual(self.ban_controller.exists(ban.ban_id), False)
 
 	def test_soft_delete_ban(self) :
 		ServerFactory().create()

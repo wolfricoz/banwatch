@@ -11,7 +11,7 @@ from view.buttons.banapproval import BanApproval
 
 
 async def pending_bans(bot, revoked=False):
-    bans = BanDbTransactions().get_all(override=True)
+    bans = BanDbTransactions().get_all_pending()
     channel = bot.get_channel(bot.BANCHANNEL)
     ban: Bans
 

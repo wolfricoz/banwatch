@@ -1,11 +1,10 @@
 import logging
 import os
-from typing import T
 
 import discord
 from discord import app_commands
 
-from classes.blacklist import blacklist_check
+
 from classes.configer import Configer
 from classes.singleton import Singleton
 from database.databaseController import StaffDbTransactions
@@ -43,7 +42,7 @@ class AccessControl(metaclass=Singleton) :
 	def access_dev(self, user_id: int) -> bool :
 		return True if user_id in self.staff.get('dev', []) else False
 
-	def check_access(self, role="") -> T :
+	def check_access(self, role="") :
 		def pred(interaction: discord.Interaction) -> bool:
 			match role.lower() :
 				case "owner" :
