@@ -158,13 +158,14 @@ class BanApproval(View) :
 		self.request_evidence.disabled = True
 		self.approve_no_proof.disabled = True
 		self.verify.disabled = True
+		self.hidesilent.disabled = True
 
 		self.hide.style = discord.ButtonStyle.gray
 		self.request_evidence.style = discord.ButtonStyle.gray
 		self.view_evidence.style = discord.ButtonStyle.gray
 		self.approve_no_proof.style = discord.ButtonStyle.gray
 		self.verify.style = discord.ButtonStyle.gray
-		self.hidesilent = discord.ButtonStyle.gray
+		self.hidesilent.style = discord.ButtonStyle.gray
 		match selected :
 			case "hide" :
 				self.hide.style = discord.ButtonStyle.success
