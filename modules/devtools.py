@@ -1,4 +1,6 @@
 import asyncio
+from datetime import datetime
+
 import discord
 import os
 import re
@@ -15,6 +17,7 @@ from classes.support.discord_tools import get_all_threads, send_message, send_re
 from classes.tasks import pending_bans
 from database.databaseController import BanDbTransactions, ServerDbTransactions, StaffDbTransactions
 from view.modals.inputmodal import send_modal
+from discord.utils import get
 
 OWNER = int(os.getenv("OWNER"))
 GUILD = int(os.getenv("GUILD"))
@@ -159,12 +162,16 @@ class dev(commands.GroupCog, name="dev") :
 
 		evidence_channel: discord.TextChannel = dev_guild.get_channel(int(os.getenv("EVIDENCE")))
 		print(f"evidence_channel: {evidence_channel}")
+		backupsection = get(backup_guild.categories, name="backup")
+		if backupsection is None :
+			backupsection = await backup_guild.create_category_channel("backup",
+			                                                           overwrites={backup_guild.default_role: discord.PermissionOverwrite(read_messages=False)})
 
-		backupbans: discord.TextChannel = backup_guild.get_channel(int(os.getenv("BACKUP_BANS")))
+		# Instead of static channels, we will now make channels when the bot is ran.
+		backupbans = await backup_guild.create_text_channel(f"bans-{datetime.now().strftime("%m-%d-%Y")}", category=backupsection)
 		print(f"backupbans: {backupbans}")
+		backupevidence = await backup_guild.create_text_channel(f"evidence-{datetime.now().strftime("%m-%d-%Y")}", category=backupsection)
 
-		backupevidence: discord.TextChannel = backup_guild.get_channel(int(os.getenv("BACKUP_EVIDENCE")))
-		print(f"backupevidence: {backupevidence}")
 		if None in (dev_guild, backup_guild, ban_channel, evidence_channel, backupbans, backupevidence) :
 			return await send_response(interaction, "Failed to load variables")
 		ban_history = ban_channel.history(limit=10000)
@@ -174,11 +181,11 @@ class dev(commands.GroupCog, name="dev") :
 			queue().add(
 				backupbans.send(f"BACKUP {message.created_at.strftime('%m/%d/%Y')}: {message.content}",
 				                files=[await attachment.to_file() for attachment in message.attachments],
-				                embeds=message.embeds))
+				                embeds=message.embeds), 0)
 		async for message in evidence_history :
 			queue().add(
 				backupevidence.send(message.content, files=[await attachment.to_file() for attachment in message.attachments],
-				                    embeds=message.embeds))
+				                    embeds=message.embeds), 0)
 
 	async def find_ban_id(self, history, ban_id) :
 		try :
