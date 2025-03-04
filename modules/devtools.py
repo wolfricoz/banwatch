@@ -168,7 +168,7 @@ class dev(commands.GroupCog, name="dev") :
 			                                                           overwrites={backup_guild.default_role: discord.PermissionOverwrite(read_messages=False)})
 
 		# Instead of static channels, we will now make channels when the bot is ran.
-		backupbans = await backup_guild.create_text_channel(f"bans-{datetime.now().strftime("%m-%d-%Y")}", category=backupsection)
+		backupbans = await backup_guild.create_text_channel(f"bans-{datetime.now().strftime('%m-%d-%Y')}", category=backupsection)
 		print(f"backupbans: {backupbans}")
 		backupevidence = await backup_guild.create_text_channel(f"evidence-{datetime.now().strftime("%m-%d-%Y")}", category=backupsection)
 
