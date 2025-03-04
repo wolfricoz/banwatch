@@ -170,7 +170,7 @@ class dev(commands.GroupCog, name="dev") :
 		# Instead of static channels, we will now make channels when the bot is ran.
 		backupbans = await backup_guild.create_text_channel(f"bans-{datetime.now().strftime('%m-%d-%Y')}", category=backupsection)
 		print(f"backupbans: {backupbans}")
-		backupevidence = await backup_guild.create_text_channel(f"evidence-{datetime.now().strftime("%m-%d-%Y")}", category=backupsection)
+		backupevidence = await backup_guild.create_text_channel(f"evidence-{datetime.now().strftime('%m-%d-%Y')}", category=backupsection)
 
 		if None in (dev_guild, backup_guild, ban_channel, evidence_channel, backupbans, backupevidence) :
 			return await send_response(interaction, "Failed to load variables")
@@ -179,7 +179,7 @@ class dev(commands.GroupCog, name="dev") :
 		bans = BanDbTransactions().get_all(override=True)
 		async for message in ban_history :
 			queue().add(
-				backupbans.send(f"BACKUP {message.created_at.strftime('%m/%d/%Y')}: {message.content}",
+				backupbans.send(f"{message.content}",
 				                files=[await attachment.to_file() for attachment in message.attachments],
 				                embeds=message.embeds), 0)
 		async for message in evidence_history :
