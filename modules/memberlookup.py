@@ -61,9 +61,9 @@ class User(commands.GroupCog, name="user") :
 			ban = BanDbTransactions().get(int(ban_id), override=override)
 			if ban is None :
 				return await send_response(interaction, "Ban not found.")
+			user = await self.bot.fetch_user(ban.uid)
 			await send_response(interaction, "⌛ Fetching bans, please wait.", ephemeral=True)
 			view: LookUp = LookUp(user_id=user.id)
-			user = await self.bot.fetch_user(ban.uid)
 			await view.send_message(interaction.client, interaction.channel, [ban], user, override=override)
 			return
 		logging.info(f"{interaction.user} from {interaction.guild.name} is looking up {user.name}")

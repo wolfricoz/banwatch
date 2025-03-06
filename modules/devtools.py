@@ -174,8 +174,8 @@ class dev(commands.GroupCog, name="dev") :
 
 		if None in (dev_guild, backup_guild, ban_channel, evidence_channel, backupbans, backupevidence) :
 			return await send_response(interaction, "Failed to load variables")
-		ban_history = ban_channel.history(limit=10000)
-		evidence_history = evidence_channel.history(limit=10000)
+		ban_history = ban_channel.history(limit=None, oldest_first=True)
+		evidence_history = evidence_channel.history(limit=None, oldest_first=True)
 		bans = BanDbTransactions().get_all(override=True)
 		async for message in ban_history :
 			queue().add(
