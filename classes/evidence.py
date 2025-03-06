@@ -30,13 +30,20 @@ class EvidenceController() :
 		del evidence
 		ban_entry, embed = await Bans().find_ban_record(interaction.client, ban_id)
 		result: Proof
+		guild = interaction.client.get_guild(ban.gid)
+
 		if ban.approved is False or ban.hidden is True :
 			approval_channel = int(os.getenv('BANS'))
 			channel = interaction.client.get_channel(approval_channel)
+			user = await interaction.client.fetch_user(ban.uid)
+			embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})", description=f"{ban.reason}")
+			embed.add_field(name="status", value=f"Approved: {'yes' if ban.approved else 'no'}, hidden: {'yes' if ban.hidden else 'no'}, verified: {'yes' if ban.verified else 'no'}", inline=False)
+			embed.set_footer(text=f"Ban ID: {ban_id}")
+			# could potentially add buttons to this?
 			queue().add(send_message(channel,
 			                         f"Ban ID {ban_id} has been updated with new evidence:\n"
 			                         f"{result.proof}\n\n"
-			                         f"{'**This ban is currently hidden, use /staff banvisibility ban_id: hide: if you wish to edit visibility status**' if ban.hidden else ''}", files=attachments))
+			                         f"{'**This ban is currently hidden, use /staff banvisibility ban_id: hide: if you wish to edit visibility status**' if ban.hidden else ''}", files=attachments, embed=embed))
 			return
 		if ban_entry is None :
 			logging.info(f"pre-banwatch ban {ban_id} added evidence: {result.id}")
