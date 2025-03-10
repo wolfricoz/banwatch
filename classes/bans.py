@@ -259,7 +259,6 @@ class Bans(metaclass=Singleton) :
 		BanDbTransactions().delete_soft(user_id + guild_id)
 
 	async def change_ban_approval_status(self, ban_id: int, status: bool, verified=False) :
-		print(verified)
 		BanDbTransactions().update(ban_id, approved=status, verified=verified)
 
 	async def get_user_bans(self, user_id) :

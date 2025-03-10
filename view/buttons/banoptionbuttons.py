@@ -108,6 +108,8 @@ class BanOptionButtons(View) :
 		if evidence :
 			queue().add(self.provide_proof(interaction, evidence), priority=2)
 		if silent :
+			await send_response(interaction, f"Ban silently stored for {user.mention}! Other servers may see it when a user joins but it will not be broadcasted.", ephemeral=True)
+			await interaction.message.delete()
 			return
 		embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
 		                      description=f"{ban.reason}")

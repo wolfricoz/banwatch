@@ -19,6 +19,7 @@ from classes.tasks import pending_bans
 from database.current import create_bot_database
 from database.databaseController import ServerDbTransactions
 from view.buttons.serverinfo import ServerInfo
+from random import randint
 
 # LOADS THE .ENV FILE THAT RESIDES ON THE SAME LEVEL AS THE SCRIPT.
 load_dotenv('main.env')
@@ -34,7 +35,7 @@ create_bot_database()
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
-bot = commands.AutoShardedBot(command_prefix=PREFIX, case_insensitive=False, intents=intents, shard_id=1)
+bot = commands.AutoShardedBot(command_prefix=PREFIX, case_insensitive=False, intents=intents, shard_id=randint, shard_count=3)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 	loop = asyncio.get_event_loop()
@@ -173,3 +174,4 @@ async def run() :
 		await bot.start(DISCORD_TOKEN)
 	except KeyboardInterrupt :
 		quit(0)
+

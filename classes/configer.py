@@ -229,7 +229,7 @@ class Configer(ABC):
         if os.path.exists(config_path):
             with open(config_path) as f:
                 data = json.load(f)
-                if userid in data["user_blacklist"]:
+                if userid in data.get("user_blacklist", []):
                     return True
 
 
