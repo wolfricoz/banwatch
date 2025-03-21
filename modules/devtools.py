@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime
+from typing import Coroutine
 
 import discord
 import os
@@ -7,15 +8,17 @@ import re
 from discord import app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
-from sqlalchemy.testing.plugin.plugin_base import logging
+import logging
 
 from classes.access import AccessControl
 from classes.bans import Bans
 from classes.configer import Configer
+from classes.evidence import EvidenceController
 from classes.queue import queue
 from classes.support.discord_tools import get_all_threads, send_message, send_response
 from classes.tasks import pending_bans
-from database.databaseController import BanDbTransactions, ServerDbTransactions, StaffDbTransactions
+from database.databaseController import BanDbTransactions, DatabaseTransactions, ServerDbTransactions, \
+	StaffDbTransactions
 from view.modals.inputmodal import send_modal
 from discord.utils import get
 
@@ -149,7 +152,7 @@ class dev(commands.GroupCog, name="dev") :
 
 	@app_commands.command(name="backup")
 	@AccessControl().check_access("dev")
-	async def copy(self, interaction: discord.Interaction) :
+	async def copy(self, interaction: discord.Interaction, evidence_only: bool = False) :
 		await send_response(interaction, "Backup Started", ephemeral=True)
 		dev_guild: discord.Guild = self.bot.get_guild(int(os.getenv("GUILD")))
 		print(f"dev_guild: {dev_guild}")
@@ -165,38 +168,101 @@ class dev(commands.GroupCog, name="dev") :
 		backupsection = get(backup_guild.categories, name="backup")
 		if backupsection is None :
 			backupsection = await backup_guild.create_category_channel("backup",
-			                                                           overwrites={backup_guild.default_role: discord.PermissionOverwrite(read_messages=False)})
+			                                                           overwrites={
+				                                                           backup_guild.default_role : discord.PermissionOverwrite(
+					                                                           read_messages=False)})
+
+		pending_removal: list[Coroutine] = [channel.delete() for channel in backupsection.channels]
 
 		# Instead of static channels, we will now make channels when the bot is ran.
-		backupbans = await backup_guild.create_text_channel(f"bans-{datetime.now().strftime('%m-%d-%Y')}", category=backupsection)
-		print(f"backupbans: {backupbans}")
-		backupevidence = await backup_guild.create_text_channel(f"evidence-{datetime.now().strftime('%m-%d-%Y')}", category=backupsection)
 
-		if None in (dev_guild, backup_guild, ban_channel, evidence_channel, backupbans, backupevidence) :
-			return await send_response(interaction, "Failed to load variables")
+		backupevidence = await backup_guild.create_text_channel(f"evidence-{datetime.now().strftime('%m-%d-%Y')}",
+		                                                        category=backupsection)
 		ban_history = ban_channel.history(limit=None, oldest_first=True)
 		evidence_history = evidence_channel.history(limit=None, oldest_first=True)
 		bans = BanDbTransactions().get_all(override=True)
+		async for message in evidence_history :
+			if message.content.startswith("Evidence") is False :
+				continue
+			queue().add(
+				backupevidence.send(message.content, files=[await attachment.to_file() for attachment in message.attachments],
+				                    embeds=message.embeds), 0)
+		for channel in pending_removal :
+			await channel
+		if evidence_only is False :
+			return
+		backupbans = await backup_guild.create_text_channel(f"bans-{datetime.now().strftime('%m-%d-%Y')}",
+		                                                    category=backupsection)
 		async for message in ban_history :
+			if len(message.embeds) < 1 :
+				continue
 			queue().add(
 				backupbans.send(f"{message.content}",
 				                files=[await attachment.to_file() for attachment in message.attachments],
 				                embeds=message.embeds), 0)
-		async for message in evidence_history :
-			queue().add(
-				backupevidence.send(message.content, files=[await attachment.to_file() for attachment in message.attachments],
-				                    embeds=message.embeds), 0)
 
-	async def find_ban_id(self, history, ban_id) :
+	@app_commands.command(name="rebuild_evidence")
+	@AccessControl().check_access("dev")
+	async def rebuild_evidence(self, interaction: discord.Interaction, channel: discord.TextChannel, log: bool = False) :
+		await send_response(interaction, "Rebuilding evidence channel", ephemeral=True)
+
+		DatabaseTransactions().truncate("proof")
+		evidence_history = channel.history(limit=None, oldest_first=True)
+		async for message in evidence_history :
+			if message.content.startswith("Evidence") is False :
+				continue
+			try :
+				id = int(message.content.replace(":", "").split(" ")[2])
+			except :
+				logging.warning(f"Failed to extract id from {message.content}")
+				continue
+			ban = BanDbTransactions().get(id, override=True)
+			if ban is None :
+				continue
+			try :
+				match = re.search(r"```(.*?)```", message.content, flags=re.DOTALL).group(1)
+				message.content = match
+			except :
+				logging.warning(f"Failed to extract message content from {message.content}")
+				message.content = ""
+
+			queue().add(EvidenceController.create_evidence_entry(ban.ban_id, message, interaction, int(ban.uid), log_evidence=log), priority=0)
+			queue().add(send_message(interaction.channel, "Rebuilding evidence complete"), priority=0)
+
+	@app_commands.command(name="rebuild_bans")
+	@AccessControl().check_access("dev")
+	async def rebuild_bans(self, interaction: discord.Interaction, channel: discord.TextChannel = None) :
+		if channel is None :
+			channel = interaction.client.get_channel(int(os.getenv("APPROVED")))
+
+		await send_response(interaction, "Rebuilding bans channel", ephemeral=True)
+
+		DatabaseTransactions().truncate("bans")
+		await self.find_ban_id(channel)
+		await interaction.followup.send(f"Rebuilding bans channel complete", ephemeral=True)
+
+	async def find_ban_id(self, channel) :
+		history = channel.history(limit=None, oldest_first=True)
 		try :
 			async for message in history :
 				if len(message.embeds) < 1 :
+					logging.info(f"Message {message.id} has no embeds ({len(message.embeds)})")
 					continue
 				embed = message.embeds[0]
-				match = re.search(r'ban ID: (\w+)', embed.footer.text)
-				if match :
-					BanDbTransactions().update(ban_id, message=message.id, created_at=message.created_at)
-					return
+				try:
+					match = re.search(r'ban ID: (\d+)', embed.footer.text)
+				except:
+					match = None
+				if not match :
+					logging.warning(f"Failed to extract ban id from {embed.footer.text}")
+					continue
+				ban_id = int(match.group(1))
+				ban = BanDbTransactions().get(ban_id, override=True)
+				if ban is None :
+					logging.warning(f"Ban ID {ban_id} not found in database")
+					continue
+				BanDbTransactions().update(ban_id, message=message.id, created_at=message.created_at if not ban.created_at else ban.created_at)
+
 		except discord.NotFound :
 			pass
 

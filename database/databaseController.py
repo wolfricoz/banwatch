@@ -55,6 +55,13 @@ class DatabaseTransactions() :
 	def refresh(self) :
 		session.expire_all()
 
+	def truncate(self, table: str) :
+		if table not in ['proof'] :
+			return False
+
+		session.execute(text(f"TRUNCATE TABLE {table}"))
+		self.commit(session)
+
 
 class ServerDbTransactions(DatabaseTransactions) :
 
