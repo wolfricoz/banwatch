@@ -227,7 +227,7 @@ class dev(commands.GroupCog, name="dev") :
 				message.content = ""
 
 			queue().add(EvidenceController.create_evidence_entry(ban.ban_id, message, interaction, int(ban.uid), log_evidence=log), priority=0)
-			queue().add(send_message(interaction.channel, "Rebuilding evidence complete"), priority=0)
+		queue().add(send_message(interaction.channel, "Rebuilding evidence complete"), priority=0)
 
 	@app_commands.command(name="rebuild_bans")
 	@AccessControl().check_access("dev")
