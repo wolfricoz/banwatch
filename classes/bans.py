@@ -209,7 +209,7 @@ class Bans(metaclass=Singleton) :
 		queue().add(server.remove_missing_ids(), priority=0)
 		logging.info(f"Found {count} new bans in {guild.name}({guild.id})")
 
-	async def check_guild_invites(self, bot: commands.Bot, guild: discord.Guild) :
+	async def check_guild_invites(self, bot: commands.AutoShardedBot, guild: discord.Guild) :
 		guild_record = ServerDbTransactions().get(guild.id)
 		invite: None | discord.Invite = None
 		if guild_record and guild_record.invite :

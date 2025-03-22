@@ -65,14 +65,15 @@ class DatabaseTransactions() :
 
 class ServerDbTransactions(DatabaseTransactions) :
 
-	def exists(self, guild_id: int)  -> object:
+	def exists(self, guild_id: int) -> object :
 		"""Check if the server exists in the database.
 		@param guild_id:
 		@return:
 		"""
 		return session.query(exists().where(Servers.id == guild_id)).scalar()
 
-	def add(self, guild_id: int, owner: str, name: str, member_count: int, invite: str | None) -> Servers | bool :
+	def add(self, guild_id: int, owner: str, name: str, member_count: int, invite: str | None,
+	        active: bool = True) -> Servers | bool :
 		"""
 		Add a server to the database.
 		@param guild_id:
@@ -87,13 +88,13 @@ class ServerDbTransactions(DatabaseTransactions) :
 			# Call the update function
 			self.update(guild_id, owner, name, member_count, invite, delete=False)
 			return False
-		guild = Servers(id=guild_id, owner=owner, name=name, member_count=member_count, invite=invite)
+		guild = Servers(id=guild_id, owner=owner, name=name, member_count=member_count, invite=invite, active=active)
 		session.add(guild)
 		self.commit(session)
 		return guild
 
 	def update(self, guild_id: int, owner: str = None, name: str = None, member_count: int = None, invite: str = None,
-	           delete: bool = None, hidden: bool = None) -> Servers | bool :
+	           delete: bool = None, hidden: bool = None, active: bool = None) -> Servers | bool :
 
 		guild = session.scalar(Select(Servers).where(Servers.id == guild_id))
 		if not guild :
@@ -105,7 +106,8 @@ class ServerDbTransactions(DatabaseTransactions) :
 			'invite'       : invite,
 			'deleted_at'   : datetime.now() if delete else None if delete is False else guild.deleted_at,
 			'updated_at'   : datetime.now(),
-			'hidden'       : hidden
+			'hidden'       : hidden,
+			'active'       : active
 		}
 
 		for field, value in updates.items() :
@@ -145,7 +147,8 @@ class ServerDbTransactions(DatabaseTransactions) :
 		if uid_only :
 			return [uid[0] for uid in
 			        session.query(Bans.uid).filter(and_(Bans.gid == guild_id, Bans.deleted_at.is_(None))).all()]
-		return session.query(Bans).join(Servers).filter(and_(Bans.gid == guild_id, Bans.hidden == False, Bans.deleted_at.is_(None), Servers.deleted_at.is_(None))).all()
+		return session.query(Bans).join(Servers).filter(
+			and_(Bans.gid == guild_id, Bans.hidden == False, Bans.deleted_at.is_(None), Servers.deleted_at.is_(None))).all()
 
 	def get_all(self) :
 		return [sid[0] for sid in session.query(Servers.id).filter(and_(Servers.deleted_at.is_(None))).all()]
@@ -200,23 +203,29 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 		if override :
 			return session.scalar(Select(Bans).where(Bans.ban_id == ban_id))
 		return session.query(Bans).join(Servers).outerjoin(Proof).filter(
-			and_(Bans.ban_id == ban_id, Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None), Servers.hidden.is_(False))).first()
+			and_(Bans.ban_id == ban_id, Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None),
+			     Servers.hidden.is_(False))).first()
 
 	def get_all_user(self, user_id, override=False) :
 		if override :
 			return session.scalars(Select(Bans).where(Bans.uid == user_id)).all()
 		return session.query(Bans).join(Servers).filter(
-			and_(Bans.uid == user_id, Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None), Bans.approved.is_(True), Servers.hidden.is_(False))).all()
+			and_(Bans.uid == user_id, Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None),
+			     Bans.approved.is_(True), Servers.hidden.is_(False))).all()
 
 	def get_all(self, override=False) :
 		if override :
 			return session.scalars(Select(Bans).join(Servers)).all()
 		return session.scalars(
-			Select(Bans).join(Servers).where(and_(Bans.deleted_at.is_(None), Bans.hidden.is_(False), Bans.approved.is_(True), Servers.deleted_at.is_(None), Servers.hidden.is_(False)))).all()
+			Select(Bans).join(Servers).where(
+				and_(Bans.deleted_at.is_(None), Bans.hidden.is_(False), Bans.approved.is_(True), Servers.deleted_at.is_(None),
+				     Servers.hidden.is_(False)))).all()
 
-	def get_all_pending(self):
+	def get_all_pending(self) :
 		return session.scalars(
-			Select(Bans).join(Servers).where(and_(Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None), Servers.hidden.is_(False)))).all()
+			Select(Bans).join(Servers).where(
+				and_(Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None),
+				     Servers.hidden.is_(False)))).all()
 
 	def count(self, result_type="all") :
 		"""

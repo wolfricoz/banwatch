@@ -125,10 +125,12 @@ async def on_guild_join(guild: discord.Guild) -> None :
 	# Updates ban list
 	logging.info(f"{guild} joined, refreshing ban list")
 	ServerDbTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), "")
+	ServerDbTransactions().update(guild.id, active=True)
 	await Bans().check_guild_invites(bot, guild)
 	queue().add(Bans().update(bot), priority=0)
 	approval_channel = bot.get_guild(int(os.getenv("GUILD"))).get_channel(int(os.getenv("BANS")))
 	queue().add(ServerInfo().send(approval_channel, guild), priority=2)
+
 
 
 @bot.event
@@ -137,6 +139,9 @@ async def on_guild_remove(guild) :
 	await log.send(f"left {guild}({guild.id}) :(. Ban watch is now in {len(bot.guilds)}")
 	logging.info(f"{guild} left, refreshing ban list")
 	await Bans().update(bot)
+	ServerDbTransactions().update(guild.id, active=False)
+
+
 
 
 # cogloader

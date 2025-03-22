@@ -89,6 +89,7 @@ class Servers(Base) :
 	deleted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=None, nullable=True)
 	bans: Mapped[List["Bans"]] = relationship("Bans", back_populates="guild",
 	                                          cascade="save-update, merge, delete, delete-orphan")
+	active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 	def __int__(self) :
 		return self.id
