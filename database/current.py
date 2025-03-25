@@ -108,6 +108,15 @@ class Appeals(Base) :
 		return self.id
 
 
+class Config(Base) :
+	# Reminder to self you can add multiple keys in this database
+	__tablename__ = "config"
+	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+	guild: Mapped[int] = mapped_column(BigInteger, ForeignKey("servers.id", ondelete="CASCADE"))
+	key: Mapped[str] = mapped_column(String(512), primary_key=True)
+	value: Mapped[str] = mapped_column(String(1980))
+
+
 def create_bot_database() :
 	Base.metadata.create_all(engine)
 

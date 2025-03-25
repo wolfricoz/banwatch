@@ -12,6 +12,7 @@ from discord.app_commands import AppCommandError, CheckFailure, command
 from discord.ext import commands
 from dotenv import load_dotenv
 
+from classes.configdata import KeyNotFound
 from classes.support.discord_tools import NoChannelException, NoMessagePermissionException
 
 load_dotenv('main.env')
@@ -125,6 +126,8 @@ class Logging(commands.Cog) :
 			return await self.on_fail_message(interaction, "You do not have permission.")
 		if isinstance(error.original, NoMessagePermissionException) :
 			return
+		if isinstance(error.original, KeyNotFound):
+			return await self.on_fail_message(interaction, error.original.__str__())
 		if isinstance(error.original, NoChannelException) :
 			return await self.on_fail_message(interaction,
 			                                  "No channel set or does not exist, check the config or fill in the required arguments.")

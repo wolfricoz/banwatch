@@ -13,6 +13,7 @@ from fastapi import FastAPI
 from api import bans_router
 from classes.bans import Bans
 from classes.blacklist import blacklist_check
+from classes.configdata import ConfigData
 from classes.configer import Configer
 from classes.queue import queue
 from classes.tasks import pending_bans
@@ -65,16 +66,16 @@ async def on_ready() :
 	guild_count = 0
 	guilds = []
 	# LOOPS THROUGH ALL THE GUILD / SERVERS THAT THE BOT IS ASSOCIATED WITH.
-	await Configer.create_appeals()
 	await Configer.create_bot_config()
+	await ConfigData().migrate()
 	logging.info("Finished creating configs")
 	queue().add(Bans().update(bot))
 	logging.info("Configs and cache created")
 	for guild in bot.guilds :
 		# add invites
 		# logging.info THE SERVER'S ID AND NAME.
+		ConfigData().load_guild(guild.id)
 		guilds.append(f"- {guild.id} (name: {guild.name}, owner: {guild.owner}({guild.owner.id}))")
-		await Configer.create(guild.id, guild.name)
 		if await blacklist_check(guild, devroom) :
 			continue
 		bot.tree.clear_commands(guild=guild)
