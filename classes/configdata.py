@@ -2,7 +2,6 @@
 import json
 import logging
 import os
-from abc import ABC, abstractmethod
 
 from classes.singleton import Singleton
 from database.databaseController import ConfigDbTransactions

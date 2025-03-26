@@ -3,6 +3,7 @@ import logging
 from discord.ext import commands
 
 from classes.bans import Bans
+from classes.configdata import ConfigData
 from classes.configer import Configer
 from view.buttons.lookup import LookUp
 
@@ -16,7 +17,7 @@ class Events(commands.Cog):
     async def on_member_join(self, member):
         """Checks if user is banned"""
         bot = self.bot
-        config = await Configer.get(member.guild.id, "modchannel")
+        config = ConfigData().get_key(member.guild.id, "modchannel")
         configid = int(config)
         channel = bot.get_channel(configid)
         sr = await Bans().get_user_bans(member.id)

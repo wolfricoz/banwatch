@@ -142,11 +142,10 @@ class Configer(ABC):
                 data = json.load(f)
                 data[key] = value
             with open(f"configs/{guildid}.json", 'w') as f:
-                json.dump(data, f, indent=4)
+                json.dump(data, f.name, indent=4)
             await interaction.followup.send(f"Config key **{key}** changed to **{value}**")
 
-    @staticmethod
-    @abstractmethod
+
     async def get(guildid, key):
         """Gets a value from the config"""
         if os.path.exists(f"configs/{guildid}.json"):

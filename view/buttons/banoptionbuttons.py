@@ -5,7 +5,7 @@ from discord.ui import View, button
 
 from classes.access import AccessControl
 from classes.bans import Bans
-from classes.configer import Configer
+from classes.configdata import ConfigData
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from classes.support.discord_tools import await_message, send_message, send_response
@@ -108,7 +108,9 @@ class BanOptionButtons(View) :
 		if evidence :
 			queue().add(self.provide_proof(interaction, evidence), priority=2)
 		if silent :
-			await send_response(interaction, f"Ban silently stored for {user.mention}! Other servers may see it when a user joins but it will not be broadcasted.", ephemeral=True)
+			await send_response(interaction,
+			                    f"Ban silently stored for {user.mention}! Other servers may see it when a user joins but it will not be broadcasted.",
+			                    ephemeral=True)
 			await interaction.message.delete()
 			return
 		embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
@@ -125,7 +127,7 @@ class BanOptionButtons(View) :
 
 	async def check_checklisted_words(self, ban) :
 		found = None
-		checklist: list = await Configer.get_checklist()
+		checklist: list = ConfigData().get_key_checklist()
 		if checklist :
 			for word in checklist :
 				if word.lower() in ban.reason.lower() :
@@ -141,7 +143,7 @@ class BanOptionButtons(View) :
 
 	async def verification_notification(self, banreason, bot, guild, user, word, message: discord.Message = None,
 	                                    silent=False) :
-		modchannel_id = await Configer.get(guild.id, "modchannel")
+		modchannel_id = ConfigData().get_key(guild.id, "modchannel")
 		modchannel = bot.get_channel(int(modchannel_id))
 		supportguild = bot.get_guild(bot.SUPPORTGUILD)
 		support_invite = await Bans().create_invite(supportguild)
@@ -160,7 +162,7 @@ class BanOptionButtons(View) :
 	async def status(self, bot, guild, user: discord.User, status="queued", banreason=None, word=None, message=None,
 	                 silent=False) :
 		"""informs user is the ban has been approved or is in queue"""
-		modchannel = await Configer.get(guild.id, "modchannel")
+		modchannel = ConfigData().get_key(guild.id, "modchannel")
 		channel = bot.get_channel(int(modchannel))
 		if status == "waiting_approval" :
 			await self.verification_notification(banreason, bot, guild, user, word=word, message=message, silent=silent)

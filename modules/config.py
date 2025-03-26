@@ -1,6 +1,8 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
+
+from classes.configdata import ConfigData
 from classes.configer import Configer
 from discord.app_commands import Choice
 
@@ -22,13 +24,13 @@ class config(commands.GroupCog, name="config"):
         await interaction.response.defer(ephemeral=True)
         match option.value:
             case "mod":
-                await Configer.change(interaction.guild.id, interaction, channel.id, "modchannel")
+                await ConfigData().add_key(interaction, "modchannel", channel.id)
 
     @app_commands.command(name="appeals", description="[CONFIG COMMAND] turn on/off ban appeals")
     @app_commands.checks.has_permissions(manage_guild=True)
     async def command(self, interaction: discord.Interaction, allow: bool):
         await interaction.response.defer(ephemeral=True)
-        await Configer.change(interaction.guild.id, interaction, allow, "allow_appeals")
+        await ConfigData().add_key(interaction, "allow_appeals", allow)
 
     @app_commands.command(name="visibility", description="[Config Command] Allows you to hide all bans from banwatch")
     @app_commands.checks.has_permissions(manage_guild=True)

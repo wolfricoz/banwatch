@@ -12,6 +12,7 @@ import logging
 
 from classes.access import AccessControl
 from classes.bans import Bans
+from classes.configdata import ConfigData
 from classes.configer import Configer
 from classes.evidence import EvidenceController
 from classes.queue import queue
@@ -33,8 +34,8 @@ class dev(commands.GroupCog, name="dev") :
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
 
-	async def inform_server(self, guilds, banembed) :
-		config = await Configer.get(guilds.id, "modchannel")
+	async def inform_server(self, guild, banembed) :
+		config = ConfigData().get_key(guild.id, "modchannel")
 		modchannel = self.bot.get_channel(int(config))
 		await modchannel.send(embed=banembed)
 
@@ -79,7 +80,7 @@ class dev(commands.GroupCog, name="dev") :
 		for guild in self.bot.guilds :
 			await asyncio.sleep(1)
 			try :
-				config = await Configer.get(guild.id, "modchannel")
+				config = ConfigData().get_key(guild.id, "modchannel")
 				configid = int(config)
 				channel = self.bot.get_channel(configid)
 				await channel.send(announcement)

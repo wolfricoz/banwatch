@@ -2,6 +2,7 @@ import discord
 from discord.ui import View
 
 from classes.bans import Bans
+from classes.configdata import ConfigData
 from classes.configer import Configer
 from classes.evidence import EvidenceController
 from classes.support.discord_tools import send_message, send_response
@@ -78,7 +79,7 @@ class BanApproval(View) :
 			return await send_response(interaction, "Ban not found")
 		guild: discord.Guild = interaction.client.get_guild(ban_entry.gid)
 		user: discord.User = await interaction.client.fetch_user(ban_entry.uid)
-		modchannel = guild.get_channel(await Configer.get(guild.id, "modchannel"))
+		modchannel = guild.get_channel(ConfigData().get_key(guild.id, "modchannel"))
 
 		content = f"The banwatch team requests that you add more evidence to user {user}({user.id}), you can do this by joining our support guild or by using `/evidence add user:{user.id}`."
 		embed = discord.Embed(title=f"Evidence request for ban {ban_entry.ban_id}", description=content)
@@ -109,7 +110,7 @@ class BanApproval(View) :
 			return
 		guild, user, reason = await self.get_ban_data(ban_entry)
 		owner = guild.owner
-		mod_channel = guild.get_channel(int(await Configer.get(guild.id, "modchannel")))
+		mod_channel = guild.get_channel(int(ConfigData().get_key(guild.id, "modchannel")))
 		denial_channel = self.bot.get_channel(self.bot.DENIALCHANNEL)
 		banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
 		                         description=f"{reason}")
@@ -131,7 +132,7 @@ class BanApproval(View) :
 			return
 		guild, user, reason = await self.get_ban_data(ban_entry)
 		owner = guild.owner
-		mod_channel = guild.get_channel(int(await Configer.get(guild.id, "modchannel")))
+		mod_channel = guild.get_channel(int(ConfigData().get_key(guild.id, "modchannel")))
 		denial_channel = self.bot.get_channel(self.bot.DENIALCHANNEL)
 		banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
 		                         description=f"{reason}")

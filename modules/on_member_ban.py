@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 
 from classes.bans import Bans
+from classes.configdata import ConfigData
 from classes.configer import Configer
 from classes.queue import queue
 from classes.support.discord_tools import send_message
@@ -57,7 +58,7 @@ class BanEvents(commands.Cog) :
 			logging.info("Migrated ban, not prompting")
 			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name,)
 
-		mod_channel = bot.get_channel(int(await Configer.get(guild.id, "modchannel")))
+		mod_channel = bot.get_channel(int(ConfigData().get_key(guild.id, "modchannel")))
 		# check if ban has to be hidden
 		if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(ban.reason).lower().startswith('[hidden]'):
 			logging.info("silent or hidden ban/no reason, not prompting")

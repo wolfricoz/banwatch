@@ -9,6 +9,7 @@ from discord.ext import commands
 from classes.access import AccessControl
 from classes.autocorrect import autocomplete_appeal
 from classes.bans import Bans
+from classes.configdata import ConfigData
 from classes.configer import Configer
 from classes.support.discord_tools import send_message, send_response
 from database.databaseController import AppealsDbTransactions, BanDbTransactions
@@ -27,7 +28,7 @@ class Appeals(commands.GroupCog, name="appeal") :
 	@app_commands.autocomplete(guild=autocomplete_appeal)
 	@AccessControl().check_blacklist()
 	async def create(self, interaction: discord.Interaction, guild: str) :
-		appeals_allowed = await Configer.get(int(guild), "allow_appeals")
+		appeals_allowed = ConfigData().get_key_or_none(int(guild), "allow_appeals")
 		if appeals_allowed is False or appeals_allowed is None :
 			return await send_response(interaction, "This server does not allow appeals.")
 		if guild.lower() == "none" :
@@ -39,7 +40,7 @@ class Appeals(commands.GroupCog, name="appeal") :
 			return await send_response(interaction, "You have already appealed to this server.")
 		reason = await inputmodal.send_modal(interaction, "Your appeal has been sent to the moderators of the server.")
 		guild = self.bot.get_guild(int(guild))
-		config = await Configer.get(guild.id, "modchannel")
+		config = ConfigData().get_key(guild.id, "modchannel")
 		modchannel = self.bot.get_channel(int(config))
 		if AppealsDbTransactions().add(ban_id, reason) is False :
 			return send_message(interaction.channel, f"Entry for {ban_id} already exists; you've likely already applied.")
@@ -55,7 +56,7 @@ class Appeals(commands.GroupCog, name="appeal") :
 		if guild.lower() == "none" :
 			await interaction.response.send_message("No bans to report", ephemeral=True)
 			return
-		appeals_allowed = await Configer.get(int(guild), "allow_appeals")
+		appeals_allowed = ConfigData().get_key_or_none(int(guild), "allow_appeals")
 		if appeals_allowed is not False or appeals_allowed is not None :
 			appeal = AppealsDbTransactions().exist(interaction.user.id + int(guild))
 			if not appeal:

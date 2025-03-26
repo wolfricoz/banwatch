@@ -6,6 +6,7 @@ import re
 import discord
 from discord.ext import commands
 
+from classes.configdata import ConfigData
 from classes.configer import Configer
 from classes.queue import queue
 from classes.rpsec import RpSec
@@ -39,8 +40,7 @@ class Bans(metaclass=Singleton) :
 		return user_id + guild_id
 
 	async def inform_server(self, bot, guilds, banembed, ban_id) :
-		config = await Configer.get(guilds.id, "modchannel")
-		modchannel = bot.get_channel(int(config))
+		modchannel = bot.get_channel(ConfigData().get_key(guilds.id, "modchannel"))
 		options = BanInform(ban_class=Bans(), ban_id=ban_id)
 		queue().add(modchannel.send(embed=banembed, view=options), priority=0)
 
@@ -67,7 +67,7 @@ class Bans(metaclass=Singleton) :
 		rpsec = dev_guild.get_thread(RpSec.get_user(user.id))
 		evidence_channel = bot.get_channel(bot.BANCHANNEL)
 		wait_id = guild.id + user.id
-		mod_channel = guild.get_channel(int(await Configer.get(guild.id, "modchannel")))
+		mod_channel = guild.get_channel(int(ConfigData().get_key(guild.id, "modchannel")))
 
 		thread = await approved_message.create_thread(name=f"Ban Information for {user.name}")
 		logging.info(f"Created thread {thread.name} in {thread.guild.name}")
@@ -109,7 +109,7 @@ class Bans(metaclass=Singleton) :
 
 	async def create_invite(self, guild: discord.Guild) :
 		try :
-			config = await Configer.get(guild.id, "modchannel")
+			config = ConfigData().get_key(guild.id, "modchannel")
 			invite = await guild.get_channel(config).create_invite(max_age=604800)
 		except discord.Forbidden :
 			invite = 'No permission'
@@ -185,7 +185,7 @@ class Bans(metaclass=Singleton) :
 	async def revoke_bans(self, bot, banid, reason, staff=False) :
 		print("revoking bans")
 		for guild in bot.guilds :
-			modchannel = await Configer.get(guild.id, "modchannel")
+			modchannel = ConfigData().get_key(guild.id, "modchannel")
 			channel = bot.get_channel(int(modchannel))
 			if channel is None :
 				continue
