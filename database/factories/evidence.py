@@ -2,7 +2,7 @@ import random
 
 from database.databaseController import BanDbTransactions, ProofDbTransactions
 from database.factories.ban import BanFactory
-from database.factories.guild import ServerFactory
+from database.factories.serverfactory import ServerFactory
 
 
 class EvidenceFactory :

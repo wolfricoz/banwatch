@@ -1,7 +1,7 @@
 import random
 
 from database.databaseController import BanDbTransactions
-from database.factories.guild import ServerFactory
+from database.factories.serverfactory import ServerFactory
 
 
 class BanFactory :

@@ -434,7 +434,7 @@ class ConfigDbTransactions(ABC) :
 		if ConfigDbTransactions.key_exists_check(guildid, key) is False :
 			return
 		exists = session.scalar(Select(db.Config).where(db.Config.guild == guildid, db.Config.key == key.upper()))
-		return exists
+		return exists.value
 
 	@staticmethod
 	@abstractmethod

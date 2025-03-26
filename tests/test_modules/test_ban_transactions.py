@@ -4,7 +4,7 @@ import database.databaseController
 from database.current import create_bot_database, drop_bot_database
 from database.databaseController import ServerDbTransactions, session
 from database.factories.ban import BanFactory
-from database.factories.guild import ServerFactory
+from database.factories.serverfactory import ServerFactory
 
 
 class TestBanDatabaseOperations(unittest.TestCase) :

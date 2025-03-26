@@ -49,11 +49,11 @@ class ConfigData(metaclass=Singleton) :
 		]
 		for item in old_config :
 			if item.key.lower() in bool_keys :
-				self.data[str(serverid)][item.key] = item.value == "1"
+				self.data[str(serverid)][item.key] = item.value.lower() == "true"
 				continue
 			self.data[str(serverid)][item.key] = item.value
 
-	def add_key(self, serverid, key, value, overwrite=False) :
+	def add_key(self, serverid, key, value: str|bool|int, overwrite=False) :
 		"""Adds a key to the config"""
 		self.configcontroller.config_unique_add(serverid, key, value, overwrite=overwrite)
 		self.load_guild(serverid)
@@ -71,17 +71,23 @@ class ConfigData(metaclass=Singleton) :
 	def get_key(self, serverid, key) :
 		"""Gets a key from the config, throws KeyNotFound if not found"""
 		try:
-			return self.data[str(serverid)][key]
+			value: str = self.data[str(serverid)][key]
+			if isinstance(value, bool):
+				return value
+			if value.isnumeric():
+				return int(value)
+			return value
 		except KeyError:
 			raise KeyNotFound(key)
 
 	def get_key_or_none(self, serverid, key) :
 		"""Gets a key from the config, returns None if not found"""
-		return self.data[str(serverid)].get(key, None)
-
-	def get_int_key(self, serverid, key) :
-		"""Gets a key from the config and turns it into an integer"""
-		try :
-			return int(self.data[str(serverid)][key])
-		except KeyError :
-			raise KeyNotFound(key)
+		value = self.data[str(serverid)].get(key, None)
+		if value is None :
+			return None
+		value: str = self.data[str(serverid)][key]
+		if isinstance(value, bool) :
+			return value
+		if value.isnumeric() :
+			return int(value)
+		return value
