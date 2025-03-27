@@ -84,7 +84,6 @@ class ConfigData(metaclass=Singleton) :
 		value = self.data[str(serverid)].get(key.upper(), None)
 		if value is None :
 			return None
-		value: str = self.data[str(serverid)][key]
 		if isinstance(value, bool) :
 			return value
 		if value.isnumeric() :
