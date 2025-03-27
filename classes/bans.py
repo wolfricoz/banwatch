@@ -39,8 +39,12 @@ class Bans(metaclass=Singleton) :
 	def create_ban_id(self, user_id, guild_id) :
 		return user_id + guild_id
 
-	async def inform_server(self, bot, guilds, banembed, ban_id) :
-		modchannel = bot.get_channel(ConfigData().get_key(guilds.id, "modchannel"))
+	async def inform_server(self, bot: commands.Bot, guild: discord.Guild, banembed: discord.Embed, ban_id: int) :
+		modchannel_id = ConfigData().get_key(guild.id, "modchannel")
+		modchannel = bot.get_channel(modchannel_id)
+		if modchannel is None :
+			await send_message(guild.owner, f"Mod channel not found in {guild.name} ({guild.id}). Current value: {modchannel_id}")
+			return
 		options = BanInform(ban_class=Bans(), ban_id=ban_id)
 		queue().add(modchannel.send(embed=banembed, view=options), priority=0)
 

@@ -6,6 +6,7 @@ from discord.ui import View, button
 from classes.access import AccessControl
 from classes.bans import Bans
 from classes.configdata import ConfigData
+from classes.configer import Configer
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from classes.support.discord_tools import await_message, send_message, send_response
@@ -127,7 +128,7 @@ class BanOptionButtons(View) :
 
 	async def check_checklisted_words(self, ban) :
 		found = None
-		checklist: list = ConfigData().get_key_checklist()
+		checklist: list = await Configer.get_checklist()
 		if checklist :
 			for word in checklist :
 				if word.lower() in ban.reason.lower() :

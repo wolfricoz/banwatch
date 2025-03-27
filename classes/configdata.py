@@ -48,9 +48,9 @@ class ConfigData(metaclass=Singleton) :
 		]
 		for item in old_config :
 			if item.key.lower() in bool_keys :
-				self.data[str(serverid)][item.key] = item.value.lower() == "true"
+				self.data[str(serverid)][item.key.upper()] = item.value.lower() == "true"
 				continue
-			self.data[str(serverid)][item.key] = item.value
+			self.data[str(serverid)][item.key.upper()] = item.value
 
 	def add_key(self, serverid, key, value: str|bool|int, overwrite=False) :
 		"""Adds a key to the config"""
@@ -70,7 +70,7 @@ class ConfigData(metaclass=Singleton) :
 	def get_key(self, serverid, key) :
 		"""Gets a key from the config, throws KeyNotFound if not found"""
 		try:
-			value: str = self.data[str(serverid)][key]
+			value: str = self.data[str(serverid)][key.upper()]
 			if isinstance(value, bool):
 				return value
 			if value.isnumeric():
@@ -81,7 +81,7 @@ class ConfigData(metaclass=Singleton) :
 
 	def get_key_or_none(self, serverid, key) :
 		"""Gets a key from the config, returns None if not found"""
-		value = self.data[str(serverid)].get(key, None)
+		value = self.data[str(serverid)].get(key.upper(), None)
 		if value is None :
 			return None
 		value: str = self.data[str(serverid)][key]

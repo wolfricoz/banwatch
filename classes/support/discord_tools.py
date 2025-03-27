@@ -35,7 +35,7 @@ async def check_missing_permissions(channel: discord.TextChannel, required_permi
 	return missing_permissions
 
 
-async def send_message(channel: discord.TextChannel, message=None, embed=None, view=None, files=None,
+async def send_message(channel: discord.TextChannel | discord.Message, message=None, embed=None, view=None, files=None,
                        file=None) -> discord.Message :
 	"""Send a message to a channel, if there is no permission it will send an error message to the owner"""
 	last_message = None

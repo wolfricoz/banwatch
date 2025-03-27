@@ -6,7 +6,7 @@ from classes.configdata import ConfigData
 from classes.configer import Configer
 from discord.app_commands import Choice
 
-from classes.support.discord_tools import send_response
+from classes.support.discord_tools import send_message, send_response
 from database.databaseController import ServerDbTransactions
 
 
@@ -21,10 +21,10 @@ class config(commands.GroupCog, name="config"):
     ])
     @app_commands.checks.has_permissions(manage_guild=True)
     async def crole(self, interaction: discord.Interaction, option: Choice[str], channel: discord.TextChannel):
-        await interaction.response.defer(ephemeral=True)
         match option.value:
             case "mod":
-                await ConfigData().add_key(interaction, "modchannel", channel.id)
+                ConfigData().add_key(interaction.guild.id, "modchannel", channel.id, overwrite=True)
+        await send_response(interaction, f"Set {option.name} to {channel.mention}")
 
     @app_commands.command(name="appeals", description="[CONFIG COMMAND] turn on/off ban appeals")
     @app_commands.checks.has_permissions(manage_guild=True)
