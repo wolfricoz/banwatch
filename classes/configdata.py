@@ -24,22 +24,25 @@ class ConfigData(metaclass=Singleton) :
 			return
 		for file in os.listdir("configs") :
 			if file.endswith(".json") :
-				serverid = file[:-5]
-				if serverid.isnumeric() is False :
-					continue
-				guild = ServerDbTransactions().get(int(serverid))
-				if guild is None:
-					ServerDbTransactions().add(int(serverid), "None", "None", 0, "None", False)
-					continue
-				logging.info(f"Migrating config for {serverid}")
-				with open(f"configs/{file}", "r") as f :
-					config = json.load(f)
-					for key, value in config.items() :
-						if key == "name" :
-							continue
-						self.add_key(serverid, key, value, overwrite=True)
-				os.remove(f"configs/{file}")
-				self.load_guild(serverid)
+				try:
+					serverid = file[:-5]
+					if serverid.isnumeric() is False :
+						continue
+					guild = ServerDbTransactions().get(int(serverid))
+					if guild is None:
+						ServerDbTransactions().add(int(serverid), "None", "None", 0, "None", False)
+						continue
+					logging.info(f"Migrating config for {serverid}")
+					with open(f"configs/{file}", "r") as f :
+						config = json.load(f)
+						for key, value in config.items() :
+							if key.lower() == "name" :
+								continue
+							self.add_key(serverid, key, value, overwrite=True)
+					os.remove(f"configs/{file}")
+					self.load_guild(serverid)
+				except Exception as e :
+					logging.error(e, exc_info=True)
 		os.rmdir("configs")
 
 	def load(self, guilds) :
