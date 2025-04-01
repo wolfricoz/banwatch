@@ -36,11 +36,14 @@ create_bot_database()
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
-bot = commands.AutoShardedBot(command_prefix=PREFIX, case_insensitive=False, intents=intents, shard_id=randint, shard_count=3)
+bot = commands.AutoShardedBot(command_prefix=PREFIX, case_insensitive=False, intents=intents, shard_id=randint,
+                              shard_count=3)
+
+
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) :
 	loop = asyncio.get_event_loop()
-	thread = threading.Thread(target=lambda: asyncio.run(run()))
+	thread = threading.Thread(target=lambda : asyncio.run(run()))
 	thread.start()
 	yield
 	await bot.close()
@@ -133,7 +136,6 @@ async def on_guild_join(guild: discord.Guild) -> None :
 	queue().add(ServerInfo().send(approval_channel, guild), priority=2)
 
 
-
 @bot.event
 async def on_guild_remove(guild) :
 	log = bot.get_channel(DEV)
@@ -141,8 +143,6 @@ async def on_guild_remove(guild) :
 	logging.info(f"{guild} left, refreshing ban list")
 	await Bans().update(bot)
 	ServerDbTransactions().update(guild.id, active=False)
-
-
 
 
 # cogloader
@@ -180,4 +180,3 @@ async def run() :
 		await bot.start(DISCORD_TOKEN)
 	except KeyboardInterrupt :
 		quit(0)
-

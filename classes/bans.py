@@ -193,11 +193,11 @@ class Bans(metaclass=Singleton) :
 			channel = bot.get_channel(int(modchannel))
 			if channel is None :
 				continue
-			queue().add(self.search_messages(bot, channel, banid, reason), priority=2)
+			queue().add(self.search_messages(bot, channel, banid, reason))
 		if staff :
 			BanDbTransactions().update(int(banid), approved=False)
 		channel = bot.get_channel(bot.APPROVALCHANNEL)
-		queue().add(self.search_messages(bot, channel, banid, reason), priority=2)
+		queue().add(self.search_messages(bot, channel, banid, reason))
 
 	async def check_guild_bans(self, guild: discord.Guild) :
 		count = 0

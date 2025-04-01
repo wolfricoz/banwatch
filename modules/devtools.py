@@ -319,6 +319,21 @@ class dev(commands.GroupCog, name="dev") :
 		await send_response(interaction, f"Staff member {user.mention} successfully removed!")
 		AccessControl().reload()
 
+	@app_commands.command(name="test_config", description="[DEV] Tests if features are working correctly.")
+	@AccessControl().check_access("dev")
+	async def test_config(self, interaction: discord.Interaction):
+		await send_response(interaction, "Starting test.", ephemeral=True)
+		try:
+			channel = await ConfigData().get_channel(interaction.guild)
+		except Exception as e:
+			logging.error(e, exc_info=True)
+			channel = None
+		if channel is None:
+			await send_message(interaction.channel, "Failed to retrieve channel")
+			return
+		await send_message(interaction.channel, "successfully tested config, no errors found")
+
+
 
 async def setup(bot: commands.Bot) :
 	await bot.add_cog(dev(bot))

@@ -3,7 +3,10 @@ import json
 import logging
 import os
 
+import discord
+
 from classes.singleton import Singleton
+from classes.support.discord_tools import send_message
 from database.databaseController import ConfigDbTransactions, ServerDbTransactions
 
 
@@ -11,6 +14,7 @@ class KeyNotFound(Exception) :
 	def __init__(self, key) :
 		self.key = key
 		super().__init__(f"Key {key} not found in config")
+
 
 class ConfigData(metaclass=Singleton) :
 	"""This class generates the config file, with functions to change and get values from it"""
@@ -24,12 +28,12 @@ class ConfigData(metaclass=Singleton) :
 			return
 		for file in os.listdir("configs") :
 			if file.endswith(".json") :
-				try:
+				try :
 					serverid = file[:-5]
 					if serverid.isnumeric() is False :
 						continue
 					guild = ServerDbTransactions().get(int(serverid))
-					if guild is None:
+					if guild is None :
 						ServerDbTransactions().add(int(serverid), "None", "None", 0, "None", False)
 						continue
 					logging.info(f"Migrating config for {serverid}")
@@ -43,7 +47,8 @@ class ConfigData(metaclass=Singleton) :
 					self.load_guild(serverid)
 				except Exception as e :
 					logging.error(e, exc_info=True)
-		# os.rmdir("configs")
+
+	# os.rmdir("configs")
 
 	def load(self, guilds) :
 		self.data = {}
@@ -63,7 +68,7 @@ class ConfigData(metaclass=Singleton) :
 				continue
 			self.data[str(serverid)][item.key.upper()] = item.value
 
-	def add_key(self, serverid, key, value: str|bool|int, overwrite=False) :
+	def add_key(self, serverid, key, value: str | bool | int, overwrite=False) :
 		"""Adds a key to the config"""
 
 		self.configcontroller.config_unique_add(serverid, key, value, overwrite=overwrite)
@@ -81,14 +86,14 @@ class ConfigData(metaclass=Singleton) :
 
 	def get_key(self, serverid, key) :
 		"""Gets a key from the config, throws KeyNotFound if not found"""
-		try:
+		try :
 			value: str = self.data.get(str(serverid), {})[key.upper()]
-			if isinstance(value, bool):
+			if isinstance(value, bool) :
 				return value
-			if value.isnumeric():
+			if value.isnumeric() :
 				return int(value)
 			return value
-		except KeyError:
+		except KeyError :
 			raise KeyNotFound(key)
 
 	def get_key_or_none(self, serverid, key) :
@@ -101,3 +106,17 @@ class ConfigData(metaclass=Singleton) :
 		if value.isnumeric() :
 			return int(value)
 		return value
+
+	async def get_channel(self, guild: discord.Guild, channel_type: str = "modchannel") -> discord.TextChannel | None :
+		"""Gets the channel from the config"""
+		channel_id = self.get_key_or_none(guild.id, channel_type)
+		if channel_id is None :
+			await send_message(guild.owner,
+			                   f"No `{channel_type}` channel set for {guild.name}, please set it up using the /config command")
+			return None
+		channel = guild.get_channel(channel_id)
+		if channel is None :
+			await send_message(guild.owner,
+			                   f"Cannot find `{channel_type}` channel with id {channel_id} in {guild.name}, please set it up using the /config command")
+			return None
+		return channel

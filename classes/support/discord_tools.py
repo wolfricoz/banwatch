@@ -3,7 +3,6 @@ import logging
 import discord
 from discord.ext.commands.help import MISSING
 
-
 max_length = 1800
 
 
@@ -35,7 +34,8 @@ async def check_missing_permissions(channel: discord.TextChannel, required_permi
 	return missing_permissions
 
 
-async def send_message(channel: discord.TextChannel | discord.Message, message=None, embed=None, view=None, files=None,
+async def send_message(channel: discord.TextChannel | discord.User | discord.Member, message: str = None, embed=None,
+                       view=None, files=None,
                        file=None) -> discord.Message :
 	"""Send a message to a channel, if there is no permission it will send an error message to the owner"""
 	last_message = None
@@ -125,21 +125,25 @@ async def ban_member(bans_class, interaction, user, reason, days=1, inform=False
 async def await_message(interaction, message) -> discord.Message | bool :
 	msg: discord.Message = await send_message(interaction.channel,
 	                                          message)
+
 	def check_message(m, interaction) :
 		return m.author == interaction.user and m.channel == interaction.channel
+
 	m = await interaction.client.wait_for('message', check=lambda m : check_message(m, interaction), timeout=600)
 	await msg.delete()
 	if m.content.lower() == "cancel" :
 		return False
 	return m
 
-async def ban_user(interaction: discord.Interaction, user: discord.User, ban_type, reason_modal, ban_class,inform=True,
+
+async def ban_user(interaction: discord.Interaction, user: discord.User, ban_type, reason_modal, ban_class, inform=True,
                    clean=False) :
 	if interaction.guild is None :
 		await send_message(interaction.channel, "This command can only be used in a server")
 		return
 	if user is None :
-		await send_message(interaction.channel, "User not found, bot may not be able to fetch user or an invalid id was provided.")
+		await send_message(interaction.channel,
+		                   "User not found, bot may not be able to fetch user or an invalid id was provided.")
 	if user.id == interaction.user.id :
 		await send_message(interaction.channel, "You can't ban yourself")
 		return
@@ -155,7 +159,9 @@ async def ban_user(interaction: discord.Interaction, user: discord.User, ban_typ
 	reason = f"{ban_type}{reason_modal}"
 
 	await ban_member(ban_class, interaction, user, reason, days=1 if clean else 0, inform=inform)
-	# await interaction.channel.send(f"DEBUG: BAN FUNCTION DISABLED FOR TESTING.`")
+
+
+# await interaction.channel.send(f"DEBUG: BAN FUNCTION DISABLED FOR TESTING.`")
 
 
 async def dm_user(interaction, reason_modal, user) :

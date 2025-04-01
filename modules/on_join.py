@@ -1,5 +1,6 @@
 import logging
 
+import discord
 from discord.ext import commands
 
 from classes.bans import Bans
@@ -14,14 +15,10 @@ class Events(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_member_join(self, member):
+    async def on_member_join(self, member: discord.Member):
         """Checks if user is banned"""
         bot = self.bot
-        config = ConfigData().get_key_or_none(member.guild.id, "modchannel")
-        if config is None:
-            member.guild.owner.send(f"No mod channel set, please set one to receive banwatch notifications. You can do this by using the command `/config change`.")
-        configid = int(config)
-        channel = bot.get_channel(configid)
+        channel = await ConfigData().get_channel(member.guild)
         sr = await Bans().get_user_bans(member.id)
 
         if sr is None or len(sr) < 1:
