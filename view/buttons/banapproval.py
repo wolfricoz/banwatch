@@ -1,3 +1,5 @@
+import logging
+
 import discord
 from discord.ui import View
 
@@ -118,7 +120,8 @@ class BanApproval(View) :
 		BanDbTransactions().update(self.wait_id, approved=True, hidden=True)
 		await self.update_embed(interaction, "hide")
 		await denial_channel.send(embed=banembed)
-		await mod_channel.send(embed=banembed)
+		if mod_channel:
+			await mod_channel.send(embed=banembed)
 		await interaction.followup.send(f"Ban Hidden: \n `{deny_reason}`", ephemeral=True)
 
 	@discord.ui.button(label="Hide Ban", style=discord.ButtonStyle.danger, custom_id="deny_silent")
