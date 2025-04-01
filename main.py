@@ -67,9 +67,9 @@ async def on_ready() :
 	guilds = []
 	# LOOPS THROUGH ALL THE GUILD / SERVERS THAT THE BOT IS ASSOCIATED WITH.
 	await Configer.create_bot_config()
-	await ConfigData().migrate()
 	logging.info("Finished creating configs")
 	queue().add(Bans().update(bot))
+	await ConfigData().migrate()
 	logging.info("Configs and cache created")
 	for guild in bot.guilds :
 		# add invites

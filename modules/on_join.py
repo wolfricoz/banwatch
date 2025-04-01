@@ -17,7 +17,9 @@ class Events(commands.Cog):
     async def on_member_join(self, member):
         """Checks if user is banned"""
         bot = self.bot
-        config = ConfigData().get_key(member.guild.id, "modchannel")
+        config = ConfigData().get_key_or_none(member.guild.id, "modchannel")
+        if config is None:
+            member.guild.owner.send(f"No mod channel set, please set one to receive banwatch notifications. You can do this by using the command `/config change`.")
         configid = int(config)
         channel = bot.get_channel(configid)
         sr = await Bans().get_user_bans(member.id)

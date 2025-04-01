@@ -43,7 +43,7 @@ class ConfigData(metaclass=Singleton) :
 					self.load_guild(serverid)
 				except Exception as e :
 					logging.error(e, exc_info=True)
-		os.rmdir("configs")
+		# os.rmdir("configs")
 
 	def load(self, guilds) :
 		self.data = {}
