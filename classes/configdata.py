@@ -24,6 +24,7 @@ class ConfigData(metaclass=Singleton) :
 		for file in os.listdir("configs") :
 			if file.endswith(".json") :
 				serverid = file[:-5]
+				logging.info(f"Migrating config for {serverid}")
 				with open(f"configs/{file}", "r") as f :
 					config = json.load(f)
 					for key, value in config.items() :
