@@ -25,6 +25,8 @@ class ConfigData(metaclass=Singleton) :
 		for file in os.listdir("configs") :
 			if file.endswith(".json") :
 				serverid = file[:-5]
+				if serverid.isnumeric() is False :
+					continue
 				guild = ServerDbTransactions().get(int(serverid))
 				if guild is None:
 					ServerDbTransactions().add(int(serverid), "None", "None", 0, "None", False)
