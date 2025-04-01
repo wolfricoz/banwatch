@@ -77,7 +77,7 @@ class ConfigData(metaclass=Singleton) :
 	def get_key(self, serverid, key) :
 		"""Gets a key from the config, throws KeyNotFound if not found"""
 		try:
-			value: str = self.data[str(serverid)][key.upper()]
+			value: str = self.data.get(str(serverid))[key.upper()]
 			if isinstance(value, bool):
 				return value
 			if value.isnumeric():
@@ -88,7 +88,7 @@ class ConfigData(metaclass=Singleton) :
 
 	def get_key_or_none(self, serverid, key) :
 		"""Gets a key from the config, returns None if not found"""
-		value = self.data[str(serverid)].get(key.upper(), None)
+		value = self.data.get(str(serverid)).get(key.upper(), None)
 		if value is None :
 			return None
 		if isinstance(value, bool) :
