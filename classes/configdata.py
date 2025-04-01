@@ -4,7 +4,8 @@ import logging
 import os
 
 from classes.singleton import Singleton
-from database.databaseController import ConfigDbTransactions
+from database.databaseController import ConfigDbTransactions, ServerDbTransactions
+
 
 class KeyNotFound(Exception) :
 	def __init__(self, key) :
@@ -24,6 +25,10 @@ class ConfigData(metaclass=Singleton) :
 		for file in os.listdir("configs") :
 			if file.endswith(".json") :
 				serverid = file[:-5]
+				guild = ServerDbTransactions().get(int(serverid))
+				if guild is None:
+					ServerDbTransactions().add(int(serverid), "None", "None", 0, "None", False)
+					continue
 				logging.info(f"Migrating config for {serverid}")
 				with open(f"configs/{file}", "r") as f :
 					config = json.load(f)
@@ -55,6 +60,7 @@ class ConfigData(metaclass=Singleton) :
 
 	def add_key(self, serverid, key, value: str|bool|int, overwrite=False) :
 		"""Adds a key to the config"""
+
 		self.configcontroller.config_unique_add(serverid, key, value, overwrite=overwrite)
 		self.load_guild(serverid)
 
