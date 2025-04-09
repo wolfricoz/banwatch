@@ -89,7 +89,7 @@ class BanEvents(commands.Cog) :
 		embed = discord.Embed(title=f"Do you want to share {user}'s ({user.id}) ban with other servers?",
 		                      description=f"{ban.reason}")
 		embed.set_footer(text=f"{guild.id}-{user.id}")
-		queue().add(mod_channel.send(embed=embed, view=view))
+		queue().add(mod_channel.send(embed=embed, view=view), priority=2)
 
 
 async def setup(bot) :

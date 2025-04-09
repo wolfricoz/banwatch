@@ -10,7 +10,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from fastapi import FastAPI
 
-from api import bans_router
+from api import bans_router, config_router
 from classes.bans import Bans
 from classes.blacklist import blacklist_check
 from classes.configdata import ConfigData
@@ -51,6 +51,7 @@ async def lifespan(app: FastAPI) :
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(bans_router)
+app.include_router(config_router)
 
 bot.SUPPORTGUILD = int(os.getenv('GUILD'))
 bot.BANCHANNEL = int(os.getenv('BANS'))
