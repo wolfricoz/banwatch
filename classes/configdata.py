@@ -49,6 +49,14 @@ class ConfigData(metaclass=Singleton) :
 					logging.error(e, exc_info=True)
 
 	# os.rmdir("configs")
+	def reload(self) :
+		"""Reloads the config data from the database"""
+		self.data = {}
+		for guild in ServerDbTransactions().get_all() :
+			try:
+				self.load_guild(guild)
+			except Exception as e :
+				logging.error(e, exc_info=True)
 
 	def load(self, guilds) :
 		self.data = {}
