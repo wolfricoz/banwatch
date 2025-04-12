@@ -1,17 +1,14 @@
 import os
-import typing
 from datetime import datetime
 
 import discord
 from discord import app_commands
 from discord.ext import commands
+from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
 from classes.autocorrect import autocomplete_appeal
-from classes.bans import Bans
 from classes.configdata import ConfigData
-from classes.configer import Configer
-from classes.support.discord_tools import send_message, send_response
 from database.databaseController import AppealsDbTransactions, BanDbTransactions
 from view.buttons.appealbuttons import AppealButtons
 from view.modals import inputmodal

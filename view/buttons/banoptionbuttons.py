@@ -2,6 +2,7 @@ import os
 
 import discord
 from discord.ui import View, button
+from discord_py_utilities.messages import await_message, send_message, send_response
 
 from classes.access import AccessControl
 from classes.bans import Bans
@@ -9,7 +10,6 @@ from classes.configdata import ConfigData
 from classes.configer import Configer
 from classes.evidence import EvidenceController
 from classes.queue import queue
-from classes.support.discord_tools import await_message, send_message, send_response
 from data.variables.messages import evidence_message_template
 from database.databaseController import ServerDbTransactions
 from view.buttons.banapproval import BanApproval

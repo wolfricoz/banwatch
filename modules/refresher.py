@@ -6,7 +6,7 @@ from classes.bans import Bans
 from database.databaseController import BanDbTransactions
 
 
-class refresher(commands.Cog):
+class Refresher(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.index = 0
@@ -40,4 +40,4 @@ class refresher(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(refresher(bot))
+    await bot.add_cog(Refresher(bot))

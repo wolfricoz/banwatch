@@ -1,17 +1,16 @@
 import os
-import typing
 
 import discord
 from discord import app_commands
 from discord.ext import commands
+from discord_py_utilities.messages import await_message, send_message, send_response
 
 from classes.access import AccessControl
-from classes.autocorrect import autocomplete_appeal, autocomplete_guild
+from classes.autocorrect import autocomplete_guild
 from classes.bans import Bans
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from classes.rpsec import RpSec
-from classes.support.discord_tools import await_message, send_message, send_response
 from classes.tasks import pending_bans
 from data.variables.messages import evidence_message_template
 from database.databaseController import BanDbTransactions, ServerDbTransactions
@@ -19,7 +18,7 @@ from database.databaseController import BanDbTransactions, ServerDbTransactions
 GUILD = int(os.getenv("GUILD"))
 
 
-class staff(commands.GroupCog, name="staff") :
+class Staff(commands.GroupCog, name="staff") :
 
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
@@ -156,4 +155,4 @@ class staff(commands.GroupCog, name="staff") :
 		await send_response(interaction, f"The ban_id would be: {user.id + int(guild)}")
 
 async def setup(bot: commands.Bot) :
-	await bot.add_cog(staff(bot))
+	await bot.add_cog(Staff(bot))

@@ -1,9 +1,9 @@
 import discord
 from discord.ui import View
+from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
 from classes.configer import Configer
-from classes.support.discord_tools import send_message, send_response
 from database.databaseController import ServerDbTransactions
 
 

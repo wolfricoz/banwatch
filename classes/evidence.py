@@ -1,15 +1,13 @@
-import asyncio
 import io
 import logging
 import os
 
 import discord
 import requests
-from sqlalchemy.dialects.postgresql import array
+from discord_py_utilities.messages import send_message, send_response
 
 from classes.bans import Bans
 from classes.queue import queue
-from classes.support.discord_tools import send_message, send_response
 from database.current import Proof
 from database.databaseController import BanDbTransactions, ProofDbTransactions
 

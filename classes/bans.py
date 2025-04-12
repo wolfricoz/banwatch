@@ -5,14 +5,13 @@ import re
 
 import discord
 from discord.ext import commands
+from discord_py_utilities.messages import send_message
 
 from classes.configdata import ConfigData
-from classes.configer import Configer
 from classes.queue import queue
 from classes.rpsec import RpSec
 from classes.server import Server
 from classes.singleton import Singleton
-from classes.support.discord_tools import send_message
 from database.databaseController import BanDbTransactions, ServerDbTransactions
 from view.buttons.baninform import BanInform
 
@@ -43,7 +42,8 @@ class Bans(metaclass=Singleton) :
 		modchannel_id = ConfigData().get_key(guild.id, "modchannel")
 		modchannel = bot.get_channel(modchannel_id)
 		if modchannel is None :
-			await send_message(guild.owner, f"Mod channel not found in {guild.name} ({guild.id}). Current value: {modchannel_id}")
+			await send_message(guild.owner,
+			                   f"Mod channel not found in {guild.name} ({guild.id}). Current value: {modchannel_id}")
 			return
 		options = BanInform(ban_class=Bans(), ban_id=ban_id)
 		queue().add(modchannel.send(embed=banembed, view=options), priority=0)
@@ -91,13 +91,12 @@ class Bans(metaclass=Singleton) :
 			                   f"Your ban for {user.name} has been **approved** and has been broadcasted, You can provide the proof by using the `/evidence add user:{user.id}` command here!")
 			return
 		await send_message(mod_channel,
-			f"Your ban for {user.name} has been **verified** and has been broadcasted, You can provide the proof by using the `/evidence add user:{user.id}` command here!")
+		                   f"Your ban for {user.name} has been **verified** and has been broadcasted, You can provide the proof by using the `/evidence add user:{user.id}` command here!")
 		# await send_message(thread, f"To provide evidence of the ban, please use the `/evidence add user:{user.id} ban_id:{wait_id}` command in this thread.")
 		async for p in evidence_channel.history(limit=1000) :
 			if str(wait_id) in p.content :
 				await send_message(thread, p.content, files=[await a.to_file() for a in p.attachments])
 				await p.delete()
-
 
 	async def check_previous_bans(self, original_message, dev_guild: discord.Guild, user_id) -> list[discord.Message] :
 		ban_record = BanDbTransactions().get_all_user(user_id)

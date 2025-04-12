@@ -1,8 +1,8 @@
 import discord
 from discord.ui import View, button
+from discord_py_utilities.messages import send_response
 
 from classes.access import AccessControl
-from classes.support.discord_tools import send_response
 from database.current import Proof
 from database.databaseController import ProofDbTransactions
 

@@ -1,8 +1,5 @@
-import random
-
-from database.databaseController import BanDbTransactions, ProofDbTransactions
+from database.databaseController import ProofDbTransactions
 from database.factories.ban import BanFactory
-from database.factories.serverfactory import ServerFactory
 
 
 class EvidenceFactory :

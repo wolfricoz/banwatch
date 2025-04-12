@@ -1,10 +1,10 @@
 import logging
 
 import discord
+from discord_py_utilities.messages import send_message
 
 from classes.configer import Configer
 from classes.queue import queue
-from classes.support.discord_tools import send_message
 
 
 async def blacklist_check(guild: discord.Guild, log: discord.TextChannel) -> bool:

@@ -1,5 +1,3 @@
-import logging
-
 import discord
 from discord.ext import commands, tasks
 
@@ -7,14 +5,12 @@ from classes.queue import queue
 
 
 class queueTask(commands.Cog) :
-
 	status = None
 
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
 		self.queue.start()
 		self.display_status.start()
-
 
 	def cog_unload(self) :
 		self.queue.cancel()

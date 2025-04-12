@@ -6,9 +6,9 @@ from abc import ABC
 import discord
 from discord import app_commands
 from discord.ext import commands
+from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
-from classes.support.discord_tools import send_message, send_response
 from database.databaseController import BanDbTransactions
 from view.buttons.lookup import LookUp
 

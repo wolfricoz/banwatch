@@ -10,10 +10,10 @@ import discord.utils
 from discord import Interaction, app_commands
 from discord.app_commands import AppCommandError, CheckFailure, command
 from discord.ext import commands
+from discord_py_utilities.exceptions import NoChannelException, NoPermissionException
 from dotenv import load_dotenv
 
 from classes.configdata import KeyNotFound
-from classes.support.discord_tools import NoChannelException, NoMessagePermissionException
 
 load_dotenv('main.env')
 channels72 = os.getenv('channels72')
@@ -40,7 +40,7 @@ def extract_datetime_from_logfile(filename) :
 
 
 if os.path.exists('logs') is False :
-	print("Making logd directory")
+	print("Making logs directory")
 	os.mkdir('logs')
 
 if os.path.exists(logfile) is False :
@@ -59,14 +59,13 @@ with open(logfile, 'a') as f :
 	        f"----------------------------------------------------\n\n")
 
 handlers = [logging.FileHandler(filename=logfile, encoding='utf-8', mode='a'), logging.StreamHandler()]
-logging.basicConfig(handlers=handlers, level=logging.INFO, format='%(asctime)s:%(name)s: %(message)s')
+logging.basicConfig(handlers=handlers, level=logging.INFO, format='%(asctime)s:%(name)s: %(message)s', force=True)
 logging.getLogger().setLevel(logging.INFO)
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.INFO)
 logger2 = logging.getLogger('sqlalchemy')
 logger2.setLevel(logging.WARN)
-
 
 class Logging(commands.Cog) :
 	def __init__(self, bot) :
@@ -124,8 +123,8 @@ class Logging(commands.Cog) :
 		channel = self.bot.get_channel(self.bot.DEV)
 		if isinstance(error, CheckFailure) :
 			return await self.on_fail_message(interaction, "You do not have permission.")
-		if isinstance(error.original, NoMessagePermissionException) :
-			return
+		if isinstance(error.original, NoPermissionException) :
+			return await self.on_fail_message(interaction, error.original.__str__())
 		if isinstance(error.original, KeyNotFound):
 			return await self.on_fail_message(interaction, error.original.__str__())
 		if isinstance(error.original, NoChannelException) :

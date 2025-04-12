@@ -3,7 +3,6 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Type
 
-from discord import Guild
 from sqlalchemy import ColumnElement, Select, and_, exists, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -42,7 +41,7 @@ class KeyNotFound(Exception) :
 		super().__init__(self.message)
 
 
-class DatabaseTransactions() :
+class DatabaseTransactions :
 
 	def commit(self, session) :
 		try :

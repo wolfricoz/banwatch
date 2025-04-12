@@ -1,13 +1,10 @@
-import logging
-import os
-
 import discord
 from discord import app_commands
 from discord.ext import commands
+from discord_py_utilities.messages import await_message, send_response
 
 from classes.evidence import EvidenceController
 from classes.queue import queue
-from classes.support.discord_tools import await_message, send_response
 from data.variables.messages import evidence_message_template
 from database.databaseController import BanDbTransactions, ProofDbTransactions
 from view.pagination.pagination import Pagination

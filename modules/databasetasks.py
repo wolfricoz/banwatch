@@ -4,9 +4,8 @@ from datetime import datetime, timedelta
 
 from discord.ext import commands, tasks
 
-from classes.queue import queue
 from database.databaseController import BanDbTransactions, ServerDbTransactions
-import asyncio
+
 
 class DatabaseTasks(commands.Cog):
     def __init__(self, bot: commands.Bot):

@@ -1,11 +1,8 @@
-from discord.ext import commands, tasks
 import logging
 
-from classes.bans import Bans
+from discord.ext import commands, tasks
+
 from classes.blacklist import blacklist_check
-from classes.configer import Configer
-from classes.queue import queue
-from classes.support.discord_tools import send_message
 from classes.tasks import pending_bans
 from database.databaseController import ServerDbTransactions
 

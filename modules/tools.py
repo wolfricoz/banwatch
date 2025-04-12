@@ -4,11 +4,12 @@ import discord
 from discord import app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
+from discord_py_utilities.bans import ban_user, dm_user
+from discord_py_utilities.messages import send_message, send_response
 
 from classes.autocorrect import autocomplete_guild
 from classes.bans import Bans
 from classes.queue import queue
-from classes.support.discord_tools import ban_user, dm_user, send_message, send_response
 from database.databaseController import BanDbTransactions, ServerDbTransactions
 from view.modals.inputmodal import send_modal
 

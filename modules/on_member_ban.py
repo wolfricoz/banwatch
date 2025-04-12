@@ -3,12 +3,11 @@ import re
 
 import discord
 from discord.ext import commands
+from discord_py_utilities.messages import send_message
 
 from classes.bans import Bans
 from classes.configdata import ConfigData
-from classes.configer import Configer
 from classes.queue import queue
-from classes.support.discord_tools import send_message
 from database.databaseController import BanDbTransactions, ServerDbTransactions
 from view.buttons.baninform import BanInform
 from view.buttons.banoptionbuttons import BanOptionButtons

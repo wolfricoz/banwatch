@@ -2,12 +2,13 @@ import logging
 
 import discord
 from discord.ui import View
+from discord_py_utilities.messages import send_message, send_response
 
 from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.configer import Configer
 from classes.evidence import EvidenceController
-from classes.support.discord_tools import send_message, send_response
+
 from database.databaseController import BanDbTransactions, ProofDbTransactions
 from view.modals.inputmodal import send_modal
 

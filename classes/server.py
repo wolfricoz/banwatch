@@ -4,7 +4,7 @@ from classes.queue import queue
 from database.databaseController import BanDbTransactions, ServerDbTransactions
 
 
-class Server() :
+class Server :
 	banned_ids = []
 	checked_ids = []
 	guild_id = 0

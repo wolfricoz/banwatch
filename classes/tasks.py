@@ -1,9 +1,10 @@
 import os
 
 import discord
+from discord_py_utilities.messages import send_message
 
 from classes.queue import queue
-from classes.support.discord_tools import send_message
+
 from database.current import Bans
 from database.databaseController import BanDbTransactions
 from view.buttons.banapproval import BanApproval

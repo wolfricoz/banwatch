@@ -1,8 +1,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-
-from classes.support.discord_tools import send_response
+from discord_py_utilities.messages import send_response
 
 
 class Utility(commands.Cog):

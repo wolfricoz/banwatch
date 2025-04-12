@@ -5,7 +5,6 @@ from discord.ext import commands
 
 from classes.bans import Bans
 from classes.configdata import ConfigData
-from classes.configer import Configer
 from view.buttons.lookup import LookUp
 
 

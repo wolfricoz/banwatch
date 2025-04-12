@@ -1,9 +1,9 @@
 import discord
 from discord.ext import commands
 from discord.ui import View
+from discord_py_utilities.messages import send_message
 
 from classes.evidence import EvidenceController
-from classes.support.discord_tools import send_message
 from database.databaseController import ProofDbTransactions
 
 

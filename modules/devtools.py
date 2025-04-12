@@ -10,13 +10,14 @@ from discord.app_commands import Choice
 from discord.ext import commands
 import logging
 
+from discord_py_utilities.messages import send_message, send_response
+
 from classes.access import AccessControl
 from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.configer import Configer
 from classes.evidence import EvidenceController
 from classes.queue import queue
-from classes.support.discord_tools import get_all_threads, send_message, send_response
 from classes.tasks import pending_bans
 from database.databaseController import BanDbTransactions, DatabaseTransactions, ServerDbTransactions, \
 	StaffDbTransactions

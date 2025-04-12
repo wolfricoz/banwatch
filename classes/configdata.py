@@ -4,9 +4,9 @@ import logging
 import os
 
 import discord
+from discord_py_utilities.messages import send_message
 
 from classes.singleton import Singleton
-from classes.support.discord_tools import send_message
 from database.databaseController import ConfigDbTransactions, ServerDbTransactions
 
 
