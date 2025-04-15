@@ -2,9 +2,11 @@ import discord
 from discord.ext import commands
 from discord.ui import View
 from discord_py_utilities.messages import send_message
+from sqlalchemy.testing.suite.test_reflection import users
 
 from classes.evidence import EvidenceController
 from database.databaseController import ProofDbTransactions
+from view.multiselect.selectban import SelectBan
 
 
 class LookUp(View) :
@@ -64,3 +66,8 @@ class LookUp(View) :
 		user_id = await self.get_user_id(interaction)
 		entries = ProofDbTransactions().get(user_id=user_id)
 		await EvidenceController().send_proof(interaction, entries, user_id)
+
+	@discord.ui.button(label="Cross-ban", style=discord.ButtonStyle.danger, custom_id="Cross-ban")
+	async def cross_ban(self, interaction: discord.Interaction, button: discord.ui.Button) :
+		user_id = await self.get_user_id(interaction)
+		await interaction.response.send_message("Please select which server you want to cross-ban from.", view=SelectBan(user_id), ephemeral=True)

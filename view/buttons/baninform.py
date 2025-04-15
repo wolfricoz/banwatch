@@ -11,6 +11,7 @@ from discord_py_utilities.messages import send_message, send_response
 
 from database.current import Proof
 from database.databaseController import BanDbTransactions, ProofDbTransactions
+from view.buttons.confirm import Confirm
 from view.modals.inputmodal import send_modal
 
 
@@ -36,26 +37,28 @@ class BanInform(View) :
 	@discord.ui.button(label="Ban with Reason", style=discord.ButtonStyle.success, custom_id="ban_user")
 	async def ban_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		ban_id = await self.get_ban_id(interaction)
-		print(ban_id)
 		if ban_id is None :
 			logging.error(f"Could not find ban id in {interaction.guild.name}.")
 			await send_response(interaction, f"[REGEX ERROR] Could not retrieve ban_id!")
 		entry = BanDbTransactions().get(ban_id)
 		user = interaction.client.get_user(entry.uid)
 		guild = interaction.client.get_guild(entry.gid)
-		reason_modal = await send_modal(interaction, "What is the reason for the ban?", "Ban Reason")
-		await ban_user(interaction, user, "", f"Cross-ban with reason: {reason_modal}", self.ban_class, clean=False)
+		reason_modal = await send_modal(interaction, "Thank you for submitting your reason!", "Ban Reason")
+		await ban_user(interaction, user, "", f"Cross-ban from {guild.name} with ban id: {ban_id} with reason: {reason_modal}", self.ban_class, clean=False)
 
 	@discord.ui.button(label="Cross-Ban", style=discord.ButtonStyle.success, custom_id="cross_ban_user")
 	async def cross_ban_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		ban_id = await self.get_ban_id(interaction)
-		print(ban_id)
 		if ban_id is None :
 			logging.error(f"Could not find ban id in {interaction.guild.name}.")
 			await send_response(interaction, f"[REGEX ERROR] Could not retrieve ban_id!")
 		entry = BanDbTransactions().get(ban_id)
 		user = interaction.client.get_user(entry.uid)
 		guild = interaction.client.get_guild(entry.gid)
+		result = await Confirm().send_confirm(interaction, message=f'Are you sure you want to cross-ban this user with the ban from {guild.name}?')
+		if not result:
+			await send_response(interaction, "Cancelled", ephemeral=True)
+			return
 		reason = f"Cross-ban from {guild.name} with ban id: {ban_id}"
 		await ban_member(self.ban_class, interaction, user, reason, days=0)
 		await send_response(interaction, f"Banning user")
