@@ -12,10 +12,12 @@ class Tasks(commands.Cog):
         self.bot = bot
         self.check_blacklist.start()
         self.check_active_servers.start()
+        self.check_pending_bans.start()
 
     def cog_unload(self):
         self.check_blacklist.cancel()
         self.check_active_servers.cancel()
+        self.check_pending_bans.cancel()
 
     @tasks.loop(hours=1)
     async def check_blacklist(self):
