@@ -59,4 +59,4 @@ async def pending_bans(bot, revoked=False) :
 		except Exception as e :
 			print(f"Error: {e}")
 	else:
-		await send_message(channel, f"Heres the pending bans <@&{os.getenv('STAFF_ROLE')}>!")
+		await send_message(channel, f"Heres the pending bans <@&{os.getenv('STAFF_ROLE')}>!", error_mode='warn')

@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 
 import discord
 from discord.ext import commands
+from discord_py_utilities.messages import send_message
 # IMPORT LOAD_DOTENV FUNCTION FROM DOTENV MODULE.
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -38,7 +39,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 bot = commands.AutoShardedBot(command_prefix=PREFIX, case_insensitive=False, intents=intents, shard_id=randint,
-                              shard_count=3)
+                              shard_count=1)
 
 
 @asynccontextmanager
@@ -90,11 +91,14 @@ async def on_ready() :
 
 	formguilds = "\n".join(guilds)
 	logging.info(f"Bot is in {guild_count} guilds:\n{formguilds}")
-	queue().add(devroom.send(f"Banwatch is in {guild_count} guilds. Version 3.1.6: To bun or not to bun!"), priority=2)
+	queue().add(send_message(devroom, f"Banwatch is in {guild_count} guilds. Version 3.1.6: To bun or not to bun!"), priority=2)
+	# Adding views
 	bot.add_view(ServerInfo())
 	bot.add_view(LookUp())
-	logging.info(f"Commands synced, start up done! Connected to {guild_count} guilds and {bot.shard_count} shards.")
+	# Syncing commands
 	queue().add(bot.tree.sync())
+	logging.info(f"Commands synced, start up done! Connected to {guild_count} guilds and {bot.shard_count} shards.")
+	# Checking if theres bans that aren't approved yet.
 	queue().add(pending_bans(bot), priority=0)
 
 
