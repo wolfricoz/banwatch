@@ -30,7 +30,7 @@ class config(commands.GroupCog, name="config") :
 	@app_commands.checks.has_permissions(manage_guild=True)
 	async def appeals(self, interaction: discord.Interaction, allow: bool) :
 		await interaction.response.defer(ephemeral=True)
-		await ConfigData().add_key(interaction.guild.id, "allow_appeals", allow)
+		ConfigData().add_key(interaction.guild.id, "allow_appeals", allow)
 
 	@app_commands.command(name="visibility", description="[Config Command] Allows you to hide all bans from banwatch")
 	@app_commands.checks.has_permissions(manage_guild=True)
