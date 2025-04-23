@@ -57,7 +57,12 @@ class BanEvents(commands.Cog) :
 			logging.info("Migrated ban, not prompting")
 			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name,)
 
-		mod_channel = bot.get_channel(int(ConfigData().get_key(guild.id, "modchannel")))
+		mod_channel = bot.get_channel(int(ConfigData().get_key_or_none(guild.id, "modchannel")))
+		if mod_channel is None:
+			logging.warning(f"{guild.name}({guild.id}) doesn't have modchannel set.")
+			await Bans().add_ban(user.id, guild.id, ban.reason, "No Modchannel Set", approved=False)
+			return
+
 		# check if ban has to be hidden
 		if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(ban.reason).lower().startswith('[hidden]'):
 			logging.info("silent or hidden ban/no reason, not prompting")
