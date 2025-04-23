@@ -1,5 +1,3 @@
-import logging
-
 import discord.ui
 from discord_py_utilities.bans import ban_member
 from discord_py_utilities.messages import send_message, send_response
