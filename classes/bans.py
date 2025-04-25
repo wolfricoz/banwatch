@@ -65,7 +65,7 @@ class Bans(metaclass=Singleton) :
 		approved_message = await approved_channel.send(embed=banembed)
 		BanDbTransactions().update(wait_id, message=approved_message.id)
 		dev_guild: discord.Guild = bot.get_guild(bot.SUPPORTGUILD)
-		queue().add(self.open_thread(user, guild, approved_message, dev_guild, open_thread, bot), priority=2)
+		queue().add(self.open_thread(user, guild, approved_message, dev_guild, open_thread, bot), priority=1)
 
 	async def open_thread(self, user, guild, approved_message, dev_guild: discord.Guild, provide_proof, bot) :
 		rpsec = dev_guild.get_thread(RpSec.get_user(user.id))
