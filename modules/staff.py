@@ -23,8 +23,6 @@ class Staff(commands.GroupCog, name="staff") :
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
 
-
-
 	@app_commands.command(name="servers", description="[staff] View all servers banwatch is in")
 	@app_commands.guilds(GUILD)
 	@AccessControl().check_access()
@@ -64,7 +62,8 @@ class Staff(commands.GroupCog, name="staff") :
 			"Created at"    : guild.created_at.strftime("%m/%d/%Y"),
 			"bans"          : len(ServerDbTransactions().get_bans(guild.id)),
 			"MFA level"     : guild.mfa_level,
-			"invite"        : server_info.invite
+			"invite"        : server_info.invite,
+			"server ID"     : guild.id,
 
 		}
 		for key, value in guild_data.items() :
@@ -80,6 +79,8 @@ class Staff(commands.GroupCog, name="staff") :
 		ban_info = BanDbTransactions().get_all_user(user.id)
 
 		guild_data = {
+			"global name"    : user.global_name,
+			"Nickname"       : user.display_name,
 			"Common Servers" : "\n".join([f"{guild.name}({guild.id})" for guild in self.bot.guilds if user in guild.members])[
 			                   :1000],
 			"Bans"           : len(ban_info),
@@ -151,8 +152,9 @@ class Staff(commands.GroupCog, name="staff") :
 	@app_commands.command(name="calculate_banid", description="Calculates the ban id with user id and guild id")
 	@AccessControl().check_access()
 	@app_commands.autocomplete(guild=autocomplete_guild)
-	async def calc_banid(self, interaction: discord.Interaction, user: discord.User, guild: str):
+	async def calc_banid(self, interaction: discord.Interaction, user: discord.User, guild: str) :
 		await send_response(interaction, f"The ban_id would be: {user.id + int(guild)}")
+
 
 async def setup(bot: commands.Bot) :
 	await bot.add_cog(Staff(bot))
