@@ -23,15 +23,15 @@ class BanApproval(View) :
 	async def verify(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		await interaction.response.defer(ephemeral=True)
 		if self.bot is None or self.wait_id is None :
-			await interaction.followup.send("Error: The bot has restarted, the data of this button was lost", ephemeral=True)
+			await send_response(interaction, "Error: The bot has restarted, the data of this button was lost", ephemeral=True)
 			return
 		ban_entry = BanDbTransactions().get(self.wait_id, override=True)
 		if ban_entry is None :
-			await interaction.followup.send("Ban not found", ephemeral=True)
+			await send_response(interaction, "Ban not found", ephemeral=True)
 			return
 		# noinspection PyTypeChecker,PydanticTypeChecker
 		if len(ban_entry.proof) < 1 :
-			await interaction.followup.send("No evidence found, please add evidence and try again", ephemeral=True)
+			await send_response(interaction, "No evidence found, please add evidence and try again", ephemeral=True)
 			return
 		guild, user, reason = await self.get_ban_data(ban_entry)
 		owner = guild.owner
@@ -39,7 +39,7 @@ class BanApproval(View) :
 		                         description=f"{reason}")
 		banembed.add_field(name="Banwatch Verified", value="This ban was verified by banwatch staff")
 		banembed.set_footer(text=f"Server Invite: {ban_entry.guild.invite} Server Owner: {owner} ban ID: {self.wait_id}. ")
-		await interaction.followup.send(
+		await send_response(interaction, 
 			f"Approved with proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}",
 			ephemeral=False)
 		await self.update_embed(interaction)
@@ -51,18 +51,18 @@ class BanApproval(View) :
 	async def approve_no_proof(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		await interaction.response.defer(ephemeral=True)
 		if self.bot is None or self.wait_id is None :
-			await interaction.followup.send("Error: The bot has restarted, the data of this button was lost", ephemeral=True)
+			await send_response(interaction, "Error: The bot has restarted, the data of this button was lost", ephemeral=True)
 			return
 		ban_entry = BanDbTransactions().get(self.wait_id)
 		if ban_entry is None :
-			await interaction.followup.send("Ban not found", ephemeral=True)
+			await send_response(interaction, "Ban not found", ephemeral=True)
 			return
 		guild, user, reason = await self.get_ban_data(ban_entry)
 		owner = guild.owner
 		banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
 		                         description=f"{reason}")
 		banembed.set_footer(text=f"Server Invite: {ban_entry.guild.invite} Server Owner: {owner} ban ID: {self.wait_id} ")
-		await interaction.followup.send(
+		await send_response(interaction, 
 			f"Approved without proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}",
 			ephemeral=False)
 		await self.update_embed(interaction, "approve")
@@ -94,7 +94,7 @@ class BanApproval(View) :
 	async def view_evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		ban_entry = BanDbTransactions().get(self.wait_id, override=True)
 		if ban_entry is None :
-			await interaction.followup.send("Ban not found", ephemeral=True)
+			await send_response(interaction, "Ban not found", ephemeral=True)
 			return
 		guild, user, reason = await self.get_ban_data(ban_entry)
 		user_id = user.id
@@ -106,11 +106,11 @@ class BanApproval(View) :
 		deny_reason = await send_modal(interaction, confirmation="Thank you for providing a reason", title="Denial Reason",
 		                               max_length=1000)
 		if self.bot is None or self.wait_id is None :
-			await interaction.followup.send("Error: The bot has restarted, the data of this button was lost", ephemeral=True)
+			await send_response(interaction, "Error: The bot has restarted, the data of this button was lost", ephemeral=True)
 			return
 		ban_entry = BanDbTransactions().get(self.wait_id, override=True)
 		if ban_entry is None :
-			await interaction.followup.send("Ban not found", ephemeral=True)
+			await send_response(interaction, "Ban not found", ephemeral=True)
 			return
 		guild, user, reason = await self.get_ban_data(ban_entry)
 		owner = guild.owner
@@ -121,22 +121,22 @@ class BanApproval(View) :
 		banembed.set_footer(text=f"Ban Hidden: {deny_reason}")
 		BanDbTransactions().update(self.wait_id, approved=True, hidden=True)
 		await self.update_embed(interaction, "hide")
-		await interaction.followup.send(
+		await send_response(interaction, 
 			f"Hidden with reason `{deny_reason}` by {interaction.user.mention}!",
 			ephemeral=False)
 		await denial_channel.send(embed=banembed)
 		if mod_channel :
 			await mod_channel.send(embed=banembed)
-		await interaction.followup.send(f"Ban Hidden: \n `{deny_reason}`", ephemeral=True)
+		await send_response(interaction, f"Ban Hidden: \n `{deny_reason}`", ephemeral=True)
 
 	@discord.ui.button(label="Hide Ban", style=discord.ButtonStyle.danger, custom_id="deny_silent")
 	async def hidesilent(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		if self.bot is None or self.wait_id is None :
-			await interaction.followup.send("Error: The bot has restarted, the data of this button was lost", ephemeral=True)
+			await send_response(interaction, "Error: The bot has restarted, the data of this button was lost", ephemeral=True)
 			return
 		ban_entry = BanDbTransactions().get(self.wait_id, override=True)
 		if ban_entry is None :
-			await interaction.followup.send("Ban not found", ephemeral=True)
+			await send_response(interaction, "Ban not found", ephemeral=True)
 			return
 		guild, user, reason = await self.get_ban_data(ban_entry)
 		owner = guild.owner
@@ -146,7 +146,7 @@ class BanApproval(View) :
 		banembed.set_footer(text=f"Ban Hidden")
 		BanDbTransactions().update(self.wait_id, approved=True, hidden=True)
 		await self.update_embed(interaction, "hidesilent")
-		await interaction.followup.send(
+		await send_response(interaction,
 			f"Silently Hidden by {interaction.user.mention}!")
 		await denial_channel.send(embed=banembed)
 
