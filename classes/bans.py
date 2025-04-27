@@ -12,7 +12,8 @@ from classes.queue import queue
 from classes.rpsec import RpSec
 from classes.server import Server
 from classes.singleton import Singleton
-from database.databaseController import BanDbTransactions, ServerDbTransactions
+from database.current import Proof
+from database.databaseController import BanDbTransactions, ProofDbTransactions, ServerDbTransactions
 from view.buttons.baninform import BanInform
 
 
@@ -58,16 +59,16 @@ class Bans(metaclass=Singleton) :
 		await Bans().change_ban_approval_status(wait_id, True, verified=verified)
 		if interaction is not None :
 			await interaction.message.delete()
-		queue().add(self.send_to_ban_channel(approved_channel, banembed, guild, user, open_thread, bot, wait_id))
+		queue().add(self.send_to_ban_channel(approved_channel, banembed, guild, user, bot, wait_id))
 
-	async def send_to_ban_channel(self, approved_channel, banembed, guild, user, open_thread, bot: commands.Bot,
+	async def send_to_ban_channel(self, approved_channel, banembed, guild, user, bot: commands.Bot,
 	                              wait_id) :
 		approved_message = await approved_channel.send(embed=banembed)
 		BanDbTransactions().update(wait_id, message=approved_message.id)
 		dev_guild: discord.Guild = bot.get_guild(bot.SUPPORTGUILD)
-		queue().add(self.open_thread(user, guild, approved_message, dev_guild, open_thread, bot), priority=1)
+		queue().add(self.open_thread(user, guild, approved_message, dev_guild, bot), priority=1)
 
-	async def open_thread(self, user, guild, approved_message, dev_guild: discord.Guild, provide_proof, bot) :
+	async def open_thread(self, user, guild, approved_message, dev_guild: discord.Guild, bot) :
 		rpsec = dev_guild.get_thread(RpSec.get_user(user.id))
 		evidence_channel = bot.get_channel(bot.BANCHANNEL)
 		wait_id = guild.id + user.id
@@ -84,19 +85,18 @@ class Bans(metaclass=Singleton) :
 			text_bans = '\n'.join([f"{ban.jump_url}" for ban in prev_bans])
 			await send_message(thread, f"Previous bans for {user.name}:"
 			                           f"\n{text_bans}")
-
-		if not provide_proof :
-			logging.info(f"Approved without proof for {user.name}")
-			await send_message(mod_channel,
-			                   f"Your ban for {user.name} has been **approved** and has been broadcasted, You can provide the proof by using the `/evidence add user:{user.id}` command here!")
+		entries = ProofDbTransactions().get(ban_id=wait_id)
+		if not entries :
 			return
-		await send_message(mod_channel,
-		                   f"Your ban for {user.name} has been **verified** and has been broadcasted, You can provide the proof by using the `/evidence add user:{user.id}` command here!")
-		# await send_message(thread, f"To provide evidence of the ban, please use the `/evidence add user:{user.id} ban_id:{wait_id}` command in this thread.")
-		async for p in evidence_channel.history(limit=1000) :
-			if str(wait_id) in p.content :
-				await send_message(thread, p.content, files=[await a.to_file() for a in p.attachments])
-				await p.delete()
+		await send_message(thread, f"## __Proof for {wait_id}__")
+		evidence: Proof
+		for evidence in entries :
+			proof = '\n'.join(evidence.get_attachments())
+			content = (f"**{evidence.ban_id}**:"
+			           f"\n**ban reason**: {evidence.ban.reason}"
+			           f"\n**Provided Proof**: {evidence.proof}"
+			           f"\n**attachments:**\n {proof}")
+			queue().add(send_message(thread, content))
 
 	async def check_previous_bans(self, original_message, dev_guild: discord.Guild, user_id) -> list[discord.Message] :
 		ban_record = BanDbTransactions().get_all_user(user_id)
