@@ -155,6 +155,15 @@ class Staff(commands.GroupCog, name="staff") :
 	async def calc_banid(self, interaction: discord.Interaction, user: discord.User, guild: str) :
 		await send_response(interaction, f"The ban_id would be: {user.id + int(guild)}")
 
+	@app_commands.command(name="visibility", description="[Staff command] Set the visibility of a server")
+	@app_commands.autocomplete(server=autocomplete_guild)
+	@app_commands.checks.has_permissions(manage_guild=True)
+	async def staff_visibility(self, interaction: discord.Interaction, server: str, hide: bool) :
+		ServerDbTransactions().update(int(server), hidden=hide)
+		await send_response(interaction,
+		                    f"{server}'s visibility has ben set to: {'hidden' if hide is True else 'Visible'}\n\n"
+		                    f"Your bans may temporarily still be available in the checkall cache, which is reloaded every 10 minutes")
+
 
 async def setup(bot: commands.Bot) :
 	await bot.add_cog(Staff(bot))
