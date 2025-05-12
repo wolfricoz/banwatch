@@ -13,23 +13,24 @@ class Configer(ABC):
     @abstractmethod
     async def create(guildid, guildname):
         """Creates the config"""
-        print("updating config")
-        path = f"configs/{guildid}.json"
-        config = {}
-        if not os.path.isdir('configs'):
-            os.mkdir('configs')
-        if os.path.exists(path):
-            with open(path, 'r') as f:
-                config = json.load(f)
-        dictionary = {
-            "name"      : config.get("name", guildname),
-            "modchannel": config.get("modchannel", 0),
-            "allow_appeals": config.get("allow_appeals", True)
-        }
-        json_object = json.dumps(dictionary, indent=4)
-        with open(f"configs/{guildid}.json", "w") as outfile:
-            outfile.write(json_object)
-        logging.info(f"config created for {guildid}")
+        return
+        # print("updating config")
+        # path = f"configs/{guildid}.json"
+        # config = {}
+        # if not os.path.isdir('configs'):
+        #     os.mkdir('configs')
+        # if os.path.exists(path):
+        #     with open(path, 'r') as f:
+        #         config = json.load(f)
+        # dictionary = {
+        #     "name"      : config.get("name", guildname),
+        #     "modchannel": config.get("modchannel", 0),
+        #     "allow_appeals": config.get("allow_appeals", True)
+        # }
+        # json_object = json.dumps(dictionary, indent=4)
+        # with open(f"configs/{guildid}.json", "w") as outfile:
+        #     outfile.write(json_object)
+        # logging.info(f"config created for {guildid}")
 
     @staticmethod
     @abstractmethod

@@ -75,7 +75,7 @@ async def on_ready() :
 	await Configer.create_bot_config()
 	logging.info("Finished creating configs")
 	queue().add(Bans().update(bot))
-	await ConfigData().migrate()
+	# await ConfigData().migrate()
 	logging.info("Configs and cache created")
 	for guild in bot.guilds :
 		# add invites
@@ -124,7 +124,6 @@ async def on_guild_join(guild: discord.Guild) -> None :
 	#     await guild.leave()
 	#     return
 
-	await Configer.create(guild.id, guild.name)
 	logging.info("sending DM now")
 	await guild.owner.send(
 		"Thank you for inviting **ban watch**, please read https://wolfricoz.github.io/banwatch/ to set up the bot")
