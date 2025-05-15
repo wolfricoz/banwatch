@@ -40,7 +40,7 @@ class BanApproval(View) :
 		banembed.add_field(name="Banwatch Verified", value="This ban was verified by banwatch staff")
 		banembed.set_footer(text=f"Server Invite: {ban_entry.guild.invite} Server Owner: {owner} ban ID: {self.wait_id}. ")
 		await send_response(interaction, 
-			f"Approved with proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}",
+			f"Approved `{interaction.message.embeds[0].title}`   with proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}",
 			ephemeral=False)
 		await self.update_embed(interaction)
 		if self.silent :
@@ -63,7 +63,7 @@ class BanApproval(View) :
 		                         description=f"{reason}")
 		banembed.set_footer(text=f"Server Invite: {ban_entry.guild.invite} Server Owner: {owner} ban ID: {self.wait_id} ")
 		await send_response(interaction, 
-			f"Approved without proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}",
+			f"Approved `{interaction.message.embeds[0].title}`   without proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}",
 			ephemeral=False)
 		await self.update_embed(interaction, "approve")
 		if self.silent :
@@ -87,7 +87,7 @@ class BanApproval(View) :
 		embed = discord.Embed(title=f"Evidence request for ban {ban_entry.ban_id}", description=content)
 		embed.add_field(name=f"Request reason", value=reason)
 		await send_message(modchannel, embed=embed)
-		await send_response(interaction, f"Server has been notified with reason:\n{reason}")
+		await send_response(interaction, f"{guild.name} has been notified with reason:\n{reason}")
 		return None
 
 	@discord.ui.button(label="view evidence", style=discord.ButtonStyle.primary, custom_id="view_evidence")
@@ -122,7 +122,7 @@ class BanApproval(View) :
 		BanDbTransactions().update(self.wait_id, approved=True, hidden=True)
 		await self.update_embed(interaction, "hide")
 		await send_response(interaction, 
-			f"Hidden with reason `{deny_reason}` by {interaction.user.mention}!",
+			f"Hidden `{interaction.message.embeds[0].title}`  with reason `{deny_reason}` by {interaction.user.mention}!",
 			ephemeral=False)
 		await denial_channel.send(embed=banembed)
 		if mod_channel :
@@ -147,7 +147,7 @@ class BanApproval(View) :
 		BanDbTransactions().update(self.wait_id, approved=True, hidden=True)
 		await self.update_embed(interaction, "hidesilent")
 		await send_response(interaction,
-			f"Silently Hidden by {interaction.user.mention}!")
+			f"Silently Hidden `{interaction.message.embeds[0].title}`  by {interaction.user.mention}!")
 		await denial_channel.send(embed=banembed)
 
 	async def update_embed(self, interaction, action="verify") :
