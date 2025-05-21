@@ -188,7 +188,7 @@ class Bans(metaclass=Singleton) :
 	async def revoke_bans(self, bot, banid, reason, staff=False) :
 		print("revoking bans")
 		for guild in bot.guilds :
-			modchannel = ConfigData().get_key(guild.id, "modchannel")
+			modchannel = ConfigData().get_key_or_none(guild.id, "modchannel")
 			channel = bot.get_channel(int(modchannel))
 			if channel is None :
 				continue

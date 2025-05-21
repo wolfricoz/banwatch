@@ -10,8 +10,8 @@ from discord_py_utilities.messages import send_message
 # IMPORT LOAD_DOTENV FUNCTION FROM DOTENV MODULE.
 from dotenv import load_dotenv
 from fastapi import FastAPI
-
-from api import bans_router, config_router
+import api
+# from api import bans_router, config_router
 from classes.bans import Bans
 from classes.blacklist import blacklist_check
 from classes.configdata import ConfigData
@@ -52,8 +52,13 @@ async def lifespan(app: FastAPI) :
 
 
 app = FastAPI(lifespan=lifespan)
-app.include_router(bans_router)
-app.include_router(config_router)
+routers = []
+for router in api.__all__ :
+	try:
+		app.include_router(getattr(api, router))
+		routers.append(router)
+	except Exception as e:
+		logging.error(f"Failed to load {router}: {e}")
 
 bot.SUPPORTGUILD = int(os.getenv('GUILD'))
 bot.BANCHANNEL = int(os.getenv('BANS'))
@@ -100,6 +105,7 @@ async def on_ready() :
 	logging.info(f"Commands synced, start up done! Connected to {guild_count} guilds and {bot.shard_count} shards.")
 	# Checking if theres bans that aren't approved yet.
 	queue().add(pending_bans(bot), priority=0)
+	logging.info("Loaded routers: " + ", ".join(routers))
 
 
 @bot.event
