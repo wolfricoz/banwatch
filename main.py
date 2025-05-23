@@ -39,7 +39,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 bot = commands.AutoShardedBot(command_prefix=PREFIX, case_insensitive=False, intents=intents, shard_id=randint,
-                              shard_count=1)
+                              shard_count=5)
 
 
 @asynccontextmanager
