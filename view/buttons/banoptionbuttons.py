@@ -96,6 +96,7 @@ class BanOptionButtons(View) :
 				queue().add(self.provide_proof(interaction, evidence), priority=2)
 			queue().add(self.status(interaction.client, guild, user, "waiting_approval", ban.reason, word=checklist_check,
 			                        message=message, silent=silent))
+
 			embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
 			                      description=f"{ban.reason}")
 			embed.add_field(name="flagged word", value=checklist_check, inline=False)
@@ -148,6 +149,9 @@ class BanOptionButtons(View) :
 		modchannel = bot.get_channel(int(modchannel_id))
 		supportguild = bot.get_guild(bot.SUPPORTGUILD)
 		support_invite = await Bans().create_invite(supportguild)
+		if word in ["Short ban reason", "Banwatch Staff Member"]:
+			return
+
 		verembed = discord.Embed(title=f"ban for {user}({user.id}) was flagged for review",
 		                         description=f"{banreason}\n\n"
 		                                     f"Flagged word: {word}. We review bans with serious accusations to ensure they are legitimate.")
