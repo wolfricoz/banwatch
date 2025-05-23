@@ -61,6 +61,7 @@ class BanEvents(commands.Cog) :
 		if mod_channel is None:
 			logging.warning(f"{guild.name}({guild.id}) doesn't have modchannel set.")
 			await Bans().add_ban(user.id, guild.id, ban.reason, "No Modchannel Set", approved=False)
+			queue().add(send_message(guild.owner, f"{guild.name}({guild.id}) doesn't have modchannel set. Please set it using the /config change command."), priority=2)
 			return
 
 		# check if ban has to be hidden

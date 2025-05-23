@@ -150,6 +150,11 @@ class BanOptionButtons(View) :
 		supportguild = bot.get_guild(bot.SUPPORTGUILD)
 		support_invite = await Bans().create_invite(supportguild)
 		if word in ["Short ban reason", "Banwatch Staff Member"]:
+			if message :
+				await message.edit(content=f"This ban has been submitted to be reviewed, we certain short bans to ensure the quality of the shared bans. You don't have to do anything else!", view=None)
+				return
+			await send_message(modchannel,
+			                   f"This ban has been submitted to be reviewed, we review certain bans to ensure the quality of the shared bans. You don't have to do anything else!")
 			return
 
 		verembed = discord.Embed(title=f"ban for {user}({user.id}) was flagged for review",
