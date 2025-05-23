@@ -189,7 +189,7 @@ class Bans(metaclass=Singleton) :
 		print("revoking bans")
 		for guild in bot.guilds :
 			modchannel = ConfigData().get_key_or_none(guild.id, "modchannel")
-			channel = bot.get_channel(int(modchannel))
+			channel = bot.get_channel(modchannel)
 			if channel is None :
 				continue
 			queue().add(self.search_messages(bot, channel, banid, reason))
