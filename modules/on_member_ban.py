@@ -20,8 +20,6 @@ class BanEvents(commands.Cog) :
 		self.bot.add_view(BanOptionButtons())
 		self.bot.add_view(BanInform(Bans()))
 
-	# TODO: When a user is banned, it doesn't seem to be sending the evidence to the right channel. Review this code, the on_member_unban and all underlying functions tomorrow.
-	# TODO: Maybe refactor this for readability. This function is growing fast!
 	@commands.Cog.listener()
 	async def on_member_ban(self, guild, user) :
 		"""informs other servers an user is banned and updates banlist"""
@@ -46,6 +44,7 @@ class BanEvents(commands.Cog) :
 		if ServerDbTransactions().is_hidden(guild.id):
 			await Bans().add_ban(user.id, guild.id, ban.reason, "Unknown")
 			return
+
 		# Check if the ban is a cross-ban
 		match = re.match(r"Cross-ban from (?P<guild_name>.+?) with ban id: (?P<ban_id>\d+)", ban.reason)
 		if match:
@@ -65,9 +64,9 @@ class BanEvents(commands.Cog) :
 			return
 
 		# check if ban has to be hidden
-		if ban.reason is None or ban.reason in ["", "none", "Account has no avatar.", "No reason given."] or str(ban.reason).lower().startswith('[hidden]'):
-			logging.info("silent or hidden ban/no reason, not prompting")
-			await Bans().add_ban(user.id, guild.id, "Hidden Ban", "Unknown", hidden=True)
+		if ban.reason is None or ban.reason.lower() in ["", "none", "account has no avatar.", "no reason given.", "breaking server rules"] or str(ban.reason).lower().startswith('[hidden]'):
+			logging.info("Hiding ban: Reason doesn't provide valuable information or has hidden tag.")
+			await Bans().add_ban(user.id, guild.id, ban_entry.reason, "Unknown", hidden=True)
 			if mod_channel is None :
 				logging.error(f"{guild.name}({guild.id}) doesn't have modchannel set.")
 				return
