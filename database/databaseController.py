@@ -63,6 +63,19 @@ class DatabaseTransactions :
 		session.execute(text(f"TRUNCATE TABLE {table}"))
 		self.commit(session)
 
+	@staticmethod
+	@abstractmethod
+	def ping_db() :
+		try :
+			session.connection()
+			return "alive"
+
+		except Exception as e:
+			logging.error(f"Database ping failed: {e}", exc_info=True)
+			session.rollback()
+			session.close()
+			return "error"
+
 
 class ServerDbTransactions(DatabaseTransactions) :
 
