@@ -16,7 +16,7 @@ class SelectBan(discord.ui.View):
 		self.bans = BanDbTransactions().get_all_user(user_id)
 
 		options = [discord.SelectOption(
-				label=f"{ban.guild.name} - {ban.uid}",
+				label=f"{ban.guild.name} - {ban.uid}"[0:99],
 					value=str(ban.ban_id),
 					emoji="🔨",
 				) for ban
