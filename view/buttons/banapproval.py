@@ -98,8 +98,8 @@ class BanApproval(View) :
 			return
 		guild, user, reason = await self.get_ban_data(ban_entry)
 		user_id = user.id
-		entries = ProofDbTransactions().get(user_id=user_id)
-		await EvidenceController().send_proof(interaction, entries, user_id)
+		entries = ProofDbTransactions().get(ban_id=self.wait_id)
+		await EvidenceController().send_proof(interaction, entries, self.wait_id)
 
 	@discord.ui.button(label="Hide & Inform", style=discord.ButtonStyle.danger, custom_id="deny_broadcast")
 	async def hide(self, interaction: discord.Interaction, button: discord.ui.Button) :
