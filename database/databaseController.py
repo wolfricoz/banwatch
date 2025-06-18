@@ -3,6 +3,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Type
 
+import sqlalchemy
 from sqlalchemy import ColumnElement, Select, and_, exists, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -68,13 +69,20 @@ class DatabaseTransactions :
 	def ping_db() :
 		try :
 			session.connection()
+			if session._is_clean():
+				return "alive"
+			session.execute(text("SELECT 1"))
 			return "alive"
-
-		except Exception as e:
-			logging.error(f"Database ping failed: {e}", exc_info=True)
+		except sqlalchemy.exc.PendingRollbackError :
 			session.rollback()
 			session.close()
 			return "error"
+		except sqlalchemy.exc.InvalidRequestError :
+			return "alive"
+		except Exception as e:
+			logging.error(f"Database ping failed: {e}", exc_info=True)
+			return "error"
+
 
 
 class ServerDbTransactions(DatabaseTransactions) :
