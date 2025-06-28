@@ -26,7 +26,13 @@ async def autocomplete_guild(interaction: discord.Interaction, current: str) -> 
 	app_commands.Choice[str]] :
 	"""generates the options for autocomplete."""
 	data = []
+	count = 0
 	for x in interaction.client.guilds :
+		if count >= 24 :
+			data.append(app_commands.Choice(name=f"{len(interaction.client.guilds) -24} servers not shown", value=str(0)))
+			break
 		if current.lower() in x.name.lower() or x.name.lower().startswith(current.lower()) :
 			data.append(app_commands.Choice(name=x.name.lower(), value=str(x.id)))
-	return data
+			count += 1
+
+	return data[:25]
