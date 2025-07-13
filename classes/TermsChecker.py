@@ -25,7 +25,7 @@ class TermsChecker:
 			return
 		action()
 
-
+	# Actions, these are called by the init.
 	def review(self):
 		self.checkTerms(first_stop=True)
 		if len(self.found) > 0:
@@ -46,6 +46,8 @@ class TermsChecker:
 		self.checkTerms()
 		if len(self.found) >= self.MAX_FOUND :
 			self.result = "block"
+
+	# other functions.
 
 	def checkTerms(self, first_stop: bool = False):
 		term: FlaggedTerms

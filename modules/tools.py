@@ -12,6 +12,7 @@ from classes.bans import Bans
 from classes.queue import queue
 from database.databaseController import BanDbTransactions, ServerDbTransactions
 from view.modals.inputmodal import send_modal
+from view.multiselect.selectreason import SelectReason
 
 
 class Tools(commands.Cog) :
@@ -29,10 +30,18 @@ class Tools(commands.Cog) :
 	async def ban(self, interaction: discord.Interaction, user: discord.User, ban_type: Choice[str] = "",
 	              inform: bool = True, clean: bool = False) :
 		"""Bans a user from the server"""
+		view = SelectReason()
+		await send_message(interaction.channel, "Select your reason.", view=view)
+		await view.wait()
+		reason = view.reason
+
 		if isinstance(ban_type, Choice) :
 			ban_type = ban_type.value
-		reason_modal = await send_modal(interaction, "What is the reason for the ban?", "Ban Reason")
-		await ban_user(interaction, user, ban_type, reason_modal, inform=inform, clean=clean, ban_class=Bans())
+
+
+		if reason == "custom":
+			reason= await send_modal(interaction, "What is the reason for the ban?", "Ban Reason")
+		await ban_user(interaction, user, ban_type, reason, inform=inform, clean=clean, ban_class=Bans())
 
 	@app_commands.command(name="mass_ban", description="bans multiple users, separated by a space")
 	@app_commands.checks.has_permissions(ban_members=True)
@@ -44,10 +53,18 @@ class Tools(commands.Cog) :
 	async def mass_ban(self, interaction: discord.Interaction, users: str, ban_type: Choice[str] = "",
 	                   inform: bool = True, clean: bool = False) :
 		"""Bans a user from the server"""
+		view = SelectReason()
+		await send_message(interaction.channel, "Select your reason.", view=view)
+		await view.wait()
+		reason = view.reason
+
 		if isinstance(ban_type, Choice) :
 			ban_type = ban_type.value
+
+
+		if reason == "custom":
+			reason= await send_modal(interaction, "What is the reason for the ban?", "Ban Reason")
 		user_list = users.split(" ")
-		reason_modal = await send_modal(interaction, "What is the reason for the ban?", "Ban Reason")
 		for user_id in user_list :
 			await asyncio.sleep(1)
 			try :
@@ -59,7 +76,7 @@ class Tools(commands.Cog) :
 				await interaction.channel.send(
 					f"An error occurred while fetching user with id {user_id}, please ban them manually")
 				continue
-			await ban_user(interaction, user, ban_type, reason_modal, inform=inform, clean=clean, ban_class=Bans())
+			await ban_user(interaction, user, ban_type, reason, inform=inform, clean=clean, ban_class=Bans())
 
 	@app_commands.command(name="unban", description="Unbans a user from the server")
 	@app_commands.checks.has_permissions(ban_members=True)
