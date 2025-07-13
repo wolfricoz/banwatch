@@ -96,7 +96,7 @@ async def on_ready() :
 
 	formguilds = "\n".join(guilds)
 	logging.info(f"Bot is in {guild_count} guilds:\n{formguilds}")
-	queue().add(send_message(devroom, f"Banwatch is in {guild_count} guilds. Version 3.1.6: To bun or not to bun!"), priority=2)
+	queue().add(send_message(devroom, f"Banwatch is in {guild_count} guilds. Version 3.1.7: Now with more reasons and improved ban checking!"), priority=2)
 	# Adding views
 	bot.add_view(ServerInfo())
 	bot.add_view(LookUp())
