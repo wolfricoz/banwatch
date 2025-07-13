@@ -4,6 +4,7 @@ import discord
 from discord.ui import View, button
 from discord_py_utilities.messages import await_message, send_message, send_response
 
+from classes.TermsChecker import TermsChecker
 from classes.access import AccessControl
 from classes.bans import Bans
 from classes.configdata import ConfigData
@@ -77,30 +78,40 @@ class BanOptionButtons(View) :
 			await send_response(interaction, f"Ban for {user.mention} has been successfully hidden.", ephemeral=True)
 			await interaction.message.delete()
 			return
-		# Additional check to see if user is a bot; technically not needed.
-		# check if the ban has a checklisted word
-		checklist_check = await self.check_checklisted_words(ban)
-		if user.bot and not checklist_check :
-			checklist_check = "User is a bot"
-		word_count = len(ban.reason.split(" ")) < 4
-		if word_count and not checklist_check :
-			checklist_check = "Short ban reason"
-		wait_id = Bans().create_ban_id(user.id, guild.id)
-		if AccessControl().access_all(user.id) and not checklist_check :
-			checklist_check = "Banwatch Staff Member"
+		# check if the ban has a checklisted word, and takes action based on action type
+		checkListCheckType: str|None = None
+		checkListResult: str|None = None
+		checkListCheckType, checkListResult = await self.checkFlaggedTerms(ban.reason.lower())
+		checkListResult = ", ".join(checkListResult)
 
-		if checklist_check :
+
+		if checkListCheckType.lower() == "block":
+			await self.sendDeniedEmbed(interaction, ban, checkListResult)
+			queue().add(Bans().add_ban(user.id, guild.id, ban.reason + " (HIDDEN DUE TO BLOCKLIST)", staff_member.name, approved=False, hidden=True), priority=2)
+			return
+
+
+		if user.bot and not checkListCheckType :
+			checkListResult = "User is a bot"
+		word_count = len(ban.reason.split(" ")) < 4
+		if word_count and not checkListCheckType :
+			checkListResult = "Short ban reason"
+		wait_id = Bans().create_ban_id(user.id, guild.id)
+		if AccessControl().access_all(user.id) and not checkListCheckType :
+			checkListResult = "Banwatch Staff Member"
+
+		if checkListCheckType in ['review'] :
 
 			channel = interaction.client.get_channel(int(os.getenv("BANS")))
 			queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=False), priority=2)
 			if evidence :
 				queue().add(self.provide_proof(interaction, evidence), priority=2)
-			queue().add(self.status(interaction.client, guild, user, "waiting_approval", ban.reason, word=checklist_check,
+			queue().add(self.status(interaction.client, guild, user, "waiting_approval", ban.reason, word=checkListResult,
 			                        message=message, silent=silent))
 
 			embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
 			                      description=f"{ban.reason}")
-			embed.add_field(name="flagged word", value=checklist_check, inline=False)
+			embed.add_field(name="flagged word", value=checkListResult, inline=False)
 			embed.set_footer(text=f"invite: {guild_db.invite} To approve it manually: /approve_ban {wait_id} ")
 			queue().add(
 				send_message(channel, f"<@&{os.getenv('STAFF_ROLE')}>", embed=embed,
@@ -181,3 +192,28 @@ class BanOptionButtons(View) :
 		message: discord.Message = await channel.send(f"Your ban for {user.mention} is currently: {status}.")
 		queue().add(
 			message.edit(content=f"Your ban for {user.mention} has been successfully broadcasted to other servers."))
+
+
+	async def sendDeniedEmbed(self, interaction, ban: discord.BanEntry, checkListResult: str):
+		embed = discord.Embed(
+			title=f"Your ban for {ban.user.name}({ban.user.id}) has been denied.)",
+			description=f"{ban.user.mention} has been denied as it contains content we do not allow to be shared. Please reban this user without the content.",
+		)
+		embed.add_field(name="Offending content", value=checkListResult)
+		embed.set_footer(text="To prevent abuse of the system, we try to filter out certain words. Please open a ticket in our support server if you need help.")
+		await send_message(interaction.channel, embed=embed)
+
+
+	async def checkFlaggedTerms(self, target):
+		checks = {
+			"reviewCheck"      : TermsChecker("review", target),
+			"countReviewCheck" : TermsChecker("countreview", target),
+			"blockCheck"       : TermsChecker("block", target),
+			"blockReviewCheck" : TermsChecker("countblock", target),
+		}
+		for key, val in checks.items() :
+			val: TermsChecker
+			if val.getReviewStatus() == "":
+				continue
+			return val.getResults()
+		return None, None

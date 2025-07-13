@@ -87,9 +87,9 @@ class Servers(Base) :
 	invite: Mapped[str] = mapped_column(String(256, collation='utf8mb4_unicode_ci'), default="")
 	updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 	deleted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=None, nullable=True)
+	active: Mapped[bool] = mapped_column(Boolean, default=True)
 	bans: Mapped[List["Bans"]] = relationship("Bans", back_populates="guild",
 	                                          cascade="save-update, merge, delete, delete-orphan")
-	active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 	def __int__(self) :
 		return self.id
@@ -116,6 +116,13 @@ class Config(Base) :
 	key: Mapped[str] = mapped_column(String(512), primary_key=True)
 	value: Mapped[str] = mapped_column(String(1980))
 
+class FlaggedTerms(Base):
+	__tablename__ = "flagged_terms"
+	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+	term: Mapped[str] = mapped_column(String(512, collation='utf8mb4_unicode_ci'), unique=True)
+	action: Mapped[str] = mapped_column(String(128, collation='utf8mb4_unicode_ci'))
+	regex: Mapped[bool] = mapped_column(Boolean, default=False)
+	active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 def create_bot_database() :
 	Base.metadata.create_all(engine)
@@ -124,5 +131,7 @@ def create_bot_database() :
 def drop_bot_database() :
 	if os.getenv('DISCORD_TOKEN') is not None :
 		raise Exception("You cannot drop the database while the bot is in production")
-	sessionmaker(engine).close_all()
+	Session = sessionmaker(bind=engine)
+	session = Session()
+	session.close_all()
 	Base.metadata.drop_all(engine)

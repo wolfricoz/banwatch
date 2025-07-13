@@ -19,7 +19,8 @@ from classes.configer import Configer
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from classes.tasks import pending_bans
-from database.databaseController import BanDbTransactions, DatabaseTransactions, ServerDbTransactions, \
+from database.databaseController import BanDbTransactions, DatabaseTransactions, FlaggedTermsTransactions, \
+	ServerDbTransactions, \
 	StaffDbTransactions
 from view.modals.inputmodal import send_modal
 from discord.utils import get
@@ -44,7 +45,7 @@ class dev(commands.GroupCog, name="dev") :
 	@AccessControl().check_access("dev")
 	async def update_commands(self, interaction: discord.Interaction) :
 		queue().add(self.bot.tree.sync(), priority=2)
-		await interaction.response.send_message("Command sync queue, high priority queue.")
+		await send_response(interaction,"Command sync queue, high priority queue.")
 
 	@app_commands.command(name="stats", description="View banwatch's stats!", )
 	async def stats(self, interaction: discord.Interaction) :
@@ -64,6 +65,19 @@ class dev(commands.GroupCog, name="dev") :
 		for i, v in stats.items() :
 			embed.add_field(name=i, value=v, inline=False)
 		await send_message(interaction.channel, embed=embed)
+
+	@app_commands.command(name="loadflaggedterms", description="[DEV] Loads old watchlist into flagged terms", )
+	@AccessControl().check_access("dev")
+	async def update_flagged_terms(self, interaction: discord.Interaction) :
+		checklist = await Configer.get_checklist()
+		for word in checklist :
+			try:
+				FlaggedTermsTransactions.add(term=word, action='review')
+			except Exception as e:
+				logging.warning(f"could not load {word} into flagged terms: {e}")
+
+		await send_response(interaction,f"Old watchlist flagged terms have been successfully loaded. loaded: ||{', '.join(checklist)}||")
+
 
 	@app_commands.command(name="announce", description="[DEV] Send an announcement to all guild owners")
 	@AccessControl().check_access("dev")
@@ -98,7 +112,7 @@ class dev(commands.GroupCog, name="dev") :
 	async def leave_server(self, interaction: discord.Interaction, guildid: int) :
 		guild = self.bot.get_guild(guildid)
 		await guild.leave()
-		await interaction.response.send_message(f"Left {guild}")
+		await send_response(interaction,f"Left {guild}")
 
 	@app_commands.command(name="blacklist_server", description="[DEV] Blacklist a server")
 	@AccessControl().check_access("dev")
@@ -107,14 +121,14 @@ class dev(commands.GroupCog, name="dev") :
 		guild = self.bot.get_guild(guildid)
 		await Configer.add_to_blacklist(guildid)
 		await guild.leave()
-		await interaction.response.send_message(f"Blacklisted {guild}")
+		await send_response(interaction,f"Blacklisted {guild}")
 
 	@app_commands.command(name="unblacklist_server", description="[DEV] Remove a server from the blacklist")
 	@AccessControl().check_access("dev")
 	async def unblacklist_server(self, interaction: discord.Interaction, guildid: str) :
 		guildid = int(guildid)
 		await Configer.remove_from_blacklist(guildid)
-		await interaction.response.send_message(f"Unblacklisted {guildid}")
+		await send_response(interaction,f"Unblacklisted {guildid}")
 
 	# blacklist user goes here
 	@app_commands.command(name="blacklist_user", description="[DEV] Blacklist a user")
@@ -137,20 +151,42 @@ class dev(commands.GroupCog, name="dev") :
 		Choice(name="add", value="add"),
 		Choice(name="remove", value="remove"),
 		Choice(name="list", value="list")
+	],
+	action=[
+		Choice(name="review", value="review"),
+		Choice(name="block", value="block"),
+		Choice(name="countreview", value="countreview"),
+		Choice(name="countblock", value="countblock"),
 	])
 	@AccessControl().check_access(role="dev")
-	async def checklist(self, interaction: discord.Interaction, operation: Choice[str], word: str) :
+	async def flaggedterms(self, interaction: discord.Interaction, operation: Choice[str], term: str, action: Choice[str], regex: bool = False) :
 		match operation.value :
 			case "add" :
-				await Configer.add_checklist(word)
-				await interaction.response.send_message(f"Added {word} to the checklist", ephemeral=True)
+				result = FlaggedTermsTransactions.add(term=term, action=action.value, regex=regex)
+				if not result :
+					return await send_response(interaction, f"Failed to add {term}")
+
+				return await send_response(interaction,f"Added {term} to the flagged terms list with action {action.value} and regex status {regex}", ephemeral=True)
+
 			case "remove" :
-				await Configer.remove_checklist(word)
-				await interaction.response.send_message(f"Removed {word} from the checklist", ephemeral=True)
+				result = FlaggedTermsTransactions.delete(term)
+				if not result :
+					return await send_response(interaction, f"Failed to remove {term}")
+				return await send_response(interaction,f"Removed {term} from the checklist", ephemeral=True)
+
 			case "list" :
-				checklist: list = await Configer.get_checklist()
-				l = "\n".join(checklist)
-				await interaction.response.send_message(f"Checklist: {l}", ephemeral=True)
+				await send_response(interaction, "Fetching flagged words", )
+				flaggedWords = FlaggedTermsTransactions.get_all()
+				result = ""
+				for word in flaggedWords :
+					result += f"Term: {word.term} Action: {word.action} Regex: {word.regex}\n"
+				
+				
+				with open('flaggedwords.txt', 'w') as file:
+					file.write("All flagged words:\n")
+					file.write(result)
+				return await send_message(interaction.channel, "", files=[discord.File('flaggedwords.txt')])
+		return None
 
 	@app_commands.command(name="backup")
 	@AccessControl().check_access("dev")
@@ -272,9 +308,13 @@ class dev(commands.GroupCog, name="dev") :
 	@AccessControl().check_access("dev")
 	async def testban(self, interaction: discord.Interaction, checklist: bool = True) :
 		user = self.bot.get_user(474365489670389771)
+		if user is None:
+			user = await self.bot.fetch_user(474365489670389771)
+
 		try :
 			await interaction.guild.unban(user, reason="Test unban")
-		except Exception :
+		except Exception as e :
+			await send_message(interaction.channel, f"Failed to unban test account with reason: {e}")
 			pass
 		try :
 			await interaction.guild.ban(user,
@@ -283,7 +323,7 @@ class dev(commands.GroupCog, name="dev") :
 			user = await self.bot.fetch_user(474365489670389771)
 			await interaction.guild.ban(user,
 			                            reason=f"{'Test Ban that is longer than four words' if checklist else 'dev ban that is longer than four words'}")
-		await interaction.response.send_message("Test ban complete", ephemeral=True)
+		await send_response(interaction,"Test ban complete", ephemeral=True)
 
 	@app_commands.command(name="pendingbans", description="[DEV] Lists all pending bans")
 	@AccessControl().check_access("dev")
@@ -295,7 +335,7 @@ class dev(commands.GroupCog, name="dev") :
 	@AccessControl().check_access("dev")
 	async def refreshbans(self, interaction: discord.Interaction) :
 		await Bans().update(self.bot, override=True)
-		await interaction.response.send_message("Bans refresh queued", ephemeral=True)
+		await send_response(interaction,"Bans refresh queued", ephemeral=True)
 
 	@app_commands.command(name="add_staff", description="[DEV] Adds a staff member to the team")
 	@app_commands.choices(role=[Choice(name=x, value=x.lower()) for x in ["Dev", "Rep"]])

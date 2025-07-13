@@ -56,7 +56,7 @@ class BanEvents(commands.Cog) :
 			logging.info("Migrated ban, not prompting")
 			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name,)
 
-		mod_channel = bot.get_channel(int(ConfigData().get_key_or_none(guild.id, "modchannel")))
+		mod_channel = bot.get_channel(ConfigData().get_key_or_none(guild.id, "modchannel" ))
 		if mod_channel is None:
 			logging.warning(f"{guild.name}({guild.id}) doesn't have modchannel set.")
 			await Bans().add_ban(user.id, guild.id, ban.reason, "No Modchannel Set", approved=False)
