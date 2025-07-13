@@ -1,3 +1,5 @@
+import logging
+
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -17,7 +19,7 @@ class Evidence(commands.GroupCog, name="evidence") :
 
 	@app_commands.command(name="add", description="Adds evidence to a user's record")
 	@app_commands.checks.has_permissions(moderate_members=True)
-	async def add(self, interaction: discord.Interaction, user: discord.User, ban_id: str = None) :
+	async def add(self, interaction: discord.Interaction, user: discord.User, ban_id: str = None, info: str = None, attachment1: discord.Attachment= None, attachment2: discord.Attachment= None, attachment3: discord.Attachment= None) :
 		"""Adds evidence to a user's record"""
 		ban_entry: discord.Message
 		if not ban_id :
@@ -33,11 +35,16 @@ class Evidence(commands.GroupCog, name="evidence") :
 			                          f"Ban ID {ban_id} not found, please check if the user is banned. If this error persists please open a ticket in the support server.", ephemeral=True),
 			            priority=2)
 			return
-		queue().add(send_response(interaction, f"⏳ Processing Evidence, please wait.", ephemeral=True), priority=2)
+		if info or attachment1 or attachment2 or attachment3  :
+			attachments = [attachment1, attachment2, attachment3]
+			await send_response(interaction, f"⏳ Processing Evidence, please wait.")
+			await EvidenceController.add_evidence_standalone(interaction, ban_id,user,  info, attachments)
+			return
 
 		evidence = await await_message(interaction, evidence_message_template.format(user=user.name, ban_id=ban_id))
 		if evidence is False :
 			return
+		queue().add(send_response(interaction, f"⏳ Processing Evidence, please wait.", ephemeral=True), priority=2)
 		queue().add(EvidenceController.add_evidence(interaction, evidence, ban_id, user), priority=2)
 
 	@app_commands.command(name="get", description="Get the proof for an user's ban!")

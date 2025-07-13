@@ -155,7 +155,13 @@ class SelectReason(discord.ui.View):
 		        "description" : "User returned after being banned using an alternate account",
 		        "ban_reason"  : "User rejoined the server using a different account to avoid an existing ban",
 		        "emote"       : "🚷"
-	        }
+	        },
+	        {
+		        "reason"      : "Plagiarism",
+		        "description" : "Copying or stealing others' content without permission",
+		        "ban_reason"  : "User posted content copied from others without proper credit or authorization, violating community rules",
+		        "emote"       : "📋"
+	        },
         ]
 
         self.add_item(ReasonSelect(self.reasons))
