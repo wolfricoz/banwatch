@@ -127,7 +127,7 @@ class BanApproval(View) :
 		await denial_channel.send(embed=banembed)
 		if mod_channel :
 			await mod_channel.send(embed=banembed)
-		await send_response(interaction, f"Ban Hidden: \n `{deny_reason}`", ephemeral=True)
+		# await send_response(interaction, f"Ban Hidden: \n `{deny_reason}`", ephemeral=True)
 
 	@discord.ui.button(label="Hide Ban", style=discord.ButtonStyle.danger, custom_id="deny_silent")
 	async def hidesilent(self, interaction: discord.Interaction, button: discord.ui.Button) :
