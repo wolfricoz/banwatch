@@ -82,10 +82,13 @@ class BanOptionButtons(View) :
 		checkListCheckType: str|None = None
 		checkListResult: str|None = None
 		checkListCheckType, checkListResult = await self.checkFlaggedTerms(ban.reason.lower())
-		checkListResult = ", ".join(checkListResult)
+
+		if isinstance(checkListCheckType, list):
+			# Turn the array of words into a string
+			checkListResult = ", ".join(checkListResult)
 
 
-		if checkListCheckType.lower() == "block":
+		if checkListCheckType and checkListCheckType.lower() == "block":
 			await self.sendDeniedEmbed(interaction, ban, checkListResult)
 			queue().add(Bans().add_ban(user.id, guild.id, ban.reason + " (HIDDEN DUE TO BLOCKLIST)", staff_member.name, approved=False, hidden=True), priority=2)
 			return
