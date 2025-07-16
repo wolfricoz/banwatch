@@ -1,7 +1,9 @@
 import os
+from typing import Any
 
 import discord
-from discord.ui import View, button
+from discord import Interaction
+from discord.ui import Item, View, button
 from discord_py_utilities.messages import await_message, send_message, send_response
 
 from classes.TermsChecker import TermsChecker
@@ -73,6 +75,7 @@ class BanOptionButtons(View) :
 		staff_member: discord.User = await self.get_staff_member(guild, user)
 		message: discord.Message = interaction.message
 		# check is ban has to be hidden
+
 		if hidden :
 			queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, hidden=True), priority=2)
 			await send_response(interaction, f"Ban for {user.mention} has been successfully hidden.", ephemeral=True)
@@ -220,3 +223,6 @@ class BanOptionButtons(View) :
 				continue
 			return val.getResults()
 		return None, None
+
+	async def on_error(self, interaction: Interaction, error: Exception, item: Item[Any], /) -> None:
+		await send_response(interaction, f"An error has occurred: {error}")
