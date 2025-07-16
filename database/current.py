@@ -117,6 +117,7 @@ class AppealMsgs(Base):
 	sender: Mapped[int] = mapped_column(BigInteger) # this can be either the server, staff member, or user.
 	recipient: Mapped[int] = mapped_column(BigInteger) # this can be either the server, staff member, or user.
 	created: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+	appeal_id: Mapped[int] = mapped_column(ForeignKey("appeals.id"))
 	appeal: Mapped["Appeals"] = Relationship("Appeals", back_populates="msgs",)
 
 
