@@ -30,15 +30,13 @@ class Tools(commands.Cog) :
 	async def ban(self, interaction: discord.Interaction, user: discord.User, ban_type: Choice[str] = "",
 	              inform: bool = True, clean: bool = False) :
 		"""Bans a user from the server"""
+		await interaction.response.defer(ephemeral=True)
 		view = SelectReason()
 		await send_message(interaction.channel, "Select your reason.", view=view)
 		await view.wait()
 		reason = view.reason
-
 		if isinstance(ban_type, Choice) :
 			ban_type = ban_type.value
-
-
 		if reason == "custom":
 			reason= await send_modal(interaction, "What is the reason for the ban?", "Ban Reason")
 		await ban_user(interaction, user, ban_type, reason, inform=inform, clean=clean, ban_class=Bans())
