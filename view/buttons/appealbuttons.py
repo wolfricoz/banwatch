@@ -1,11 +1,12 @@
-import discord
-from discord.ext import commands
-from discord.ui import View
-from discord_py_utilities.messages import await_message, send_message
+import os
 
-from classes.configer import Configer
+import discord
+from discord.ui import View
+from discord_py_utilities.messages import send_message, send_response
+
 from database.databaseController import AppealMsgTransactions, AppealsDbTransactions, BanDbTransactions
-from view.modals.inputmodal import InputModal, send_modal
+from view.modals.inputmodal import send_modal
+from view.multiselect.statusselect import SelectStatus
 
 
 class AppealButtons(View) :
@@ -15,19 +16,13 @@ class AppealButtons(View) :
 		super().__init__(timeout=None)
 
 	@discord.ui.button(label="Change Status", style=discord.ButtonStyle.success, custom_id="ChangeStatus")
-	async def approve(self, interaction: discord.Interaction, button: discord.ui.Button) :
-		await interaction.response.defer(ephemeral=True)
+	async def change_status(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		await self.load_data(interaction)
-		if self.bot is None or self.user is None :
-			await interaction.followup.send("Error: The bot has restarted, the data of this button was lost", ephemeral=True)
-			return
-		await self.disable_buttons(interaction)
-		await interaction.guild.unban(self.user, reason="Appeal approved")
-		AppealsDbTransactions().change_status(self.ban_id, 'approved')
-		await interaction.followup.send("Appeal approved, user unbanned", ephemeral=True)
-		await self.user.send(f"Your appeal has been approved, you have been unbanned from {interaction.guild.name}")
+		await send_response(interaction, "Choose the status of the appeal", view=SelectStatus(self.ban_id))
+		# await self.disable_buttons(interaction)
 
-	@discord.ui.button(label="Respond", style=discord.ButtonStyle.danger, custom_id="Respond")
+
+	@discord.ui.button(label="Respond", style=discord.ButtonStyle.success, custom_id="Respond")
 	async def respond(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		await self.load_data(interaction)
 		appeal = AppealsDbTransactions().get(self.ban_id)
@@ -35,6 +30,19 @@ class AppealButtons(View) :
 		title = f"Response from {interaction.guild.name} for ban id: {self.ban_id}"
 		await self.send_embed(interaction, title, response)
 		AppealMsgTransactions.add(response, interaction.guild.id, self.user.id, appeal.id)
+		# await self.disable_buttons(interaction)
+
+	@discord.ui.button(label="Report", style=discord.ButtonStyle.danger, custom_id="Report")
+	async def report(self, interaction: discord.Interaction, button: discord.ui.Button) :
+		await self.load_data(interaction)
+		staff_channel = self.bot.get_channel(int(os.getenv("BANS")))
+		await send_message(staff_channel, f"Report abuse from {interaction.guild.name} for appeal: {self.ban_id}", embed=interaction.message.embeds[0])
+		await send_response(interaction, f"Successfully sent the report to the banwatch staff!")
+		AppealsDbTransactions().change_status(self.ban_id, "denied")
+		await self.disable_buttons(interaction)
+
+
+
 
 	async def disable_buttons(self, interaction: discord.Interaction) :
 		for child in self.children :
