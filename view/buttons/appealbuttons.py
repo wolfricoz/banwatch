@@ -30,6 +30,10 @@ class AppealButtons(View) :
 	async def respond(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		await self.load_data(interaction)
 		appeal = AppealsDbTransactions().get(self.ban_id)
+		if not appeal :
+			await send_response(interaction, f"This appeal no longer exists. Please create a new appeal")
+			await self.disable_buttons(interaction)
+			return
 		target = "guild" if self.dmChannel else "user"
 		message = await send_modal(interaction, f"Your response has been delivered to the {target}", "What's your message?", 2000)
 
