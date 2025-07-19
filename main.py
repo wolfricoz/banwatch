@@ -19,7 +19,7 @@ from classes.configer import Configer
 from classes.queue import queue
 from classes.tasks import pending_bans
 from database.current import create_bot_database
-from database.databaseController import ServerDbTransactions
+from database.databaseController import AppealsDbTransactions, ServerDbTransactions
 from view.buttons.appealbuttons import AppealButtons
 from view.buttons.lookup import LookUp
 from view.buttons.serverinfo import ServerInfo
