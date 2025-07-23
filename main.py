@@ -21,6 +21,7 @@ from classes.tasks import pending_bans
 from database.current import create_bot_database
 from database.databaseController import AppealsDbTransactions, ServerDbTransactions
 from view.buttons.appealbuttons import AppealButtons
+from view.buttons.communicationbuttons import CommunicationButtons
 from view.buttons.lookup import LookUp
 from view.buttons.serverinfo import ServerInfo
 from random import randint
@@ -102,6 +103,7 @@ async def on_ready() :
 	bot.add_view(ServerInfo())
 	bot.add_view(LookUp())
 	bot.add_view(AppealButtons())
+	bot.add_view(CommunicationButtons())
 	# Syncing commands
 	queue().add(bot.tree.sync())
 	logging.info(f"Commands synced, start up done! Connected to {guild_count} guilds and {bot.shard_count} shards.")
