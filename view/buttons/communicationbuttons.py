@@ -33,6 +33,9 @@ class CommunicationButtons(View) :
 		                   embed=interaction.message.embeds[0])
 		await send_response(interaction, f"Successfully sent the report to the banwatch staff!")
 
+
+
+
 	async def disable_buttons(self, interaction: discord.Interaction) :
 		for child in self.children :
 			child.disabled = True

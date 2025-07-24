@@ -21,6 +21,9 @@ class AppealButtons(View) :
 
 	@discord.ui.button(label="Change Status", style=discord.ButtonStyle.success, custom_id="ChangeStatus")
 	async def change_status(self, interaction: discord.Interaction, button: discord.ui.Button) :
+		if interaction.user.guild_permissions.ban_members is False:
+			await send_response(interaction, "You don't have permission to do that!", ephemeral=True)
+			return
 		await self.load_data(interaction)
 		await send_response(interaction, "Choose the status of the appeal", view=SelectStatus(self.ban_id))
 
@@ -28,6 +31,9 @@ class AppealButtons(View) :
 
 	@discord.ui.button(label="Respond", style=discord.ButtonStyle.success, custom_id="Respond")
 	async def respond(self, interaction: discord.Interaction, button: discord.ui.Button) :
+		if interaction.user.guild_permissions.ban_members is False:
+			await send_response(interaction, "You don't have permission to do that!", ephemeral=True)
+			return
 		await self.load_data(interaction)
 		appeal = AppealsDbTransactions().get(self.ban_id)
 		if not appeal :
@@ -44,6 +50,9 @@ class AppealButtons(View) :
 
 	@discord.ui.button(label="Report", style=discord.ButtonStyle.danger, custom_id="Report")
 	async def report(self, interaction: discord.Interaction, button: discord.ui.Button) :
+		if interaction.user.guild_permissions.ban_members is False:
+			await send_response(interaction, "You don't have permission to do that!", ephemeral=True)
+			return
 		await self.load_data(interaction)
 		staff_channel = self.bot.get_channel(int(os.getenv("BANS")))
 		await send_message(staff_channel, f"Report abuse from {interaction.guild.name} for appeal: {self.ban_id}",
@@ -51,6 +60,23 @@ class AppealButtons(View) :
 		await send_response(interaction, f"Successfully sent the report to the banwatch staff!")
 		AppealsDbTransactions().change_status(self.ban_id, "denied")
 		await self.disable_buttons(interaction)
+
+	@discord.ui.button(label="Hide Ban", style=discord.ButtonStyle.danger, custom_id="deny_silent")
+	async def silent(self, interaction: discord.Interaction, button: discord.ui.Button) :
+		if interaction.user.guild_permissions.ban_members is False:
+			await send_response(interaction, "You don't have permission to do that!", ephemeral=True)
+			return
+		await self.load_data(interaction)
+		ban_entry = BanDbTransactions().get(self.ban_id, override=True)
+		if ban_entry is None :
+			await send_response(interaction, "Ban not found", ephemeral=True)
+			return
+		BanDbTransactions().update(self.ban_id, approved=True, hidden=True)
+		await send_response(interaction,
+			f"`{self.ban_id}` was hidden by {interaction.user.mention}!")
+		await self.disable_buttons(interaction)
+		await send_message(self.user, f"Your ban with ban id `{self.ban_id}` has been hidden.\n-# Hidden bans can not be viewed by other servers, but the ban remains in the server.(only nam")
+
 
 	async def disable_buttons(self, interaction: discord.Interaction) :
 		for child in self.children :
@@ -84,7 +110,7 @@ class AppealButtons(View) :
 	async def load_data(self, interaction: discord.Interaction) :
 		self.bot = interaction.client
 		self.dmChannel = isinstance(interaction.channel, discord.DMChannel)
-		self.ban_id = interaction.message.embeds[0].footer.text
+		self.ban_id = int(interaction.message.embeds[0].footer.text)
 		ban = BanDbTransactions().get(self.ban_id, override=True)
 		self.ban = ban
 		self.guild = self.bot.get_guild(ban.gid)
