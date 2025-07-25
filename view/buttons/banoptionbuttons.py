@@ -8,6 +8,7 @@ from discord_py_utilities.messages import await_message, send_message, send_resp
 
 from classes.TermsChecker import TermsChecker
 from classes.access import AccessControl
+from classes.appeal import inform_user
 from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.configer import Configer
@@ -125,6 +126,7 @@ class BanOptionButtons(View) :
 			return
 
 		queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=True), priority=2)
+
 		if evidence :
 			queue().add(self.provide_proof(interaction, evidence), priority=2)
 		if silent :
@@ -132,12 +134,15 @@ class BanOptionButtons(View) :
 			                    f"Ban silently stored for {user.mention}! Other servers may see it when a user joins but it will not be broadcasted.",
 			                    ephemeral=True)
 			await interaction.message.delete()
+			queue().add(inform_user(guild, user), 0)
+
 			return
 		embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
 		                      description=f"{ban.reason}")
 		embed.set_footer(text=f"Server Invite: {guild_db.invite} Staff member: {staff_member} ban ID: {wait_id}")
 		queue().add(Bans().check_guilds(interaction, interaction.client, guild, user, embed, wait_id))
 		queue().add(self.status(interaction.client, guild, user), priority=0)
+
 
 	async def provide_proof(self, interaction, evidence) :
 		if not evidence :

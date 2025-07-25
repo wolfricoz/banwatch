@@ -29,7 +29,7 @@ class config(commands.GroupCog, name="config") :
 	@app_commands.command(name="appeals", description="[CONFIG COMMAND] turn on/off ban appeals")
 	@app_commands.checks.has_permissions(manage_guild=True)
 	async def appeals(self, interaction: discord.Interaction, allow: bool) :
-		ConfigData().add_key(interaction.guild.id, "allow_appeals", allow)
+		ConfigData().add_key(interaction.guild.id, "allow_appeals", allow, overwrite=True)
 		await send_response(interaction, f"Ban appeals have been set to: {'enabled' if allow is True else 'disabled'}")
 
 	@app_commands.command(name="visibility", description="[Config Command] Allows you to hide all bans from banwatch")
