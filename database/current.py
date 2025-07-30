@@ -6,7 +6,7 @@ from typing import List
 import pymysql
 from dotenv import load_dotenv
 from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, String, create_engine
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Mapped, Relationship, mapped_column, relationship, sessionmaker
 from sqlalchemy.pool import NullPool
 from sqlalchemy.sql import func
 from sqlalchemy_utils import create_database, database_exists
@@ -103,9 +103,22 @@ class Appeals(Base) :
 	status: Mapped[str] = mapped_column(Enum('approved', 'pending', 'denied', name='status_enum'), nullable=False,
 	                                    default='pending')
 	ban: Mapped["Bans"] = relationship("Bans", back_populates="appeals", )
+	msgs: Mapped[List["AppealMsgs"]] = relationship("AppealMsgs", back_populates="appeal",
+	                                                cascade="all, save-update, merge, delete, delete-orphan")
 
 	def __int__(self) :
 		return self.id
+
+
+class AppealMsgs(Base):
+	__tablename__ = "appeal_msgs"
+	id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+	message: Mapped[str] = mapped_column(String(2000, collation='utf8mb4_unicode_ci'))
+	sender: Mapped[int] = mapped_column(BigInteger) # this can be either the server, staff member, or user.
+	recipient: Mapped[int] = mapped_column(BigInteger) # this can be either the server, staff member, or user.
+	created: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+	appeal_id: Mapped[int] = mapped_column(ForeignKey("appeals.id"))
+	appeal: Mapped["Appeals"] = Relationship("Appeals", back_populates="msgs",)
 
 
 class Config(Base) :

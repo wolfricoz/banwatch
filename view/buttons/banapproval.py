@@ -2,9 +2,11 @@ import discord
 from discord.ui import View
 from discord_py_utilities.messages import send_message, send_response
 
+from classes.appeal import inform_user
 from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.evidence import EvidenceController
+from classes.queue import queue
 from database.databaseController import BanDbTransactions, ProofDbTransactions
 from view.modals.inputmodal import send_modal
 
@@ -44,6 +46,8 @@ class BanApproval(View) :
 			ephemeral=False)
 		await self.update_embed(interaction)
 		if self.silent :
+			queue().add(inform_user(guild, user), 0)
+
 			return
 		await Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, self.create_thread, verified=True)
 
@@ -67,6 +71,8 @@ class BanApproval(View) :
 			ephemeral=False)
 		await self.update_embed(interaction, "approve")
 		if self.silent :
+			queue().add(inform_user(guild, user), 0)
+
 			return
 		await Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, False)
 

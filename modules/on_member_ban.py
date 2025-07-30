@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 from discord_py_utilities.messages import send_message
 
+from classes.appeal import inform_user
 from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.queue import queue
@@ -23,15 +24,14 @@ class BanEvents(commands.Cog) :
 	@commands.Cog.listener()
 	async def on_member_ban(self, guild, user) :
 		"""informs other servers an user is banned and updates banlist"""
-		print('ban event')
-
+		logging.info(f"Banned {user.name} from {guild.name}")
 		bot = self.bot
 		# Check if user is a bot
 		if user == bot.user:
 			logging.warning(f"I was banned in {guild.name}")
 			return
 		if user.bot:
-			logging.info(f"{user} is a bot, not storing.")
+			logging.warning(f"{user} is a bot, not storing.")
 			return
 		# Check if old ban entry exists, and delete it to prevent data from mixing - this only gets triggered if the user is banned again!
 		ban_entry = BanDbTransactions().get(user.id + guild.id, override=True)

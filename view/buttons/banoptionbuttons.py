@@ -1,11 +1,14 @@
 import os
+from typing import Any
 
 import discord
-from discord.ui import View, button
+from discord import Interaction
+from discord.ui import Item, View, button
 from discord_py_utilities.messages import await_message, send_message, send_response
 
 from classes.TermsChecker import TermsChecker
 from classes.access import AccessControl
+from classes.appeal import inform_user
 from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.configer import Configer
@@ -73,6 +76,7 @@ class BanOptionButtons(View) :
 		staff_member: discord.User = await self.get_staff_member(guild, user)
 		message: discord.Message = interaction.message
 		# check is ban has to be hidden
+
 		if hidden :
 			queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, hidden=True), priority=2)
 			await send_response(interaction, f"Ban for {user.mention} has been successfully hidden.", ephemeral=True)
@@ -82,10 +86,13 @@ class BanOptionButtons(View) :
 		checkListCheckType: str|None = None
 		checkListResult: str|None = None
 		checkListCheckType, checkListResult = await self.checkFlaggedTerms(ban.reason.lower())
-		checkListResult = ", ".join(checkListResult)
+
+		if isinstance(checkListCheckType, list):
+			# Turn the array of words into a string
+			checkListResult = ", ".join(checkListResult)
 
 
-		if checkListCheckType.lower() == "block":
+		if checkListCheckType and checkListCheckType.lower() == "block":
 			await self.sendDeniedEmbed(interaction, ban, checkListResult)
 			queue().add(Bans().add_ban(user.id, guild.id, ban.reason + " (HIDDEN DUE TO BLOCKLIST)", staff_member.name, approved=False, hidden=True), priority=2)
 			return
@@ -119,6 +126,7 @@ class BanOptionButtons(View) :
 			return
 
 		queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=True), priority=2)
+
 		if evidence :
 			queue().add(self.provide_proof(interaction, evidence), priority=2)
 		if silent :
@@ -126,12 +134,15 @@ class BanOptionButtons(View) :
 			                    f"Ban silently stored for {user.mention}! Other servers may see it when a user joins but it will not be broadcasted.",
 			                    ephemeral=True)
 			await interaction.message.delete()
+			queue().add(inform_user(guild, user), 0)
+
 			return
 		embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
 		                      description=f"{ban.reason}")
 		embed.set_footer(text=f"Server Invite: {guild_db.invite} Staff member: {staff_member} ban ID: {wait_id}")
 		queue().add(Bans().check_guilds(interaction, interaction.client, guild, user, embed, wait_id))
 		queue().add(self.status(interaction.client, guild, user), priority=0)
+
 
 	async def provide_proof(self, interaction, evidence) :
 		if not evidence :
@@ -217,3 +228,6 @@ class BanOptionButtons(View) :
 				continue
 			return val.getResults()
 		return None, None
+
+	async def on_error(self, interaction: Interaction, error: Exception, item: Item[Any], /) -> None:
+		await send_response(interaction, f"An error has occurred: {error}")

@@ -22,12 +22,14 @@ class ReasonSelect(discord.ui.Select):
     async def callback(self, interaction: discord.Interaction):
         selected_value = self.values[0]
         self.view.reason = selected_value
+        self.view.interaction = interaction
         self.view.stop()
 
 class SelectReason(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
         self.reason = None
+        self.interaction = None
         self.reasons = [
 	        {
 		        "reason"      : "Custom",

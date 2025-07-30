@@ -5,6 +5,7 @@ import threading
 from contextlib import asynccontextmanager
 
 import discord
+import sentry_sdk
 from discord.ext import commands
 from discord_py_utilities.messages import send_message
 # IMPORT LOAD_DOTENV FUNCTION FROM DOTENV MODULE.
@@ -19,7 +20,9 @@ from classes.configer import Configer
 from classes.queue import queue
 from classes.tasks import pending_bans
 from database.current import create_bot_database
-from database.databaseController import ServerDbTransactions
+from database.databaseController import AppealsDbTransactions, ServerDbTransactions
+from view.buttons.appealbuttons import AppealButtons
+from view.buttons.communicationbuttons import CommunicationButtons
 from view.buttons.lookup import LookUp
 from view.buttons.serverinfo import ServerInfo
 from random import randint
@@ -33,6 +36,17 @@ DBTOKEN = os.getenv("DB")
 DEV = int(os.getenv("DEV"))
 
 create_bot_database()
+
+
+# Sentry Integration
+sentry_sdk.init(
+    dsn=os.getenv("SENTRY_DSN"),
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
+)
+
+
 
 # declares the bots intent
 intents = discord.Intents.default()
@@ -100,6 +114,8 @@ async def on_ready() :
 	# Adding views
 	bot.add_view(ServerInfo())
 	bot.add_view(LookUp())
+	bot.add_view(AppealButtons())
+	bot.add_view(CommunicationButtons())
 	# Syncing commands
 	queue().add(bot.tree.sync())
 	logging.info(f"Commands synced, start up done! Connected to {guild_count} guilds and {bot.shard_count} shards.")

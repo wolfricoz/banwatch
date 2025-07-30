@@ -185,7 +185,8 @@ class dev(commands.GroupCog, name="dev") :
 				with open('flaggedwords.txt', 'w') as file:
 					file.write("All flagged words:\n")
 					file.write(result)
-				return await send_message(interaction.channel, "", files=[discord.File('flaggedwords.txt')])
+
+				return await send_message(interaction.channel, "Here is a list of all flagged words:", files=[discord.File(file.name)])
 		return None
 
 	@app_commands.command(name="backup")

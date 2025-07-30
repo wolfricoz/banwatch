@@ -91,11 +91,11 @@ class EvidenceController() :
 	@staticmethod
 	async def create_evidence_entry_standalone(ban_id, interaction: discord.Interaction, user_id:int, text: str, attachments: list[discord.Attachment]) :
 		snapshot_message = None
-		attachments = [await a.to_file() for a in attachments]
+		attachments = [await a.to_file() for a in attachments if a is not None]
 		evidence_channel = interaction.client.get_channel(int(os.getenv("EVIDENCE")))
 		reason = f"Evidence for {ban_id}: \n```{text}```"
 		stored: discord.Message = await send_message(evidence_channel, reason, files=attachments)
-		attachments = [await a.to_file() for a in stored.attachments]
+		attachments = [await a.to_file() for a in stored.attachments if a is not None]
 		attachments_urls = [a.url for a in stored.attachments]
 		result = ProofDbTransactions().add(ban_id=ban_id, user_id=user_id, proof=reason,
 		                                   attachments=attachments_urls)

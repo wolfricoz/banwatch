@@ -7,6 +7,7 @@ import discord
 from discord.ext import commands
 from discord_py_utilities.messages import send_message
 
+from classes.appeal import inform_user
 from classes.configdata import ConfigData
 from classes.queue import queue
 from classes.rpsec import RpSec
@@ -59,6 +60,8 @@ class Bans(metaclass=Singleton) :
 		await Bans().change_ban_approval_status(wait_id, True, verified=verified)
 		if interaction is not None :
 			await interaction.message.delete()
+		queue().add(inform_user(guild, user), 0)
+
 		queue().add(self.send_to_ban_channel(approved_channel, banembed, guild, user, bot, wait_id))
 
 	async def send_to_ban_channel(self, approved_channel, banembed, guild, user, bot: commands.Bot,
@@ -66,6 +69,7 @@ class Bans(metaclass=Singleton) :
 		approved_message = await approved_channel.send(embed=banembed)
 		BanDbTransactions().update(wait_id, message=approved_message.id)
 		dev_guild: discord.Guild = bot.get_guild(bot.SUPPORTGUILD)
+
 		queue().add(self.open_thread(user, guild, approved_message, dev_guild, bot), priority=1)
 
 	async def open_thread(self, user, guild, approved_message, dev_guild: discord.Guild, bot) :
@@ -266,3 +270,4 @@ class Bans(metaclass=Singleton) :
 
 	async def get_user_bans(self, user_id) :
 		return BanDbTransactions().get_all_user(user_id)
+

@@ -377,7 +377,11 @@ class StaffDbTransactions(DatabaseTransactions) :
 
 
 class AppealsDbTransactions(DatabaseTransactions) :
-	def get(self, ban_id: int) -> Appeals | None :
+	def get(self, ban_id: int|str) -> Appeals | None :
+		if not ban_id :
+			return None
+		if isinstance(ban_id, str) :
+			ban_id = int(ban_id)
 		return session.scalar(Select(Appeals).where(Appeals.ban_id == ban_id))
 
 	def exist(self, ban_id: int) -> Appeals | None :
@@ -583,4 +587,22 @@ class FlaggedTermsTransactions(DatabaseTransactions) :
 		if action is None:
 			return session.query(db.FlaggedTerms).all()
 		return session.query(db.FlaggedTerms).where(db.FlaggedTerms.action == action.lower()).all()
+
+
+class AppealMsgTransactions(DatabaseTransactions):
+
+	@staticmethod
+	@abstractmethod
+	def add(message: str, sender:int, recipient:int, appeal: int | Mapped[int] | Appeals):
+		if isinstance(appeal, Appeals):
+			appeal = appeal.id
+		msg = AppealMsgs(message=message, sender=sender, recipient=recipient, appeal_id=appeal)
+		session.add(msg)
+		DatabaseTransactions().commit(session)
+		return msg
+
+	@staticmethod
+	@abstractmethod
+	def get_chat_log(appeal: int | Appeals):
+		return session.query(AppealMsgs).where(AppealMsgs.appeal_id == appeal.id).order_by(AppealMsgs.created).all()
 

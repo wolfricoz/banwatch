@@ -43,7 +43,7 @@ class Appeals(commands.GroupCog, name="appeal") :
 			return send_message(interaction.channel, f"Entry for {ban_id} already exists; you've likely already applied.")
 		embed = discord.Embed(title=f"Ban appeal for {interaction.user}", description=f"{reason}", timestamp=datetime.now())
 		embed.set_footer(text=ban_id)
-		await modchannel.send(embed=embed, view=AppealButtons(self.bot, interaction.user))
+		await modchannel.send(embed=embed, view=AppealButtons())
 		await interaction.followup.send(f"Ban appeal sent to moderators of {guild.name}", ephemeral=True)
 
 	@app_commands.command(description="Report a harmful ban here!")
