@@ -3,6 +3,8 @@ import logging
 
 from discord import Forbidden, channel
 
+from classes.configdata import KeyNotFound
+
 
 class Singleton(type) :
 	_instances = {}
@@ -83,6 +85,8 @@ class queue(metaclass=Singleton) :
 				if hasattr(task, 'channel') and isinstance(task.channel, channel.TextChannel) :
 					await task.channel.send(f"{task.channel.name} has been removed from queue.")
 				logging.info(f"No permission for {task.__name__}: {e}")
+			except KeyNotFound:
+				logging.warning(f"Key not found in queue: {task.__name__} for guild {task.guild.id if hasattr(task, 'guild') else 'unknown'}")
 			except Exception as e :
 				logging.error(f"Error in queue: {e}", exc_info=True)
 			self.task_finished = True
