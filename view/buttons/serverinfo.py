@@ -1,13 +1,13 @@
 import discord
-from discord.ui import View
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
 from classes.configer import Configer
 from database.databaseController import ServerDbTransactions
+from view.base.secureview import SecureView
 
 
-class ServerInfo(View) :
+class ServerInfo(SecureView) :
 
 	def __init__(self) :
 		super().__init__(timeout=None)

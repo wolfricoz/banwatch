@@ -1,17 +1,7 @@
-import logging
 
-import discord
-from discord.ext import tasks, commands
-from abc import ABC, abstractmethod
-import db
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import select, column
-from datetime import datetime, timedelta
-import re
-import typing
+from discord.ext import commands, tasks
 
-Session = sessionmaker(bind=db.engine)
-session = Session()
+
 class refresher(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot

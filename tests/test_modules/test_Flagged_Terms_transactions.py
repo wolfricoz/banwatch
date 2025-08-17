@@ -1,11 +1,8 @@
-import logging
 import unittest
 
-import database.databaseController
 from classes.TermsChecker import TermsChecker
-from classes.access import AccessControl
 from database.current import create_bot_database, drop_bot_database
-from database.databaseController import FlaggedTermsTransactions, StaffDbTransactions, session
+from database.databaseController import FlaggedTermsTransactions
 
 
 class TestTermsDatabaseOperations(unittest.TestCase) :

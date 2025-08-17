@@ -1,5 +1,8 @@
 import discord.ui
 
+from view.base.secureview import SecureView
+
+
 class ReasonSelect(discord.ui.Select):
     def __init__(self, reasons):
         options = [
@@ -25,7 +28,7 @@ class ReasonSelect(discord.ui.Select):
         self.view.interaction = interaction
         self.view.stop()
 
-class SelectReason(discord.ui.View):
+class SelectReason(SecureView):
     def __init__(self):
         super().__init__(timeout=None)
         self.reason = None

@@ -1,5 +1,4 @@
 import discord
-from discord.ui import View
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.appeal import inform_user
@@ -8,10 +7,11 @@ from classes.configdata import ConfigData
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from database.databaseController import BanDbTransactions, ProofDbTransactions
+from view.base.secureview import SecureView
 from view.modals.inputmodal import send_modal
 
 
-class BanApproval(View) :
+class BanApproval(SecureView) :
 	bot = None
 
 	def __init__(self, bot, wait_id, create_thread=False, silent=False) :

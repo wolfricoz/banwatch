@@ -1,9 +1,7 @@
 import unittest
 
-import database.databaseController
-from classes.access import AccessControl
-from database.current import AppealMsgs, Appeals, create_bot_database, drop_bot_database
-from database.databaseController import AppealMsgTransactions, AppealsDbTransactions, StaffDbTransactions, session
+from database.current import AppealMsgs, create_bot_database, drop_bot_database
+from database.databaseController import AppealMsgTransactions, AppealsDbTransactions
 from database.factories.ban import BanFactory
 
 

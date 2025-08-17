@@ -1,19 +1,13 @@
-import logging
-
 import discord
 from discord import app_commands
 from discord.ext import commands
-from discord_py_utilities.messages import await_message, send_message, send_response
+from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
 from classes.configdata import ConfigData
-from classes.evidence import EvidenceController
-from classes.queue import queue
-from data.variables.messages import evidence_message_template
-from database.databaseController import BanDbTransactions, ProofDbTransactions
+from database.databaseController import BanDbTransactions
 from view.buttons.communicationbuttons import CommunicationButtons
 from view.modals.inputmodal import send_modal
-from view.pagination.pagination import Pagination
 
 
 class ServerMessenger(commands.GroupCog, name="server") :

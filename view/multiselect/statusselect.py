@@ -2,6 +2,7 @@ import discord.ui
 from discord_py_utilities.messages import send_response
 
 from database.databaseController import AppealsDbTransactions
+from view.base.secureview import SecureView
 
 
 class StatusSelect(discord.ui.Select) :
@@ -30,7 +31,7 @@ class StatusSelect(discord.ui.Select) :
 		await send_response(interaction, f"Appeal status for {self.ban_id} updated to `{selected_value}`")
 
 
-class SelectStatus(discord.ui.View) :
+class SelectStatus(SecureView) :
 	def __init__(self, ban_id) :
 		super().__init__(timeout=None)
 		self.status = [

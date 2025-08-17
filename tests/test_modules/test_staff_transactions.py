@@ -1,6 +1,5 @@
 import unittest
 
-import database.databaseController
 from classes.access import AccessControl
 from database.current import create_bot_database, drop_bot_database
 from database.databaseController import StaffDbTransactions, session

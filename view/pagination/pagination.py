@@ -1,13 +1,14 @@
 import discord
-from discord.ui import View, button
+from discord.ui import button
 from discord_py_utilities.messages import send_response
 
 from classes.access import AccessControl
 from database.current import Proof
 from database.databaseController import ProofDbTransactions
+from view.base.secureview import SecureView
 
 
-class Pagination(View):
+class Pagination(SecureView):
     pages = 0
     current_page = 0
     data: list[Proof] = []

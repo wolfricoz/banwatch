@@ -28,7 +28,10 @@ class DatabaseTasks(commands.Cog):
                 BanDbTransactions().delete_permanent(ban)
         for server in servers:
             if server.deleted_at < datetime.now() - timedelta(days=30):
-                ServerDbTransactions().delete_permanent(server)
+                try:
+                    ServerDbTransactions().delete_permanent(server)
+                except Exception as e:
+                    logging.error(f"Failed to delete permanent for {server}", exc_info=True)
 
     @delete_old_bans.before_loop
     async def before_queue(self):

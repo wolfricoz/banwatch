@@ -4,17 +4,17 @@ from typing import Any
 import discord
 from discord import Interaction
 from discord.ext import commands
-from discord.ui import Item, View
-from discord_py_utilities.exceptions import NoPermissionException
-from discord_py_utilities.messages import send_message, send_response
-from sqlalchemy.testing.suite.test_reflection import users
+from discord.ui import Item
+from discord_py_utilities.messages import send_message
 from discord_py_utilities.permissions import check_missing_channel_permissions
+
 from classes.evidence import EvidenceController
 from database.databaseController import ProofDbTransactions
+from view.base.secureview import SecureView
 from view.multiselect.selectban import SelectBan
 
 
-class LookUp(View) :
+class LookUp(SecureView) :
 	bot = None
 
 	def __init__(self, user_id=None) :

@@ -3,6 +3,7 @@ import logging
 import os
 import threading
 from contextlib import asynccontextmanager
+from random import randint
 
 import discord
 import sentry_sdk
@@ -11,6 +12,7 @@ from discord_py_utilities.messages import send_message
 # IMPORT LOAD_DOTENV FUNCTION FROM DOTENV MODULE.
 from dotenv import load_dotenv
 from fastapi import FastAPI
+
 import api
 # from api import bans_router, config_router
 from classes.bans import Bans
@@ -20,12 +22,11 @@ from classes.configer import Configer
 from classes.queue import queue
 from classes.tasks import pending_bans
 from database.current import create_bot_database
-from database.databaseController import AppealsDbTransactions, ServerDbTransactions
+from database.databaseController import ServerDbTransactions
 from view.buttons.appealbuttons import AppealButtons
 from view.buttons.communicationbuttons import CommunicationButtons
 from view.buttons.lookup import LookUp
 from view.buttons.serverinfo import ServerInfo
-from random import randint
 
 # LOADS THE .ENV FILE THAT RESIDES ON THE SAME LEVEL AS THE SCRIPT.
 load_dotenv('main.env')

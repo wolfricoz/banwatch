@@ -2,12 +2,11 @@ import discord
 from discord import app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
-from discord_py_utilities.exceptions import NoPermissionException
 from discord_py_utilities.messages import send_message, send_response
+from discord_py_utilities.permissions import check_missing_channel_permissions, get_bot_permissions
 
 from classes.configdata import ConfigData
 from database.databaseController import ServerDbTransactions
-from discord_py_utilities.permissions import check_missing_channel_permissions, get_bot_permissions
 
 
 class config(commands.GroupCog, name="config") :

@@ -1,16 +1,16 @@
 import os
 
 import discord
-from discord.ui import View
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.configdata import ConfigData
 from database.databaseController import AppealMsgTransactions, AppealsDbTransactions, BanDbTransactions
+from view.base.secureview import SecureView
 from view.modals.inputmodal import send_modal
 from view.multiselect.statusselect import SelectStatus
 
 
-class AppealButtons(View) :
+class AppealButtons(SecureView) :
 	bot = None
 
 	def __init__(self, response=False) :

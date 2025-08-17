@@ -157,7 +157,7 @@ class ServerDbTransactions(DatabaseTransactions) :
 	def delete_permanent(self, server: int | Type[Servers]) -> bool :
 		if isinstance(server, int) :
 			server = self.get(server)
-		logging.info(f"Permanently removing {server}")
+		logging.info(f"Permanently removing {server.name}")
 		if not server :
 			return False
 		session.delete(server)

@@ -4,10 +4,11 @@ from discord_py_utilities.messages import send_message, send_response
 
 from classes.bans import Bans
 from database.databaseController import BanDbTransactions
+from view.base.secureview import SecureView
 from view.buttons.confirm import Confirm
 
 
-class SelectBan(discord.ui.View):
+class SelectBan(SecureView):
 
 	"""This class is for the select menu, which is used to select a user to ban."""
 

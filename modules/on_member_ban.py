@@ -5,7 +5,6 @@ import discord
 from discord.ext import commands
 from discord_py_utilities.messages import send_message
 
-from classes.appeal import inform_user
 from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.queue import queue
@@ -33,13 +32,31 @@ class BanEvents(commands.Cog) :
 		if user.bot:
 			logging.warning(f"{user} is a bot, not storing.")
 			return
+
 		# Check if old ban entry exists, and delete it to prevent data from mixing - this only gets triggered if the user is banned again!
 		ban_entry = BanDbTransactions().get(user.id + guild.id, override=True)
 		if ban_entry is not None :
 			BanDbTransactions().delete_permanent(ban_entry)
-
-
 		ban: discord.BanEntry = await guild.fetch_ban(user)
+		mod_channel = bot.get_channel(ConfigData().get_key_or_none(guild.id, "modchannel" ))
+		# Check if modchannel is set, else just log it.
+		if mod_channel is None:
+			logging.warning(f"{guild.name}({guild.id}) doesn't have modchannel set.")
+			await Bans().add_ban(user.id, guild.id, ban.reason, "No Modchannel Set", approved=False)
+			queue().add(send_message(guild.owner, f"{guild.name}({guild.id}) doesn't have modchannel set. Please set it using the /config change command."), priority=2)
+			return
+
+		# check if ban has to be hidden
+		if ban.reason is None or ban.reason.lower() in ["", "none", "account has no avatar.", "no reason given.",
+		                                                "breaking server rules"] or str(ban.reason).lower().startswith(
+				'[hidden]') :
+			logging.info("Hiding ban: Reason doesn't provide valuable information or has hidden tag.")
+			await Bans().add_ban(user.id, guild.id, ban.reason, "Unknown", hidden=True)
+			if mod_channel is None :
+				logging.error(f"{guild.name}({guild.id}) doesn't have modchannel set.")
+				return
+			await send_message(mod_channel, f"Hidden ban for {user}({user.id}).")
+			return
 		# Check if the server is hidden
 		if ServerDbTransactions().is_hidden(guild.id):
 			await Bans().add_ban(user.id, guild.id, ban.reason, "Unknown")
@@ -56,22 +73,8 @@ class BanEvents(commands.Cog) :
 			logging.info("Migrated ban, not prompting")
 			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name,)
 
-		mod_channel = bot.get_channel(ConfigData().get_key_or_none(guild.id, "modchannel" ))
-		if mod_channel is None:
-			logging.warning(f"{guild.name}({guild.id}) doesn't have modchannel set.")
-			await Bans().add_ban(user.id, guild.id, ban.reason, "No Modchannel Set", approved=False)
-			queue().add(send_message(guild.owner, f"{guild.name}({guild.id}) doesn't have modchannel set. Please set it using the /config change command."), priority=2)
-			return
 
-		# check if ban has to be hidden
-		if ban.reason is None or ban.reason.lower() in ["", "none", "account has no avatar.", "no reason given.", "breaking server rules"] or str(ban.reason).lower().startswith('[hidden]'):
-			logging.info("Hiding ban: Reason doesn't provide valuable information or has hidden tag.")
-			await Bans().add_ban(user.id, guild.id, ban_entry.reason, "Unknown", hidden=True)
-			if mod_channel is None :
-				logging.error(f"{guild.name}({guild.id}) doesn't have modchannel set.")
-				return
-			await send_message(mod_channel, f"Hidden ban for {user}({user.id}).")
-			return
+
 		logging.info("starting to update banlist and informing other servers")
 		view = BanOptionButtons()
 		if mod_channel is None :

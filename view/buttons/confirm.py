@@ -1,7 +1,9 @@
 import discord.ui
 
+from view.base.secureview import SecureView
 
-class Confirm(discord.ui.View):
+
+class Confirm(SecureView):
 
 	"""This class is for the confirm buttons, which are used to confirm or cancel an action."""
 
