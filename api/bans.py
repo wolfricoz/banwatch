@@ -33,3 +33,13 @@ async def bans_get(ban_request: BanRequest, request: Request) :
 		return HTTPException(404, detail="No bans found for this user id")
 	logging.info(f"{request.client.host} connected with {ban_request} and returned {bans}")
 	return json.dumps(bans)
+
+
+@router.get("/bans/count/{user_id}", )
+async def bans_get(user_id: int, request: Request) :
+	# Currently only used by ageverifier, however if this goes public then it needs rate limiting.
+
+	if user_id is None or 16 < user_id < 19:
+		return HTTPException(404)
+	ban_count = BanDbTransactions().count_all_user(user_id)
+	return json.dumps({"bans" : ban_count})

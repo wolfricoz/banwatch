@@ -234,6 +234,14 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 			and_(Bans.uid == user_id, Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None),
 			     Bans.approved.is_(True), Servers.hidden.is_(False))).all()
 
+
+	def count_all_user(self, user_id, override=False) :
+		if override :
+			return session.query(Bans).where(Bans.uid == user_id).count()
+		return session.query(Bans).join(Servers).filter(
+			and_(Bans.uid == user_id, Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None),
+			     Bans.approved.is_(True), Servers.hidden.is_(False))).count()
+
 	def get_all(self, override=False) :
 		if override :
 			return session.scalars(Select(Bans).join(Servers)).all()
