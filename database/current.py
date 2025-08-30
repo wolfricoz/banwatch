@@ -17,7 +17,7 @@ if os.path.exists("main.env") is False :
 	load_dotenv("tests/main.env")
 DB = os.getenv('DB')
 
-engine = create_engine(f"{DB}?charset=utf8mb4", poolclass=NullPool, echo=False, isolation_level="READ COMMITTED")
+engine = create_engine(f"{DB}", poolclass=NullPool, echo=False, isolation_level="READ COMMITTED")
 if not database_exists(engine.url) :
 	create_database(engine.url)
 
@@ -43,13 +43,13 @@ class Bans(Base) :
 	ban_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
 	uid: Mapped[int] = mapped_column(BigInteger)
 	gid: Mapped[int] = mapped_column(BigInteger, ForeignKey("servers.id"))
-	reason: Mapped[str] = mapped_column(String(4096, collation='utf8mb4_unicode_ci'), default="")
+	reason: Mapped[str] = mapped_column(String(4096, ), default="")
 	message: Mapped[int] = mapped_column(BigInteger, nullable=True)
 	approved: Mapped[bool] = mapped_column(Boolean, default=True)
 	verified: Mapped[bool] = mapped_column(Boolean, default=False)
 	hidden: Mapped[bool] = mapped_column(Boolean, default=False)
 	created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-	staff: Mapped[str] = mapped_column(String(1024, collation='utf8mb4_unicode_ci'))
+	staff: Mapped[str] = mapped_column(String(1024, ))
 	proof: Mapped[List["Proof"]] = relationship("Proof", back_populates="ban",
 	                                            cascade="all, save-update, merge, delete, delete-orphan")
 	appeals: Mapped[List["Appeals"]] = relationship("Appeals", back_populates="ban",
@@ -66,8 +66,8 @@ class Proof(Base) :
 	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 	ban_id: Mapped[int] = mapped_column(ForeignKey("bans.ban_id"))
 	uid: Mapped[int] = mapped_column(BigInteger)
-	proof: Mapped[str] = mapped_column(String(4096, collation='utf8mb4_unicode_ci'))
-	attachments: Mapped[str] = mapped_column(String(10000, collation='utf8mb4_unicode_ci'))
+	proof: Mapped[str] = mapped_column(String(4096, ))
+	attachments: Mapped[str] = mapped_column(String(10000, ))
 	ban: Mapped["Bans"] = relationship("Bans", back_populates="proof", )
 
 	def get_attachments(self) :
@@ -80,11 +80,11 @@ class Proof(Base) :
 class Servers(Base) :
 	__tablename__ = "servers"
 	id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
-	owner: Mapped[str] = mapped_column(String(1024, collation='utf8mb4_unicode_ci'))
-	name: Mapped[str] = mapped_column(String(1024, collation='utf8mb4_unicode_ci'))
+	owner: Mapped[str] = mapped_column(String(1024, ))
+	name: Mapped[str] = mapped_column(String(1024, ))
 	member_count: Mapped[int] = mapped_column(BigInteger)
 	hidden: Mapped[bool] = mapped_column(Boolean, default=False)
-	invite: Mapped[str] = mapped_column(String(256, collation='utf8mb4_unicode_ci'), default="")
+	invite: Mapped[str] = mapped_column(String(256, ), default="")
 	updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 	deleted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=None, nullable=True)
 	active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -99,7 +99,7 @@ class Appeals(Base) :
 	__tablename__ = "appeals"
 	id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
 	ban_id: Mapped[int] = mapped_column(ForeignKey("bans.ban_id"))
-	message: Mapped[str] = mapped_column(String(2000, collation='utf8mb4_unicode_ci'))
+	message: Mapped[str] = mapped_column(String(2000, ))
 	status: Mapped[str] = mapped_column(Enum('approved', 'pending', 'denied', name='status_enum'), nullable=False,
 	                                    default='pending')
 	ban: Mapped["Bans"] = relationship("Bans", back_populates="appeals", )
@@ -113,7 +113,7 @@ class Appeals(Base) :
 class AppealMsgs(Base):
 	__tablename__ = "appeal_msgs"
 	id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-	message: Mapped[str] = mapped_column(String(2000, collation='utf8mb4_unicode_ci'))
+	message: Mapped[str] = mapped_column(String(2000, ))
 	sender: Mapped[int] = mapped_column(BigInteger) # this can be either the server, staff member, or user.
 	recipient: Mapped[int] = mapped_column(BigInteger) # this can be either the server, staff member, or user.
 	created: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -132,8 +132,8 @@ class Config(Base) :
 class FlaggedTerms(Base):
 	__tablename__ = "flagged_terms"
 	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-	term: Mapped[str] = mapped_column(String(512, collation='utf8mb4_unicode_ci'), unique=True)
-	action: Mapped[str] = mapped_column(String(128, collation='utf8mb4_unicode_ci'))
+	term: Mapped[str] = mapped_column(String(512, ), unique=True)
+	action: Mapped[str] = mapped_column(String(128, ))
 	regex: Mapped[bool] = mapped_column(Boolean, default=False)
 	active: Mapped[bool] = mapped_column(Boolean, default=True)
 
