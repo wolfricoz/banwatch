@@ -14,7 +14,7 @@ async def pending_bans(bot, revoked=False) :
 	bans = BanDbTransactions().get_all_pending()
 	channel = bot.get_channel(bot.BANCHANNEL)
 	ban: Bans
-
+	found_bans = []
 	if revoked :
 		await send_message(channel, "fetching pending bans after revoking ban")
 	for ban in bans :
@@ -29,7 +29,6 @@ async def pending_bans(bot, revoked=False) :
 
 		# If the user is not found in the cache, fetch from the API
 		if user is None :
-			print(f"User with ID {user_id} not found in cache.")
 			try :
 				user = await bot.fetch_user(user_id)
 			except discord.NotFound :
@@ -50,6 +49,7 @@ async def pending_bans(bot, revoked=False) :
 		if user is None or guild is None or reason is None :
 			print(f"Error: {user} {guild} {reason}")
 			continue
+		found_bans.append(ban)
 		try :
 			embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
 			                      description=f"{reason}")
@@ -59,5 +59,7 @@ async def pending_bans(bot, revoked=False) :
 			            priority=2)
 		except Exception as e :
 			print(f"Error: {e}")
-	else:
-		await send_message(channel, f"Heres the pending bans <@&{os.getenv('STAFF_ROLE')}>!", error_mode='warn')
+	if len(found_bans) < 1 :
+		await send_message(channel, f"No pending bans, good job team!", error_mode='ignore')
+		return
+	await send_message(channel, f"Heres the pending bans <@&{os.getenv('STAFF_ROLE')}>!", error_mode='warn')
