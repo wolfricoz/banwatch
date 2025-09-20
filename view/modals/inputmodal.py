@@ -41,4 +41,4 @@ async def send_modal(interaction: discord.Interaction, confirmation, title = 'In
     await interaction.response.send_modal(view)
 
     await view.wait()
-    return view.reason
+    return view.reason.value
