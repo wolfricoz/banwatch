@@ -97,7 +97,7 @@ class LookUp(SecureView) :
 		embed = interaction.message.embeds[0]
 		return int(embed.footer.text)
 
-	@discord.ui.button(label="view evidence", style=discord.ButtonStyle.primary, custom_id="evidence")
+	@discord.ui.button(label="view evidence", style=discord.ButtonStyle.primary, custom_id="banoptions_evidence")
 	async def evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		user_id = await self.get_user_id(interaction)
 		entries = ProofDbTransactions().get(user_id=user_id)

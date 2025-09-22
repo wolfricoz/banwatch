@@ -228,7 +228,7 @@ class dev(commands.GroupCog, name="dev") :
 				                    embeds=message.embeds), 0)
 		for channel in pending_removal :
 			await channel
-		if evidence_only is False :
+		if evidence_only is True :
 			return
 		backupbans = await backup_guild.create_text_channel(f"bans-{datetime.now().strftime('%m-%d-%Y')}",
 		                                                    category=backupsection)

@@ -6,7 +6,7 @@ from typing import Type
 import sqlalchemy
 from sqlalchemy import ColumnElement, Select, and_, exists, text
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.util import to_list
 
 import database.current as db
@@ -222,15 +222,23 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 
 	def get(self, ban_id: int = None, override: bool = False) -> Type[Bans] | None :
 		if override :
-			return session.scalar(Select(Bans).where(Bans.ban_id == ban_id))
-		return session.query(Bans).join(Servers).outerjoin(Proof).filter(
-			and_(Bans.ban_id == ban_id, Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None),
-			     Servers.hidden.is_(False))).first()
+			return session.scalar(Select(Bans).options(joinedload(Bans.guild)).where(Bans.ban_id == ban_id))
+		return session.query(Bans)\
+    .options(joinedload(Bans.guild))\
+    .join(Proof, Proof.ban_id == Bans.ban_id)\
+    .join(Servers, Servers.id == Bans.gid)\
+    .filter(
+        Bans.ban_id == ban_id,
+        Bans.deleted_at.is_(None),
+        Bans.hidden.is_(False),
+        Servers.deleted_at.is_(None),
+        Servers.hidden.is_(False)
+    ).first()
 
 	def get_all_user(self, user_id, override=False) :
 		if override :
 			return session.scalars(Select(Bans).where(Bans.uid == user_id)).all()
-		return session.query(Bans).join(Servers).filter(
+		return session.query(Bans).options(joinedload(Bans.guild)).filter(
 			and_(Bans.uid == user_id, Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None),
 			     Bans.approved.is_(True), Servers.hidden.is_(False))).all()
 
