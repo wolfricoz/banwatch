@@ -62,7 +62,7 @@ class BanInform(SecureView) :
 		await ban_member(self.ban_class, interaction, user, reason, days=0)
 		await send_response(interaction, f"Banning user")
 
-	@discord.ui.button(label="view evidence", style=discord.ButtonStyle.primary, custom_id="baninform_evidence")
+	@discord.ui.button(label="view evidence", style=discord.ButtonStyle.primary, custom_id="evidence")
 	async def evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		ban_id = await self.get_ban_id(interaction)
 		entries = ProofDbTransactions().get(ban_id=ban_id)
