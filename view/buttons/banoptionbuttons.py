@@ -101,12 +101,17 @@ class BanOptionButtons(SecureView) :
 
 		if user.bot and not checkListCheckType :
 			checkListResult = "User is a bot"
+			checkListCheckType = 'review'
 		word_count = len(ban.reason.split(" ")) < 4
 		if word_count and not checkListCheckType :
 			checkListResult = "Short ban reason"
+			checkListCheckType = 'review'
+
 		wait_id = Bans().create_ban_id(user.id, guild.id)
 		if AccessControl().access_all(user.id) and not checkListCheckType :
 			checkListResult = "Banwatch Staff Member"
+			checkListCheckType = 'review'
+
 
 		if checkListCheckType in ['review'] :
 
