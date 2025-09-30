@@ -171,7 +171,9 @@ class ServerDbTransactions(DatabaseTransactions) :
 		return session.query(Bans).join(Servers).filter(
 			and_(Bans.gid == guild_id, Bans.hidden == False, Bans.deleted_at.is_(None), Servers.deleted_at.is_(None))).all()
 
-	def get_all(self) :
+	def get_all(self, id_only: bool = True) :
+		if not id_only :
+			return session.scalars(Select(Servers).where(Servers.deleted_at.is_(None))).all()
 		return [sid[0] for sid in session.query(Servers.id).filter(and_(Servers.deleted_at.is_(None))).all()]
 
 	def get_deleted(self) :
@@ -225,7 +227,7 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 			return session.scalar(Select(Bans).options(joinedload(Bans.guild)).where(Bans.ban_id == ban_id))
 		return session.query(Bans)\
     .options(joinedload(Bans.guild))\
-    .join(Proof, Proof.ban_id == Bans.ban_id)\
+    .join(Proof, Proof.ban_id == Bans.ban_id, isouter=True)\
     .join(Servers, Servers.id == Bans.gid)\
     .filter(
         Bans.ban_id == ban_id,
