@@ -92,24 +92,29 @@ class ConfigData(metaclass=Singleton) :
 		self.configcontroller.config_update(serverid, key, value)
 		self.load_guild(serverid)
 
-	def get_key(self, serverid, key) :
+	def get_key(self, serverid, key, default=None) :
 		"""Gets a key from the config, throws KeyNotFound if not found"""
-		try :
-			value: str = self.data.get(str(serverid), {})[key.upper()]
-			if isinstance(value, bool) :
-				return value
-			if value.isnumeric() :
-				return int(value)
+
+		value: str = self.data.get(str(serverid), {}).get(key.upper(), default)
+		if isinstance(value, bool) :
 			return value
-		except KeyError :
-			raise KeyNotFound(key)
+		if isinstance(str, bool) :
+			return value
+		if value.isnumeric() :
+			return int(value)
+		if value is None and default is not None:
+			return default
+
+		raise KeyNotFound(key)
+
+
 
 	def get_key_or_none(self, serverid, key) :
 		"""Gets a key from the config, returns None if not found"""
-		value = self.data.get(str(serverid), {}).get(key.upper(), None)
-		if value is None :
-			return None
+		value: str = self.data.get(str(serverid), {}).get(key.upper(), None)
 		if isinstance(value, bool) :
+			return value
+		if isinstance(str, bool) :
 			return value
 		if value.isnumeric() :
 			return int(value)

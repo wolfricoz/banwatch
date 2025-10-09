@@ -19,13 +19,11 @@ class Appeals(commands.GroupCog, name="appeal") :
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
 
-
-
 	@app_commands.command(description="You can use this command to appeal a ban")
 	@app_commands.autocomplete(guild=autocomplete_appeal)
 	@AccessControl().check_blacklist()
 	async def create(self, interaction: discord.Interaction, guild: str) :
-		appeals_allowed = ConfigData().get_key_or_none(int(guild), "allow_appeals")
+		appeals_allowed = ConfigData().get_key(int(guild), "allow_appeals", True)
 		if appeals_allowed is False or appeals_allowed is None :
 			return await send_response(interaction, "This server does not allow appeals.")
 		if guild.lower() == "none" :
@@ -53,11 +51,12 @@ class Appeals(commands.GroupCog, name="appeal") :
 		if guild.lower() == "none" :
 			await interaction.response.send_message("No bans to report", ephemeral=True)
 			return
-		appeals_allowed = ConfigData().get_key_or_none(int(guild), "allow_appeals")
+		appeals_allowed = ConfigData().get_key(int(guild), "allow_appeals", True)
 		if appeals_allowed is not False or appeals_allowed is not None :
 			appeal = AppealsDbTransactions().exist(interaction.user.id + int(guild))
-			if not appeal:
-				return await send_response(interaction, "You must appeal your ban with the server; please only report bans after all possible appeal options have been exhausted.")
+			if not appeal :
+				return await send_response(interaction,
+				                           "You must appeal your ban with the server; please only report bans after all possible appeal options have been exhausted.")
 		reason = await inputmodal.send_modal(interaction,
 		                                     "Thank you for the report, we will investigate this and get back to you.")
 		ban_id = interaction.user.id + int(guild)
