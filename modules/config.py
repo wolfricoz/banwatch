@@ -19,6 +19,7 @@ class config(commands.GroupCog, name="config") :
 		Choice(name="Mod channel", value="mod"),
 	])
 	@app_commands.checks.has_permissions(manage_guild=True)
+	@app_commands.guild_only()
 	async def crole(self, interaction: discord.Interaction, option: Choice[str], channel: discord.TextChannel) :
 		match option.value :
 			case "mod" :
@@ -27,21 +28,27 @@ class config(commands.GroupCog, name="config") :
 
 	@app_commands.command(name="appeals", description="[CONFIG COMMAND] turn on/off ban appeals")
 	@app_commands.checks.has_permissions(manage_guild=True)
+	@app_commands.guild_only()
 	async def appeals(self, interaction: discord.Interaction, allow: bool) :
 		ConfigData().add_key(interaction.guild.id, "allow_appeals", allow, overwrite=True)
 		await send_response(interaction, f"Ban appeals have been set to: {'enabled' if allow is True else 'disabled'}")
 
 	@app_commands.command(name="visibility", description="[Config Command] Allows you to hide all bans from banwatch")
 	@app_commands.checks.has_permissions(manage_guild=True)
+	@app_commands.guild_only()
 	async def visibility(self, interaction: discord.Interaction, hide: bool) :
 		ServerDbTransactions().update(interaction.guild.id, hidden=hide)
 		await send_response(interaction,
 		                    f"Your server's visibility has ben set to: {'hidden' if hide is True else 'Visible'}\n\n"
 		                    f"Your bans may temporarily still be available in the checkall cache, which is reloaded every 10 minutes")
 
-	@app_commands.command(name="permission_check", description="Checks if the bot has the required permissions. Responds in DM.")
+	@app_commands.command(name="permission_check",
+	                      description="Checks if the bot has the required permissions. Responds in DM.")
+	@app_commands.guild_only()
 	async def permissioncheck(self, interaction: discord.Interaction) :
 		await send_response(interaction, "⌛ Checking permissions...", ephemeral=True)
+		if interaction.guild is None :
+			return send_response(interaction, "This command can only be used in a guild.")
 		modchannel = self.bot.get_channel(ConfigData().get_key(interaction.guild.id, "modchannel"))
 		if modchannel is None :
 			return await send_response(interaction, "❌ Mod channel not set. Please set it using `/config change`")
@@ -65,7 +72,6 @@ class config(commands.GroupCog, name="config") :
 		for key, value in permission_status.items() :
 			embed.add_field(name=key, value=value, inline=False)
 		await send_message(interaction.user, embed=embed)
-
 
 
 async def setup(bot: commands.Bot) :
