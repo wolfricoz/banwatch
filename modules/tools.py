@@ -34,7 +34,7 @@ class Tools(commands.Cog) :
 		view = SelectReason()
 		await send_message(interaction.channel, "Select your reason.", view=view)
 		await view.wait()
-		reason = view.reason
+		reason = view.get_reason()
 		if isinstance(ban_type, Choice) :
 			ban_type = ban_type.value
 		if reason == "custom":
