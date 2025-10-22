@@ -6,6 +6,8 @@ nav_order: 6
 
 # Privacy Policy
 
+Last updated: 22-10-2025
+
 ## Introduction
 
 This privacy policy outlines how Ban Watch (“we,” “our,” or “us”) collects, uses, and protects your (the end user) personal data when you interact with the Ban Watch bot. By using Ban Watch, you agree to the terms and conditions of this policy.
