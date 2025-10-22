@@ -1,7 +1,9 @@
+import logging
+
 import discord.ui
 from discord_py_utilities.messages import send_response
 
-from database.databaseController import AppealsDbTransactions
+from database.databaseController import AppealsDbTransactions, BanDbTransactions
 from view.base.secureview import SecureView
 
 
@@ -28,7 +30,13 @@ class StatusSelect(discord.ui.Select) :
 	async def callback(self, interaction: discord.Interaction) :
 		selected_value = self.values[0]
 		AppealsDbTransactions().change_status(self.ban_id, selected_value)
+		ban = BanDbTransactions().get(self.ban_id)
 		await send_response(interaction, f"Appeal status for {self.ban_id} updated to `{selected_value}`")
+		try:
+			user = interaction.client.get_user(ban.uid)
+			await user.send(f"Your appeal has been updated to `{selected_value}`")
+		except Exception as e:
+			logging.error(f"Failed to send appeal update to {ban.uid}: {e}", exc_info=True)
 
 
 class SelectStatus(SecureView) :
