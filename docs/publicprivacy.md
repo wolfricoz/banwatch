@@ -83,9 +83,13 @@ By running specific commands that require the `message_content` intent, you cons
 
 ## How Can I Request My Data to Be Removed?
 
-To remove your data, contact the server owner who issued the ban. Banwatch will automatically remove the ban from its database if the server removes it. As bans do not include PII, GDPR does not require us to delete this data. If personal data is present in a ban, Ban Watch administrators will ask the submitting server to re-submit the evidence with the PII redacted.
+If you would like data about you to be removed, please contact the server owner who issued the ban. Banwatch automatically removes the corresponding record once the original ban is deleted from that server.
 
-If you believe that Ban Watch is being misused, such as harmful rumors being spread through Ban Watch without evidence to substantiate it, you may contact the Ban Watch Administrators to have this ban message hidden from servers by joining our support server. We verify most bans with serious reasons to prevent such activity.
+Banwatch processes limited information, such as Discord user IDs and ban details, for the purpose of maintaining safer online communities. This processing is based on legitimate interests under Article 6(1)(f) of the GDPR — specifically, the interest of Discord communities in preventing disruptive or harmful behavior and supporting effective moderation.
+
+Banwatch only stores the minimum data necessary to serve this purpose. If any additional personal data (for example, screenshots or text containing personally identifiable information) is included as evidence, Banwatch administrators will request that the submitting server re-submit the evidence with such data redacted.
+
+If you believe Banwatch has been misused — for example, if a ban contains false, misleading, or defamatory information — you may contact the Banwatch Administrators to have the report reviewed or hidden. You can do this by joining our support server. Banwatch verifies most bans with serious reasons to reduce the risk of misuse.
 
 ## Q&A
 

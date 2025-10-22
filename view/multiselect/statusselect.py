@@ -32,8 +32,11 @@ class StatusSelect(discord.ui.Select) :
 		AppealsDbTransactions().change_status(self.ban_id, selected_value)
 		ban = BanDbTransactions().get(self.ban_id)
 		await send_response(interaction, f"Appeal status for {self.ban_id} updated to `{selected_value}`")
+
 		try:
 			user = interaction.client.get_user(ban.uid)
+			if selected_value == "approved" :
+				await interaction.guild.unban(user)
 			await user.send(f"Your appeal has been updated to `{selected_value}`")
 		except Exception as e:
 			logging.error(f"Failed to send appeal update to {ban.uid}: {e}", exc_info=True)
