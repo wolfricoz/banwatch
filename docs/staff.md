@@ -9,7 +9,7 @@ nav_order: 7
 
 ## What is expected of a banwatch staff member?
 
-A banwatch staff member is often an influential member in the community or the a server owner who has volunteered their
+A banwatch staff member is often an influential member in the community or a server owner who has volunteered their
 time to help ensure that the bans we verify are legitimate and without bias.
 
 We expect:
