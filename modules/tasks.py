@@ -1,8 +1,11 @@
 import logging
 
+
 from discord.ext import commands, tasks
 
 from classes.blacklist import blacklist_check
+from classes.dashboard.Servers import Servers
+from classes.queue import queue
 from classes.tasks import pending_bans
 from database.databaseController import ServerDbTransactions
 
@@ -57,6 +60,10 @@ class Tasks(commands.Cog):
             ServerDbTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), "")
         for gid in guild_ids :
             ServerDbTransactions().update(gid, active=False)
+        guilds = ServerDbTransactions().get_all(id_only=False)
+        for guild in guilds :
+          queue().add(Servers().update_server(self.bot, guild), 0)
+
 
     @check_active_servers.before_loop
     async def before_check_active_servers(self):
