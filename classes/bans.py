@@ -179,7 +179,7 @@ class Bans(metaclass=Singleton) :
 			await channel.guild.owner.send(
 				f"Banwatch does not have permission to view chat history or access to the channel in {channel.name} ({channel.guild}). Please give Banwatch the necessary permissions to revoke bans from the channel. This is to ensure that"
 				f" the correct information is shared and bans with false information can be removed.")
-			logging.error(f"Missing permissions to search messages in {channel.name} ({channel.guild})")
+			logging.warning(f"Missing permissions to search messages in {channel.name} ({channel.guild})")
 			return
 		if message is None :
 			return
