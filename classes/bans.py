@@ -30,7 +30,10 @@ class Bans(metaclass=Singleton) :
 		for guild in bot.guilds :
 			if guild.id in known_guilds :
 				known_guilds.remove(guild.id)
-			ServerDbTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), None)
+			try:
+				ServerDbTransactions().add(guild.id, guild.owner.name if guild.owner else 'unknown', guild.name, len(guild.members), None)
+			except Exception as e :
+				logging.error(f"Error adding guild {guild.id}: {e}")
 			queue().add(Bans().check_guild_bans(guild), priority=0)
 			queue().add(Bans().check_guild_invites(bot, guild), priority=0)
 		for k in known_guilds :
