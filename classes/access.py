@@ -7,7 +7,7 @@ from discord import app_commands
 
 from classes.configer import Configer
 from classes.singleton import Singleton
-from database.databaseController import StaffDbTransactions
+from database.databaseController import ServerDbTransactions, StaffDbTransactions
 
 
 class AccessControl(metaclass=Singleton) :
@@ -18,9 +18,12 @@ class AccessControl(metaclass=Singleton) :
 
 	def __init__(self) :
 		self.add_staff_to_dict()
+		self.add_premium_to_dict()
+		print(self.premium)
 
 	def reload(self) :
 		self.add_staff_to_dict()
+		self.add_premium_to_dict()
 
 	def add_staff_to_dict(self) :
 		self.staff = {}
@@ -34,7 +37,11 @@ class AccessControl(metaclass=Singleton) :
 		logging.info("Staff information has been reloaded:")
 		logging.info(self.staff)
 
+	def add_premium_to_dict(self) :
+		self.premium = ServerDbTransactions().get_premium_ids()
 
+	def reload_premium(self) :
+		self.add_premium_to_dict()
 
 	def access_owner(self, user_id: int) -> bool :
 		return True if user_id == int(os.getenv('OWNER')) else False

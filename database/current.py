@@ -90,6 +90,9 @@ class Servers(Base) :
 	active: Mapped[bool] = mapped_column(Boolean, default=True)
 	bans: Mapped[List["Bans"]] = relationship("Bans", back_populates="guild",
 	                                          cascade="save-update, merge, delete, delete-orphan")
+	premium: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
+	owner_id: Mapped[int] = mapped_column(BigInteger, nullable=True)
+
 
 	def __int__(self) :
 		return self.id

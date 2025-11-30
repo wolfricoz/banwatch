@@ -94,7 +94,7 @@ class ServerDbTransactions(DatabaseTransactions) :
 		return session.query(exists().where(Servers.id == guild_id)).scalar()
 
 	def add(self, guild_id: int, owner: str, name: str, member_count: int, invite: str | None,
-	        active: bool = True) -> Servers | bool :
+	        active: bool = True, owner_id=None) -> Servers | bool :
 		"""
 		Add a server to the database.
 		@param guild_id:
@@ -109,13 +109,15 @@ class ServerDbTransactions(DatabaseTransactions) :
 			# Call the update function
 			self.update(guild_id, owner, name, member_count, invite, delete=False)
 			return False
-		guild = Servers(id=guild_id, owner=owner, name=name, member_count=member_count, invite=invite, active=active)
+		guild = Servers(id=guild_id, owner=owner, name=name, member_count=member_count, invite=invite, active=active,
+		                owner_id=owner_id)
 		session.add(guild)
 		self.commit(session)
 		return guild
 
 	def update(self, guild_id: int, owner: str = None, name: str = None, member_count: int = None, invite: str = None,
-	           delete: bool = None, hidden: bool = None, active: bool = None) -> Servers | bool :
+	           delete: bool = None, hidden: bool = None, active: bool = None, owner_id: int = None,
+	           premium: datetime = None) -> Servers | bool :
 
 		guild = session.scalar(Select(Servers).where(Servers.id == guild_id))
 		if not guild :
@@ -128,7 +130,9 @@ class ServerDbTransactions(DatabaseTransactions) :
 			'deleted_at'   : datetime.now() if delete else None if delete is False else guild.deleted_at,
 			'updated_at'   : datetime.now(),
 			'hidden'       : hidden,
-			'active'       : active
+			'active'       : active,
+			'owner_id'     : owner_id,
+			'premium'      : premium
 		}
 
 		for field, value in updates.items() :
@@ -175,6 +179,11 @@ class ServerDbTransactions(DatabaseTransactions) :
 		if not id_only :
 			return session.scalars(Select(Servers).where(Servers.deleted_at.is_(None))).all()
 		return [sid[0] for sid in session.query(Servers.id).filter(and_(Servers.deleted_at.is_(None))).all()]
+
+	def get_premium_ids(self) :
+		"""
+		"""
+		return [sid[0] for sid in session.query(Servers.id).filter(and_(Servers.premium.isnot(None), Servers.deleted_at.is_(None))).all()]
 
 	def get_deleted(self) :
 		return session.query(Servers).filter(Servers.deleted_at.isnot(None)).all()
@@ -225,17 +234,17 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 	def get(self, ban_id: int = None, override: bool = False) -> Type[Bans] | None :
 		if override :
 			return session.scalar(Select(Bans).options(joinedload(Bans.guild)).where(Bans.ban_id == ban_id))
-		return session.query(Bans)\
-    .options(joinedload(Bans.guild))\
-    .join(Proof, Proof.ban_id == Bans.ban_id, isouter=True)\
-    .join(Servers, Servers.id == Bans.gid)\
-    .filter(
-        Bans.ban_id == ban_id,
-        Bans.deleted_at.is_(None),
-        Bans.hidden.is_(False),
-        Servers.deleted_at.is_(None),
-        Servers.hidden.is_(False)
-    ).first()
+		return session.query(Bans) \
+			.options(joinedload(Bans.guild)) \
+			.join(Proof, Proof.ban_id == Bans.ban_id, isouter=True) \
+			.join(Servers, Servers.id == Bans.gid) \
+			.filter(
+			Bans.ban_id == ban_id,
+			Bans.deleted_at.is_(None),
+			Bans.hidden.is_(False),
+			Servers.deleted_at.is_(None),
+			Servers.hidden.is_(False)
+		).first()
 
 	def get_all_user(self, user_id, override=False) :
 		if override :
@@ -243,7 +252,6 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 		return session.query(Bans).options(joinedload(Bans.guild)).filter(
 			and_(Bans.uid == user_id, Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None),
 			     Bans.approved.is_(True), Servers.hidden.is_(False))).all()
-
 
 	def count_all_user(self, user_id, override=False) :
 		if override :
@@ -395,7 +403,7 @@ class StaffDbTransactions(DatabaseTransactions) :
 
 
 class AppealsDbTransactions(DatabaseTransactions) :
-	def get(self, ban_id: int|str) -> Appeals | None :
+	def get(self, ban_id: int | str) -> Appeals | None :
 		if not ban_id :
 			return None
 		if isinstance(ban_id, str) :
@@ -568,7 +576,7 @@ class FlaggedTermsTransactions(DatabaseTransactions) :
 	def delete(term: str) :
 		"""Deletes a term from the database"""
 		term = FlaggedTermsTransactions.exists(term)
-		if not term:
+		if not term :
 			return False
 		session.delete(term)
 		DatabaseTransactions().commit(session)
@@ -579,7 +587,7 @@ class FlaggedTermsTransactions(DatabaseTransactions) :
 	def update(term: str, action: str, regex: bool = False) -> bool :
 		"""Updates a term from the database"""
 		term = FlaggedTermsTransactions.exists(term)
-		if not term:
+		if not term :
 			return False
 		term.action = action
 		term.regex = regex
@@ -602,17 +610,17 @@ class FlaggedTermsTransactions(DatabaseTransactions) :
 	@abstractmethod
 	def get_all(action: str | None = None) :
 		"""Gets all term from the database"""
-		if action is None:
+		if action is None :
 			return session.query(db.FlaggedTerms).all()
 		return session.query(db.FlaggedTerms).where(db.FlaggedTerms.action == action.lower()).all()
 
 
-class AppealMsgTransactions(DatabaseTransactions):
+class AppealMsgTransactions(DatabaseTransactions) :
 
 	@staticmethod
 	@abstractmethod
-	def add(message: str, sender:int, recipient:int, appeal: int | Mapped[int] | Appeals):
-		if isinstance(appeal, Appeals):
+	def add(message: str, sender: int, recipient: int, appeal: int | Mapped[int] | Appeals) :
+		if isinstance(appeal, Appeals) :
 			appeal = appeal.id
 		msg = AppealMsgs(message=message, sender=sender, recipient=recipient, appeal_id=appeal)
 		session.add(msg)
@@ -621,6 +629,5 @@ class AppealMsgTransactions(DatabaseTransactions):
 
 	@staticmethod
 	@abstractmethod
-	def get_chat_log(appeal: int | Appeals):
+	def get_chat_log(appeal: int | Appeals) :
 		return session.query(AppealMsgs).where(AppealMsgs.appeal_id == appeal.id).order_by(AppealMsgs.created).all()
-
