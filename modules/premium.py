@@ -1,10 +1,10 @@
 import logging
+import os
 import re
-
 
 import discord
 from discord import Interaction, app_commands
-from discord.ext.commands import GroupCog, Bot
+from discord.ext.commands import Bot, GroupCog
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
@@ -16,8 +16,6 @@ class Premium(GroupCog) :
 	def __init__(self, bot: Bot) :
 		self.bot = bot
 		self.DELETED_USER_RE = re.compile(r"^deleted_user_[0-9a-f]{11,14}$", re.IGNORECASE)
-
-
 
 	async def check_deleted(self, banned_user: discord.User | discord.Member) -> bool :
 		if banned_user.bot :
@@ -33,43 +31,48 @@ class Premium(GroupCog) :
 		return True
 
 	@app_commands.command(name="remove_deleted", description="removes deleted accounts from the ban list and server")
-	# @AccessControl().check_premium()
+	@AccessControl().check_premium()
 	async def command(self, interaction: Interaction) :
 		await send_response(interaction, "Checking for deleted accounts...", ephemeral=True)
-		deleted_bans = 0
-		kicked_users = 0
+		deleted_bans = []
+		kicked_users = []
 
 		async for ban in interaction.guild.bans() :
 			banned_user = ban.user
 			if not await self.check_deleted(banned_user) :
 				continue
-			deleted_bans += 1
-			await interaction.guild.unban(banned_user, reason="Removing deleted account from ban list")
+			deleted_bans.append(f"{banned_user.name}({banned_user.id})")
+			queue().add(interaction.guild.unban(banned_user, reason="Removing deleted account from ban list"))
 			logging.info(f"Removed {banned_user.name} ({banned_user.id})")
 		for member in interaction.guild.members :
 
 			if not await self.check_deleted(member) :
 				continue
-			kicked_users += 1
+			kicked_users.append(f"{member.global_name}({member.id})")
 			logging.info(f"Kicked {member.name} ({member.id})")
-			try:
-				await interaction.guild.kick(member, reason="Removing deleted account from server")
+			try :
+				queue().add(interaction.guild.kick(member, reason="Removing deleted account from server"))
 			except discord.Forbidden :
-				queue().add(send_message(interaction.channel, f"⚠️ I do not have permission to kick {member.name} ({member.id})"))
+				queue().add(
+					send_message(interaction.channel, f"⚠️ I do not have permission to kick {member.name} ({member.id})"))
 
-		await send_response(interaction, f"Successfully removed deleted {deleted_bans + kicked_users} accounts.", ephemeral=True)
+		with open("deleted_removal.txt", "w") as banlist_file :
+			banlist_file.write("Removed the following deleted accounts from bans and kicks:\n\n")
+			if deleted_bans :
+				banlist_file.write("Banned Accounts Removed:\n")
+				for entry in deleted_bans :
+					banlist_file.write(f"{entry}\n")
+				banlist_file.write("\n")
+			if kicked_users :
+				banlist_file.write("Kicked Members Removed:\n")
+				for entry in kicked_users :
+					banlist_file.write(f"{entry}\n")
 
-
-
-			# if banned_user.bot:
-			# 	continue
-			# if banned_user.global_name ==  :
-			# 	deleted_bans += 1
-			# 	await interaction.guild.unban(banned_user, reason="Removing deleted account from ban list")
-			# member = interaction.guild.get_member(banned_user.id)
-			# if member is not None and member.deleted :
-			# 	kicked_users += 1
-			# 	await interaction.guild.kick(member, reason="Removing deleted account from server")
+		await send_message(interaction.channel,
+		                   f"Successfully removed deleted {len(deleted_bans) + len(kicked_users)} accounts.",
+		                   files=[discord.File(banlist_file.name)]
+		                   )
+		os.remove(banlist_file.name)
 
 
 
