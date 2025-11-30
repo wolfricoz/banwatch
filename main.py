@@ -54,8 +54,11 @@ sentry_sdk.init(
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
+shard_count = 5
+if os.getenv('DEBUG') == "TRUE":
+		shard_count = 1
 bot = commands.AutoShardedBot(command_prefix=PREFIX, case_insensitive=False, intents=intents, shard_id=randint,
-                              shard_count=5)
+                              shard_count=shard_count)
 
 
 @asynccontextmanager

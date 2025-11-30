@@ -1,4 +1,3 @@
-taskkill /f /im python.exe
 
 python3.13 -m pip install --upgrade pip
 python3.13 -m pip install -r requirements.txt

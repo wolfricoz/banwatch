@@ -61,8 +61,10 @@ class Tasks(commands.Cog):
         for gid in guild_ids :
             ServerDbTransactions().update(gid, active=False)
         guilds = ServerDbTransactions().get_all(id_only=False)
+        servers = Servers()
+        servers.skip = False
         for guild in guilds :
-          queue().add(Servers().update_server(self.bot, guild), 0)
+          queue().add(servers.update_server(self.bot, guild), 0)
 
 
     @check_active_servers.before_loop
