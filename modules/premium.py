@@ -8,10 +8,14 @@ from discord.ext.commands import Bot, GroupCog
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
+from classes.configdata import ConfigData
 from classes.queue import queue
+from data.config.mappings import premium_toggles
+from database.databaseController import ConfigDbTransactions
 
 
 class Premium(GroupCog) :
+	toggles = premium_toggles
 
 	def __init__(self, bot: Bot) :
 		self.bot = bot
@@ -74,6 +78,14 @@ class Premium(GroupCog) :
 		                   )
 		os.remove(banlist_file.name)
 
+	@app_commands.command(name="toggle_feature", description="Toggles a premium feature on or off")
+	@AccessControl().check_premium()
+	async def toggle_feature(self, interaction: Interaction, feature_name: str, enable: bool) :
+		await send_response(interaction, f"Toggling feature `{feature_name}` to `{'enabled' if enable else 'disabled'}`",
+		                    ephemeral=True)
+		ConfigDbTransactions.toggle_add(feature_name, enable)
+
+		
 
 
 async def setup(bot: Bot) :

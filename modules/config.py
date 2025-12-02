@@ -74,5 +74,7 @@ class config(commands.GroupCog, name="config") :
 		await send_message(interaction.user, embed=embed)
 
 
+
+
 async def setup(bot: commands.Bot) :
 	await bot.add_cog(config(bot))

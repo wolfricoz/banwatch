@@ -58,6 +58,8 @@ class Bans(metaclass=Singleton) :
 		for guilds in bot.guilds :
 			if guilds.id == guild.id :
 				continue
+			if ConfigData().get_key(guild.id, "receive_all", False) is True :
+				queue().add(self.inform_server(bot, guilds, banembed, wait_id), priority=0)
 			if user in guilds.members :
 				queue().add(self.inform_server(bot, guilds, banembed, wait_id), priority=0)
 		await Bans().change_ban_approval_status(wait_id, True, verified=verified)
