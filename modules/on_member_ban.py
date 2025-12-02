@@ -64,7 +64,7 @@ class BanEvents(commands.Cog) :
 
 		# Check if the ban is a cross-ban
 		match = re.match(r"Cross-ban from (?P<guild_name>.+?) with ban id: (?P<ban_id>\d+)", ban.reason)
-		if match:
+		if match or str(ban.reason).lower() in ['crossban', 'cross-ban'] :
 			logging.info("Cross-ban with no additional info, this ban has been hidden")
 			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name, hidden=True)
 			return
