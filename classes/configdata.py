@@ -98,9 +98,17 @@ class ConfigData(metaclass=Singleton) :
 		value: str = self.data.get(str(serverid), {}).get(key.upper(), default)
 		if value is None and default is not None:
 			return default
+
 		if isinstance(value, bool) :
 			return value
-		if isinstance(str, bool) :
+
+
+		if isinstance(value, str) :
+			if value.lower() == "true" :
+				return True
+			if value.lower() == "false" :
+				return False
+
 			return value
 		if value.isnumeric() :
 			return int(value)

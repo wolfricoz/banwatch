@@ -194,6 +194,11 @@ class ServerDbTransactions(DatabaseTransactions) :
 	def is_hidden(self, guild_id: int) :
 		return session.scalar(Select(Servers).where(Servers.id == guild_id)).hidden
 
+	@staticmethod
+	@abstractmethod
+	def get_owners_servers(owner_id) :
+		return session.scalars(Select(db.Servers).where(db.Servers.owner_id == owner_id)).all()
+
 
 class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 	local_cache = {}
@@ -543,18 +548,22 @@ class ConfigDbTransactions(ABC) :
 
 	@staticmethod
 	@abstractmethod
-	def toggle_add(guildid, key, value="DISABLED") :
-		if ConfigDbTransactions.key_exists_check(guildid, "AUTOKICK") is True :
+	def toggle_add(guildid, key, value=False) :
+		if ConfigDbTransactions.key_exists_check(guildid, key.upper()) is True :
 			return
-		welcome = Config(guild=guildid, key="AUTOKICK", value="DISABLED")
+		welcome = Config(guild=guildid, key=key.upper(), value=value)
 		session.merge(welcome)
 		logging.info(f"Added toggle '{key}' with value '{value}' in {guildid}")
 		DatabaseTransactions().commit(session)
+		from classes.configdata import ConfigData
+
+		ConfigData().load_guild(guildid)
 
 	@staticmethod
 	@abstractmethod
 	def server_config_get(guildid) :
 		return session.scalars(Select(db.Config).where(db.Config.guild == guildid)).all()
+
 
 
 class FlaggedTermsTransactions(DatabaseTransactions) :

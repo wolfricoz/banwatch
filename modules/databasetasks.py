@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from discord.ext import commands, tasks
 
@@ -24,7 +24,7 @@ class DatabaseTasks(commands.Cog):
             await asyncio.sleep(0.1)
             if ban.deleted_at is None:
                 continue
-            if ban.deleted_at < datetime.now() - timedelta(days=30):
+            if ban.deleted_at < datetime.now(tz=UTC) - timedelta(days=30):
                 BanDbTransactions().delete_permanent(ban)
         for server in servers:
             if server.deleted_at < datetime.now() - timedelta(days=30):
