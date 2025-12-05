@@ -5,9 +5,11 @@ import discord
 from discord.ext import commands
 from discord_py_utilities.messages import send_message
 
+from classes.access import AccessControl
 from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.queue import queue
+from database.current import Servers
 from database.databaseController import BanDbTransactions, ServerDbTransactions
 from view.buttons.baninform import BanInform
 from view.buttons.banoptionbuttons import BanOptionButtons
@@ -72,7 +74,18 @@ class BanEvents(commands.Cog) :
 		if str(ban.reason).lower().startswith('[Migrated'):
 			logging.info("Migrated ban, not prompting")
 			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name,)
+		# PREMIUM: bans the users from other servers automatically
 
+		logging.info(ConfigData().get_key(guild.id, "cross_ban", False))
+		if ConfigData().get_key(guild.id, "cross_ban", False) is True and AccessControl().is_premium(guild.id):
+			logging.info("Cross-ban with premium")
+			servers = ServerDbTransactions.get_owners_servers(owner_id=guild.owner.id)
+			server_names = []
+			for server in servers :
+				logging.info(f"Premium cross-ban with server {server.name} ({server.id})")
+				queue().add(self.cross_ban(server, guild, user))
+				server_names.append(server.name)
+			queue().add(send_message(mod_channel, f"Cross-banned user {user}({user.id}) in servers: {', '.join(server_names)}"), priority=0)
 
 
 		logging.info("starting to update banlist and informing other servers")
@@ -98,6 +111,26 @@ class BanEvents(commands.Cog) :
 		embed.set_footer(text=f"{guild.id}-{user.id}")
 		queue().add(mod_channel.send(embed=embed, view=view), priority=2)
 
+
+	async def cross_ban(self, server: Servers, guild, user) :
+		if server.id == guild.id :
+			return
+		target_guild = self.bot.get_guild(server.id)
+		if target_guild is None :
+			target_guild = await self.bot.fetch_guild(server.id)
+		if target_guild is None :
+			logging.warning(f"Could not find guild {server.id} to cross-ban {user}")
+			return
+		try :
+			await target_guild.ban(user, reason=f"Cross-ban from {guild.name} with ban id: {user.id + guild.id}",
+			                       delete_message_days=0)
+			logging.info(f"Cross-banned {user} in {target_guild.name}({target_guild.id})")
+		except discord.Forbidden :
+			logging.warning(f"Missing permissions to cross-ban {user} in {target_guild.name}({target_guild.id})")
+			return
+		except discord.HTTPException as e :
+			logging.error(f"HTTP Exception when cross-banning {user} in {target_guild.name}({target_guild.id}): {e}")
+			return
 
 async def setup(bot) :
 	await bot.add_cog(BanEvents(bot))

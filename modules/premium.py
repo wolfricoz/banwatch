@@ -4,6 +4,7 @@ import re
 
 import discord
 from discord import Interaction, app_commands
+from discord.app_commands import Choice
 from discord.ext.commands import Bot, GroupCog
 from discord_py_utilities.messages import send_message, send_response
 
@@ -79,11 +80,14 @@ class Premium(GroupCog) :
 		os.remove(banlist_file.name)
 
 	@app_commands.command(name="toggle_feature", description="Toggles a premium feature on or off")
+	@app_commands.choices(feature_name=[
+		app_commands.Choice(name=feature, value=feature) for feature in toggles.keys()
+	])
 	@AccessControl().check_premium()
-	async def toggle_feature(self, interaction: Interaction, feature_name: str, enable: bool) :
-		await send_response(interaction, f"Toggling feature `{feature_name}` to `{'enabled' if enable else 'disabled'}`",
+	async def toggle_feature(self, interaction: Interaction, feature_name: Choice[str], enable: bool) :
+		await send_response(interaction, f"Toggling feature `{feature_name.value}` to `{'enabled' if enable else 'disabled'}`",
 		                    ephemeral=True)
-		ConfigDbTransactions.toggle_add(feature_name, enable)
+		ConfigDbTransactions.toggle_add(interaction.guild.id, feature_name.value, enable)
 
 		
 
