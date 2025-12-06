@@ -90,7 +90,7 @@ class Premium(GroupCog) :
 		view = bottrap()
 		embed = discord.Embed(title="Get Access (for bots!)", description="Press the buttons below or react to this to be banned from the server!\nKeywords: Gain Access, Verify, rules, accept, agree, click, press\n\n*This is a bot trap, pressing the button will result in an automatic ban from the server.*", color=0xff0000)
 		embed.set_footer(text="Bot Trap Button")
-		msg = await send_response(interaction, "-# gain access, for bots!",embed=embed, view=view)
+		msg = await send_message(interaction.channel, "-# gain access, for bots!",embed=embed, view=view)
 		await msg.add_reaction("✅")
 
 	@app_commands.command(name="bot_trap_role", description="Set a role that will automatically be banned when they get it")

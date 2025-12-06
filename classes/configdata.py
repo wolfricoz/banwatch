@@ -96,13 +96,11 @@ class ConfigData(metaclass=Singleton) :
 		"""Gets a key from the config, throws KeyNotFound if not found"""
 
 		value: str = self.data.get(str(serverid), {}).get(key.upper(), default)
-		if value is None and default is not None:
+		if not value:
 			return default
 
 		if isinstance(value, bool) :
 			return value
-
-
 		if isinstance(value, str) :
 			if value.lower() == "true" :
 				return True

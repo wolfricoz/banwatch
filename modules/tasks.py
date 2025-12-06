@@ -73,18 +73,22 @@ class Tasks(commands.Cog) :
 
 	@tasks.loop(hours=1)
 	async def purge_bot_roles(self) :
-		if self.purge_bot_roles.current_loop == 0 :
-			return
+		# if self.purge_bot_roles.current_loop == 0 :
+		# 	return
 		logging.info(f"Purging bot roles from servers")
 		for guild in AccessControl().premium :
 			g = self.bot.get_guild(guild)
 			if g is None :
 				g = await self.bot.fetch_guild(guild)
-				continue
 			if g is None :
+				logging.info(f"Could not fetch guild {guild}")
 				continue
-			role = g.get_role(ConfigData().get_key(guild.id, "trap_role"))
+			role = g.get_role(ConfigData().get_key(guild, "trap_role", 0))
+			# if not role:
+			# 	role = await g.fetch_role(ConfigData().get_key(guild, "trap_role", 0))
+
 			if role is None :
+				logging.info(f"No trap role in {g.name}({g.id})")
 				continue
 			for member in role.members :
 				try:
@@ -97,6 +101,10 @@ class Tasks(commands.Cog) :
 
 	@check_active_servers.before_loop
 	async def before_check_active_servers(self) :
+		await self.bot.wait_until_ready()
+
+	@purge_bot_roles.before_loop
+	async def before_purge_bot_roles(self) :
 		await self.bot.wait_until_ready()
 
 

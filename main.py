@@ -185,12 +185,18 @@ async def on_guild_remove(guild) :
 @bot.event
 async def setup_hook() :
 	loaded = []
-	for filename in os.listdir("modules") :
-		if filename.endswith('.py') :
-			await bot.load_extension(f"modules.{filename[:-3]}")
-			loaded.append(filename[:-3])
-		else :
-			logging.info(f'Unable to load {filename[:-3]}')
+	dirs = ["commands", "modules", "listeners"]
+	for dir in dirs :
+		try:
+			for filename in os.listdir(dir) :
+				if filename.endswith('.py') :
+					await bot.load_extension(f"{dir}.{filename[:-3]}")
+					loaded.append(filename[:-3])
+				else :
+					logging.info(f'Unable to load {filename[:-3]}')
+		except FileNotFoundError:
+			pass
+
 
 	loaded = ", ".join(loaded)
 	logging.info(f"Loaded Modules: {loaded}")
