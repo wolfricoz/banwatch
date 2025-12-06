@@ -4,6 +4,7 @@ from discord.ext import commands, tasks
 
 from classes.access import AccessControl
 from classes.blacklist import blacklist_check
+from classes.configdata import ConfigData
 from classes.dashboard.Servers import Servers
 from classes.queue import queue
 from classes.tasks import pending_bans
@@ -16,11 +17,14 @@ class Tasks(commands.Cog) :
 		self.check_blacklist.start()
 		self.check_active_servers.start()
 		self.check_pending_bans.start()
+		self.purge_bot_roles.start()
 
 	def cog_unload(self) :
 		self.check_blacklist.cancel()
 		self.check_active_servers.cancel()
 		self.check_pending_bans.cancel()
+		self.purge_bot_roles.cancel()
+
 
 	@tasks.loop(hours=1)
 	async def check_blacklist(self) :
@@ -66,6 +70,29 @@ class Tasks(commands.Cog) :
 		for guild in guilds :
 			queue().add(servers.update_server(self.bot, guild), 0)
 		AccessControl().reload_premium()
+
+	@tasks.loop(hours=1)
+	async def purge_bot_roles(self) :
+		if self.purge_bot_roles.current_loop == 0 :
+			return
+		logging.info(f"Purging bot roles from servers")
+		for guild in AccessControl().premium :
+			g = self.bot.get_guild(guild)
+			if g is None :
+				g = await self.bot.fetch_guild(guild)
+				continue
+			if g is None :
+				continue
+			role = g.get_role(ConfigData().get_key(guild.id, "trap_role"))
+			if role is None :
+				continue
+			for member in role.members :
+				try:
+						queue().add(g.ban(member, reason=f"User selected the bot role and has been removed."), 0)
+						logging.info(f"Removed bot {member} from trap role in {g.name}({g.id})")
+				except Exception as e :
+					logging.warning(f"Failed to remove bot {member} from trap role in {g.name}({g.id}): {e}", exc_info=True)
+
 
 
 	@check_active_servers.before_loop

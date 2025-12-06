@@ -13,6 +13,7 @@ from classes.configdata import ConfigData
 from classes.queue import queue
 from data.config.mappings import premium_toggles
 from database.databaseController import ConfigDbTransactions
+from view.buttons.bottrap import bottrap
 
 
 class Premium(GroupCog) :
@@ -21,6 +22,7 @@ class Premium(GroupCog) :
 	def __init__(self, bot: Bot) :
 		self.bot = bot
 		self.DELETED_USER_RE = re.compile(r"^deleted_user_[0-9a-f]{11,14}$", re.IGNORECASE)
+		self.bot.add_view(bottrap())
 
 	async def check_deleted(self, banned_user: discord.User | discord.Member) -> bool :
 		if banned_user.bot :
@@ -36,6 +38,7 @@ class Premium(GroupCog) :
 		return True
 
 	@app_commands.command(name="remove_deleted", description="removes deleted accounts from the ban list and server")
+	@app_commands.checks.has_permissions(manage_guild=True)
 	@AccessControl().check_premium()
 	async def command(self, interaction: Interaction) :
 		await send_response(interaction, "Checking for deleted accounts...", ephemeral=True)
@@ -78,6 +81,24 @@ class Premium(GroupCog) :
 		                   files=[discord.File(banlist_file.name)]
 		                   )
 		os.remove(banlist_file.name)
+
+
+	@app_commands.command(name="bot_trap_button", description="Create a bot trap button in the channel, when pressed will ban the user")
+	@app_commands.checks.has_permissions(manage_guild=True)
+	@AccessControl().check_premium()
+	async def trapbutton(self, interaction: discord.Interaction):
+		view = bottrap()
+		embed = discord.Embed(title="Get Access (for bots!)", description="Press the buttons below or react to this to be banned from the server!\nKeywords: Gain Access, Verify, rules, accept, agree, click, press\n\n*This is a bot trap, pressing the button will result in an automatic ban from the server.*", color=0xff0000)
+		embed.set_footer(text="Bot Trap Button")
+		msg = await send_response(interaction, "-# gain access, for bots!",embed=embed, view=view)
+		await msg.add_reaction("✅")
+
+	@app_commands.command(name="bot_trap_role", description="Set a role that will automatically be banned when they get it")
+	@app_commands.checks.has_permissions(manage_guild=True)
+	@AccessControl().check_premium()
+	async def traprole(self, interaction: discord.Interaction, role: discord.Role):
+		ConfigDbTransactions.config_unique_add(interaction.guild.id, "TRAP_ROLE", role.id)
+		await send_response(interaction, f"Set the bot trap role to {role.mention}", ephemeral=True)
 
 	@app_commands.command(name="toggle_feature", description="Toggles a premium feature on or off")
 	@app_commands.choices(feature_name=[

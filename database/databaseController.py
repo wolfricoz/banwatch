@@ -254,7 +254,7 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 	def get_all_user(self, user_id, override=False) :
 		if override :
 			return session.scalars(Select(Bans).where(Bans.uid == user_id)).all()
-		return session.query(Bans).options(joinedload(Bans.guild)).filter(
+		return session.query(Bans).options(joinedload(Bans.guild)).join(Servers).filter(
 			and_(Bans.uid == user_id, Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None),
 			     Bans.approved.is_(True), Servers.hidden.is_(False))).all()
 
