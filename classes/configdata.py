@@ -102,9 +102,9 @@ class ConfigData(metaclass=Singleton) :
 		if isinstance(value, bool) :
 			return value
 		if isinstance(value, str) :
-			if value.lower() == "true" :
+			if value.lower() in  ["true", "1", "ENABLED"] :
 				return True
-			if value.lower() == "false" :
+			if value.lower() in  ["false", "0", "DISABLED"] :
 				return False
 
 			return value

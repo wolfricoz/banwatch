@@ -4,5 +4,5 @@ premium_toggles = {
 }
 
 premium_roles = {
-	"trap_role": "Role given to users who set up trap bans, these bans will automatically ban users who try to join your server with known bad invites.",
+	"trap_role": "Role that will be automatically banned when assigned.",
 }
