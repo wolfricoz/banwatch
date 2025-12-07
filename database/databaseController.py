@@ -183,7 +183,8 @@ class ServerDbTransactions(DatabaseTransactions) :
 	def get_premium_ids(self) :
 		"""
 		"""
-		return [sid[0] for sid in session.query(Servers.id).filter(and_(Servers.premium.isnot(None), Servers.deleted_at.is_(None))).all()]
+		return [sid[0] for sid in
+		        session.query(Servers.id).filter(and_(Servers.premium.isnot(None), Servers.deleted_at.is_(None))).all()]
 
 	def get_deleted(self) :
 		return session.query(Servers).filter(Servers.deleted_at.isnot(None)).all()
@@ -549,7 +550,13 @@ class ConfigDbTransactions(ABC) :
 	@staticmethod
 	@abstractmethod
 	def toggle_add(guildid, key, value=False) :
-		if ConfigDbTransactions.key_exists_check(guildid, key.upper()) is True :
+		if ConfigDbTransactions.key_exists_check(guildid, key.upper()) :
+			item = session.query(db.Config).where(db.Config.guild == guildid, db.Config.key == key.upper()).first()
+			item.value = value
+			DatabaseTransactions().commit(session)
+			from classes.configdata import ConfigData
+
+			ConfigData().load_guild(guildid)
 			return
 		welcome = Config(guild=guildid, key=key.upper(), value=value)
 		session.merge(welcome)
@@ -563,7 +570,6 @@ class ConfigDbTransactions(ABC) :
 	@abstractmethod
 	def server_config_get(guildid) :
 		return session.scalars(Select(db.Config).where(db.Config.guild == guildid)).all()
-
 
 
 class FlaggedTermsTransactions(DatabaseTransactions) :
