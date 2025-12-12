@@ -113,7 +113,7 @@ class Premium(GroupCog) :
 
 
 
-	@app_commands.command(name="premade_ban_reasons", description="Configures premade ban reasons for quick selection")
+	@app_commands.command(name="ban_presets", description="Configures ban presets reasons for quick selection")
 	@app_commands.checks.has_permissions(manage_guild=True)
 	@app_commands.choices(operation=[
 		Choice(name="list", value="list"),

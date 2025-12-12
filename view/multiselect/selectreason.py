@@ -19,7 +19,7 @@ class ReasonSelect(discord.ui.Select) :
 		]
 
 		super().__init__(
-			placeholder="Select your ban reason here! You can type to find more.",
+			placeholder="Select your ban reason here!",
 			options=options,
 			min_values=1,
 			max_values=1
