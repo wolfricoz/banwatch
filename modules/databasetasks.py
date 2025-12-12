@@ -24,10 +24,10 @@ class DatabaseTasks(commands.Cog):
             await asyncio.sleep(0.1)
             if ban.deleted_at is None:
                 continue
-            if ban.deleted_at < datetime.now(tz=UTC) - timedelta(days=30):
+            if ban.deleted_at.replace(tzinfo=UTC)  < datetime.now(tz=UTC) - timedelta(days=30):
                 BanDbTransactions().delete_permanent(ban)
         for server in servers:
-            if server.deleted_at < datetime.now() - timedelta(days=30):
+            if server.deleted_at.replace(tzinfo=UTC) < datetime.now() - timedelta(days=30):
                 try:
                     ServerDbTransactions().delete_permanent(server)
                 except Exception as e:
