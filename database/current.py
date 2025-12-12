@@ -90,6 +90,8 @@ class Servers(Base) :
 	active: Mapped[bool] = mapped_column(Boolean, default=True)
 	bans: Mapped[List["Bans"]] = relationship("Bans", back_populates="guild",
 	                                          cascade="save-update, merge, delete, delete-orphan")
+	premium: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
+	owner_id: Mapped[int] = mapped_column(BigInteger, nullable=True)
 
 	def __int__(self) :
 		return self.id
@@ -110,15 +112,15 @@ class Appeals(Base) :
 		return self.id
 
 
-class AppealMsgs(Base):
+class AppealMsgs(Base) :
 	__tablename__ = "appeal_msgs"
 	id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
 	message: Mapped[str] = mapped_column(String(2000, ))
-	sender: Mapped[int] = mapped_column(BigInteger) # this can be either the server, staff member, or user.
-	recipient: Mapped[int] = mapped_column(BigInteger) # this can be either the server, staff member, or user.
+	sender: Mapped[int] = mapped_column(BigInteger)  # this can be either the server, staff member, or user.
+	recipient: Mapped[int] = mapped_column(BigInteger)  # this can be either the server, staff member, or user.
 	created: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 	appeal_id: Mapped[int] = mapped_column(ForeignKey("appeals.id"))
-	appeal: Mapped["Appeals"] = Relationship("Appeals", back_populates="msgs",)
+	appeal: Mapped["Appeals"] = Relationship("Appeals", back_populates="msgs", )
 
 
 class Config(Base) :
@@ -129,13 +131,25 @@ class Config(Base) :
 	key: Mapped[str] = mapped_column(String(512), primary_key=True)
 	value: Mapped[str] = mapped_column(String(1980))
 
-class FlaggedTerms(Base):
+
+class FlaggedTerms(Base) :
 	__tablename__ = "flagged_terms"
 	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 	term: Mapped[str] = mapped_column(String(512, ), unique=True)
 	action: Mapped[str] = mapped_column(String(128, ))
 	regex: Mapped[bool] = mapped_column(Boolean, default=False)
 	active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class BanReasons(Base) :
+	__tablename__ = "ban_reasons"
+	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+	server_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("servers.id", ondelete="CASCADE"))
+	name: Mapped[str] = mapped_column(String(256))
+	description: Mapped[str] = mapped_column(String(100))
+	reason: Mapped[str] = mapped_column(String(512), unique=True)
+	active: Mapped[bool] = mapped_column(Boolean, default=True)
+
 
 def create_bot_database() :
 	Base.metadata.create_all(engine)

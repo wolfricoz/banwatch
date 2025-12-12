@@ -1,5 +1,8 @@
+import logging
+
 import discord.ui
 
+from database.databaseController import BanReasonsTransactions
 from view.base.secureview import SecureView
 
 
@@ -16,7 +19,7 @@ class ReasonSelect(discord.ui.Select) :
 		]
 
 		super().__init__(
-			placeholder="Select your ban reason here! You can type to find more.",
+			placeholder="Select your ban reason here!",
 			options=options,
 			min_values=1,
 			max_values=1
@@ -34,6 +37,11 @@ class SelectReason(SecureView) :
 		super().__init__(timeout=None)
 		self.reason = None
 		self.interaction = None
+		self.current_page = 0
+		banreasons = BanReasonsTransactions().get_all()
+
+
+
 		self.reasons = [
 			{
 				"reason"      : "Custom",
@@ -167,14 +175,94 @@ class SelectReason(SecureView) :
 				"description" : "Copying or stealing others' content without permission",
 				"ban_reason"  : "User posted content copied from others without proper credit, authorization, or attribution, violating community rules and intellectual property standards. This behavior diminishes trust and disrupts the integrity of the server’s content.",
 				"emote"       : "📋"
-			}
-			,
+			},
 		]
-		self.add_item(ReasonSelect(self.reasons))
+		self.custom_reasons = [{
+			"reason"      : reason.name,
+			"description" : reason.description,
+			"ban_reason"  : reason.reason,
+			"emote"       : '⚙️'
+		} for reason in banreasons]
 
+		self._remove_duplicates()
+
+
+		self.all_reasons = self.custom_reasons + self.reasons
+
+		self.items_per_page = 25
+		self.total_pages = (len(self.all_reasons) + self.items_per_page - 1) // self.items_per_page
+
+		self._update_page()
+
+	def _update_page(self) :
+		# Clear existing items
+		self.clear_items()
+
+		# Calculate slice for current page
+		start = self.current_page * self.items_per_page
+		end = start + self.items_per_page
+		page_reasons = self.all_reasons[start :end]
+
+		# Add select menu (row 0)
+		select = ReasonSelect(page_reasons)
+		self.add_item(select)
+
+		# Add navigation buttons if multiple pages (row 1)
+
+		logging.info(f"Total pages: {self.total_pages}, Current page: {self.current_page}")
+
+		if self.total_pages > 1 :
+
+
+			# Previous button
+			prev_button = discord.ui.Button(
+				label="◀ Previous",
+				style=discord.ButtonStyle.primary,
+				disabled=(self.current_page == 0),
+				row=1  # Add this
+			)
+			prev_button.callback = self._previous_page
+			self.add_item(prev_button)
+
+			# Page indicator
+			page_button = discord.ui.Button(
+				label=f"Page {self.current_page + 1}/{self.total_pages}",
+				style=discord.ButtonStyle.secondary,
+				disabled=True,
+				row=1  # Add this
+			)
+			self.add_item(page_button)
+
+			# Next button
+			next_button = discord.ui.Button(
+				label="Next ▶",
+				style=discord.ButtonStyle.primary,
+				disabled=(self.current_page >= self.total_pages - 1),
+				row=1  # Add this
+			)
+			next_button.callback = self._next_page
+			self.add_item(next_button)
+
+	async def _previous_page(self, interaction: discord.Interaction) :
+		self.current_page = max(0, self.current_page - 1)
+		self._update_page()
+		await interaction.response.edit_message(view=self)
+
+	async def _next_page(self, interaction: discord.Interaction) :
+		self.current_page = min(self.total_pages - 1, self.current_page + 1)
+		self._update_page()
+		await interaction.response.edit_message(view=self)
+
+	def _remove_duplicates(self):
+		default_names = [reason['reason'].lower() for reason in self.reasons]
+		custom_names = [reason['reason'].lower() for reason in self.custom_reasons]
+		for custom_name in custom_names :
+			if custom_name in default_names :
+				index = default_names.index(custom_name)
+				self.reasons.pop(index)
 
 	def get_reason(self) :
-		for reason in self.reasons :
+		for reason in self.all_reasons :
 			if reason.get('reason', "custom").lower() == self.reason.lower() :
 				return reason.get('ban_reason')
 		return "custom"

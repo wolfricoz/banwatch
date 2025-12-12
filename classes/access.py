@@ -7,19 +7,23 @@ from discord import app_commands
 
 from classes.configer import Configer
 from classes.singleton import Singleton
-from database.databaseController import StaffDbTransactions
+from database.databaseController import ServerDbTransactions, StaffDbTransactions
 
 
 class AccessControl(metaclass=Singleton) :
 	staff: dict = {
 
 	}
+	premium: list = []
 
 	def __init__(self) :
 		self.add_staff_to_dict()
+		self.add_premium_to_dict()
+		print(self.premium)
 
 	def reload(self) :
 		self.add_staff_to_dict()
+		self.add_premium_to_dict()
 
 	def add_staff_to_dict(self) :
 		self.staff = {}
@@ -32,6 +36,12 @@ class AccessControl(metaclass=Singleton) :
 			self.staff[role] = [staff.uid]
 		logging.info("Staff information has been reloaded:")
 		logging.info(self.staff)
+
+	def add_premium_to_dict(self) :
+		self.premium = ServerDbTransactions().get_premium_ids()
+
+	def reload_premium(self) :
+		self.add_premium_to_dict()
 
 	def access_owner(self, user_id: int) -> bool :
 		return True if user_id == int(os.getenv('OWNER')) else False
@@ -60,3 +70,19 @@ class AccessControl(metaclass=Singleton) :
 			return True
 
 		return app_commands.check(pred)
+
+	def check_premium(self):
+		async def pred(interaction: discord.Interaction) -> bool:
+			result = self.is_premium(interaction.guild.id)
+			if not result :
+				await interaction.response.send_message(
+					"This command is premium only",
+					ephemeral=True
+				)
+			return result
+
+		return app_commands.check(pred)
+
+	def is_premium(self, guild_id: int) -> bool :
+		"""Check if a guild has premium access."""
+		return guild_id in self.premium
