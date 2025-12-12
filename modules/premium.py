@@ -12,8 +12,9 @@ from classes.access import AccessControl
 from classes.configdata import ConfigData
 from classes.queue import queue
 from data.config.mappings import premium_toggles
-from database.databaseController import ConfigDbTransactions
+from database.databaseController import BanReasonsTransactions, ConfigDbTransactions
 from view.buttons.bottrap import bottrap
+from view.modals.banreasonmodal import BanReasonCreateModal, send_banreason_modal
 
 
 class Premium(GroupCog) :
@@ -40,7 +41,7 @@ class Premium(GroupCog) :
 	@app_commands.command(name="remove_deleted", description="removes deleted accounts from the ban list and server")
 	@app_commands.checks.has_permissions(manage_guild=True)
 	@AccessControl().check_premium()
-	async def command(self, interaction: Interaction) :
+	async def remove_deleted(self, interaction: Interaction) :
 		await send_response(interaction, "Checking for deleted accounts...", ephemeral=True)
 		deleted_bans = []
 		kicked_users = []
@@ -109,6 +110,44 @@ class Premium(GroupCog) :
 		await send_response(interaction, f"Toggling feature `{feature_name.value}` to `{'enabled' if enable else 'disabled'}`",
 		                    ephemeral=True)
 		ConfigDbTransactions.toggle_add(interaction.guild.id, feature_name.value, enable)
+
+
+
+	@app_commands.command(name="premade_ban_reasons", description="Configures premade ban reasons for quick selection")
+	@app_commands.checks.has_permissions(manage_guild=True)
+	@app_commands.choices(operation=[
+		Choice(name="list", value="list"),
+		Choice(name="add", value="add"),
+		Choice(name="remove", value="remove"),
+	])
+	@AccessControl().check_premium()
+	async def premade_ban_reasons(self, interaction: Interaction, operation: Choice['str'], name: str = None) :
+		match operation.name:
+			case "list" :
+				reasons = BanReasonsTransactions.get_all()
+				if not reasons :
+					return await send_response(interaction, "No premade ban reasons found.", ephemeral=True)
+				reason_list = "\n".join([f"- {reason.reason} (ID: {reason.id})" for reason in reasons])
+				await send_response(interaction, f"Premade Ban Reasons:\n{reason_list}", ephemeral=True)
+			case "add" :
+				values = await send_banreason_modal(interaction, "Create Premade Ban Reason", "Custom Ban Reason")
+				name = values["name"]
+				description = values["description"]
+				reason = values["reason"]
+				existing = BanReasonsTransactions.get(name)
+				if existing :
+					return await send_response(interaction, f"Ban reason `{name}` already exists.", ephemeral=True)
+				BanReasonsTransactions.add(interaction.guild.id, name, description, reason)
+				await send_response(interaction, f"Added premade ban reason `{name}`.", ephemeral=True)
+			case "remove" :
+				if name is None :
+					return await send_response(interaction, "Please provide the name of the ban reason to remove.", ephemeral=True)
+				existing = BanReasonsTransactions.get(name)
+				if not existing :
+					return await send_response(interaction, f"Ban reason `{name}` not found.", ephemeral=True)
+				BanReasonsTransactions.delete(existing.id)
+				await send_response(interaction, f"Removed premade ban reason `{name}`.", ephemeral=True)
+
 
 		
 
