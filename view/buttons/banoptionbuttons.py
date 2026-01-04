@@ -15,7 +15,7 @@ from classes.configer import Configer
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from data.variables.messages import evidence_message_template
-from database.databaseController import ServerDbTransactions
+from database.transactions.ServerTransactions import ServerDbTransactions
 from view.base.secureview import SecureView
 from view.buttons.banapproval import BanApproval
 

@@ -10,7 +10,8 @@ from discord_py_utilities.messages import send_message, send_response
 from classes.autocorrect import autocomplete_guild
 from classes.bans import Bans
 from classes.queue import queue
-from database.databaseController import BanDbTransactions, ServerDbTransactions
+from database.transactions.BanTransactions import BanDbTransactions
+from database.transactions.ServerTransactions import ServerDbTransactions
 from view.modals.inputmodal import send_modal
 from view.multiselect.selectreason import SelectReason
 

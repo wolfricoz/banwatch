@@ -7,7 +7,8 @@ from discord import app_commands
 
 from classes.configer import Configer
 from classes.singleton import Singleton
-from database.databaseController import ServerDbTransactions, StaffDbTransactions
+from database.transactions.StaffTransactions import StaffDbTransactions
+from database.transactions.ServerTransactions import ServerDbTransactions
 
 
 class AccessControl(metaclass=Singleton) :

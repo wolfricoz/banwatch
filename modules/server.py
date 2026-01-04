@@ -5,7 +5,7 @@ from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
 from classes.configdata import ConfigData
-from database.databaseController import BanDbTransactions
+from database.transactions.BanTransactions import BanDbTransactions
 from view.buttons.communicationbuttons import CommunicationButtons
 from view.modals.inputmodal import send_modal
 

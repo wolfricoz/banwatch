@@ -9,7 +9,7 @@ from discord.ext import commands
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
-from database.databaseController import BanDbTransactions
+from database.transactions.BanTransactions import BanDbTransactions
 from view.buttons.lookup import LookUp
 
 

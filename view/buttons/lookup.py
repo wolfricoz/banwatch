@@ -9,7 +9,7 @@ from discord_py_utilities.messages import send_message
 from discord_py_utilities.permissions import check_missing_channel_permissions
 
 from classes.evidence import EvidenceController
-from database.databaseController import ProofDbTransactions
+from database.transactions.ProofTransactions import ProofDbTransactions
 from view.base.secureview import SecureView
 from view.multiselect.selectban import SelectBan
 

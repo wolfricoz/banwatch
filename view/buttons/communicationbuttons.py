@@ -5,7 +5,7 @@ import discord
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.configdata import ConfigData
-from database.databaseController import BanDbTransactions
+from database.transactions.BanTransactions import BanDbTransactions
 from view.base.secureview import SecureView
 from view.modals.inputmodal import send_modal
 

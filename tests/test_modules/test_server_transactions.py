@@ -1,5 +1,7 @@
 import unittest
 
+import database.transactions.BanTransactions
+import database.transactions.ServerTransactions
 import database.databaseController
 from database.current import create_bot_database, drop_bot_database
 from database.databaseController import session
@@ -18,7 +20,7 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 	# Testing the servers table
 	def test_add_server(self) :
 		guild_id = self.guild_id
-		server_controller = database.databaseController.ServerDbTransactions()
+		server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
 		server_success = server_controller.add(guild_id, "owner", "server_name", 100, "invite")
 		self.assertEqual(server_success.id, guild_id)
 		server_failed = server_controller.add(guild_id, "owner", "server_name", 100, "invite")
@@ -26,14 +28,14 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 		session.rollback()
 
 	def test_server_exists(self):
-		server_controller = database.databaseController.ServerDbTransactions()
+		server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
 		server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
 		self.assertTrue(server_controller.exists(self.guild_id))
 		session.rollback()
 
 	def test_update_server(self) :
 		guild_id = self.guild_id
-		server_controller = database.databaseController.ServerDbTransactions()
+		server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
 		server_controller.add(guild_id, "owner", "server_name", 100, "invite")
 		server = server_controller.update(guild_id, owner="new_owner", member_count=200, invite="new_invite")
 		self.assertEqual(server.owner, "new_owner")
@@ -43,7 +45,7 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 		session.rollback()
 
 	def test_server_get(self):
-		server_controller = database.databaseController.ServerDbTransactions()
+		server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
 		server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
 		server = server_controller.get(self.guild_id)
 		self.assertIsNotNone(server)
@@ -52,8 +54,8 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 	def test_remove_server(self) :
 		guild_id = self.guild_id
 		user_id = self.user_id
-		server_controller = database.databaseController.ServerDbTransactions()
-		ban_controller = database.databaseController.BanDbTransactions()
+		server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
+		ban_controller = database.transactions.BanTransactions.BanDbTransactions()
 		session.rollback()
 
 		# Ensure the guild exists in the servers table
@@ -68,7 +70,7 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 
 	def test_soft_delete_server(self) :
 		guild_id = self.guild_id
-		server_controller = database.databaseController.ServerDbTransactions()
+		server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
 		server_controller.add(guild_id, "owner", "server_name", 100, "invite")
 		server_controller.delete_soft(guild_id)
 		self.assertIsNotNone(server_controller.get(guild_id).deleted_at)
@@ -77,9 +79,9 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 		session.rollback()
 
 	def test_get_bans(self):
-		server_controller = database.databaseController.ServerDbTransactions()
+		server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
 		server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
-		ban_controller = database.databaseController.BanDbTransactions()
+		ban_controller = database.transactions.BanTransactions.BanDbTransactions()
 		ban_controller.add(self.user_id, self.guild_id, "reason", "staff")
 		ban_controller.add(self.user_id + 1, self.guild_id, "reason", "staff")
 		ban_controller.add(self.user_id + 2, self.guild_id, "reason", "staff")
@@ -91,7 +93,7 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 		session.rollback()
 
 	def get_all_servers(self):
-		server_controller = database.databaseController.ServerDbTransactions()
+		server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
 		server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
 		server_controller.add(self.guild_id + 1, "owner", "server_name", 100, "invite")
 		server_controller.add(self.guild_id + 2, "owner", "server_name", 100, "invite")
@@ -103,7 +105,7 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 		session.rollback()
 
 	def test_get_deleted_servers(self):
-		server_controller = database.databaseController.ServerDbTransactions()
+		server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
 		server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
 		server_controller.add(self.guild_id + 1, "owner", "server_name", 100, "invite")
 		server_controller.add(self.guild_id + 2, "owner", "server_name", 100, "invite")
@@ -116,13 +118,13 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 
 
 	def test_count_servers(self):
-		server_controller = database.databaseController.ServerDbTransactions()
+		server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
 		server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
 		server_controller.add(self.guild_id + 1, "owner", "server_name", 100, "invite")
 		self.assertEqual(server_controller.count(), 2)
 
 	def test_hidden_server(self):
-		server_controller = database.databaseController.ServerDbTransactions()
+		server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
 		server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
 		server = server_controller.update(self.guild_id, hidden=True)
 		self.assertTrue(server.hidden)

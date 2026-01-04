@@ -2,7 +2,7 @@ import unittest
 
 from classes.configdata import ConfigData
 from database.current import create_bot_database, drop_bot_database
-from database.databaseController import ConfigDbTransactions
+from database.transactions.ConfigTransactions import ConfigDbTransactions
 from database.factories.serverfactory import ServerFactory
 
 

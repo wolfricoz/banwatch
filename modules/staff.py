@@ -13,7 +13,8 @@ from classes.queue import queue
 from classes.rpsec import RpSec
 from classes.tasks import pending_bans
 from data.variables.messages import evidence_message_template
-from database.databaseController import BanDbTransactions, ServerDbTransactions
+from database.transactions.BanTransactions import BanDbTransactions
+from database.transactions.ServerTransactions import ServerDbTransactions
 
 GUILD = int(os.getenv("GUILD"))
 

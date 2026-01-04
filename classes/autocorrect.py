@@ -4,7 +4,7 @@ import discord
 from discord import app_commands
 
 from database.current import Bans
-from database.databaseController import BanDbTransactions
+from database.transactions.BanTransactions import BanDbTransactions
 
 
 async def autocomplete_appeal(interaction: discord.Interaction, text: str) -> typing.List[

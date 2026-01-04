@@ -1,7 +1,7 @@
 import unittest
 
 from database.current import Appeals, create_bot_database, drop_bot_database
-from database.databaseController import AppealsDbTransactions
+from database.AppealsTransactions import AppealsDbTransactions
 from database.factories.ban import BanFactory
 
 

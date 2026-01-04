@@ -8,7 +8,7 @@ from classes.configdata import ConfigData
 from classes.dashboard.Servers import Servers
 from classes.queue import queue
 from classes.tasks import pending_bans
-from database.databaseController import ServerDbTransactions
+from database.transactions.ServerTransactions import ServerDbTransactions
 
 
 class Tasks(commands.Cog) :

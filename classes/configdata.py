@@ -7,7 +7,8 @@ import discord
 from discord_py_utilities.messages import send_message
 
 from classes.singleton import Singleton
-from database.databaseController import ConfigDbTransactions, ServerDbTransactions
+from database.transactions.ConfigTransactions import ConfigDbTransactions
+from database.transactions.ServerTransactions import ServerDbTransactions
 
 
 class KeyNotFound(Exception) :

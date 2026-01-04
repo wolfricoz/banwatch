@@ -1,4 +1,4 @@
-from database.databaseController import ProofDbTransactions
+from database.transactions.ProofTransactions import ProofDbTransactions
 from database.factories.ban import BanFactory
 
 

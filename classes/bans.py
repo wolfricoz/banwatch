@@ -14,7 +14,9 @@ from classes.rpsec import RpSec
 from classes.server import Server
 from classes.singleton import Singleton
 from database.current import Proof
-from database.databaseController import BanDbTransactions, ProofDbTransactions, ServerDbTransactions
+from database.transactions.ProofTransactions import ProofDbTransactions
+from database.transactions.BanTransactions import BanDbTransactions
+from database.transactions.ServerTransactions import ServerDbTransactions
 from view.buttons.baninform import BanInform
 
 

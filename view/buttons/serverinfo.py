@@ -3,7 +3,7 @@ from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
 from classes.configer import Configer
-from database.databaseController import ServerDbTransactions
+from database.transactions.ServerTransactions import ServerDbTransactions
 from view.base.secureview import SecureView
 
 

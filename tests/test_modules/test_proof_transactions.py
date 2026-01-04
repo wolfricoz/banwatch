@@ -1,5 +1,8 @@
 import unittest
 
+import database.transactions.BanTransactions
+import database.transactions.ProofTransactions
+import database.transactions.ServerTransactions
 import database.databaseController
 from database.current import create_bot_database, drop_bot_database
 from database.factories.evidence import EvidenceFactory
@@ -8,9 +11,9 @@ from database.factories.evidence import EvidenceFactory
 class TestProofDatabaseOperations(unittest.TestCase) :
 	guild_id = 395614061393477632
 	user_id = 188647277181665280
-	server_controller = database.databaseController.ServerDbTransactions()
-	ban_controller = database.databaseController.BanDbTransactions()
-	proof_controller = database.databaseController.ProofDbTransactions()
+	server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
+	ban_controller = database.transactions.BanTransactions.BanDbTransactions()
+	proof_controller = database.transactions.ProofTransactions.ProofDbTransactions()
 
 	def setUp(self) :
 		create_bot_database()

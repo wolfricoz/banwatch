@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from database.databaseController import BanDbTransactions
+from database.transactions.BanTransactions import BanDbTransactions
 
 load_dotenv('main.env')
 app = FastAPI()

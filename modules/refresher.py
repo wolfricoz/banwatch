@@ -3,7 +3,7 @@ import logging
 from discord.ext import commands, tasks
 
 from classes.bans import Bans
-from database.databaseController import BanDbTransactions
+from database.transactions.BanTransactions import BanDbTransactions
 
 
 class Refresher(commands.Cog):

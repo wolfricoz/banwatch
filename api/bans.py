@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 import logging
 
-from database.databaseController import BanDbTransactions
+from database.transactions.BanTransactions import BanDbTransactions
 
 router = APIRouter()
 

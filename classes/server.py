@@ -1,7 +1,8 @@
 import logging
 
 from classes.queue import queue
-from database.databaseController import BanDbTransactions, ServerDbTransactions
+from database.transactions.BanTransactions import BanDbTransactions
+from database.transactions.ServerTransactions import ServerDbTransactions
 
 
 class Server :

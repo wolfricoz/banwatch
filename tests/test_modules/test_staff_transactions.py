@@ -2,7 +2,8 @@ import unittest
 
 from classes.access import AccessControl
 from database.current import create_bot_database, drop_bot_database
-from database.databaseController import StaffDbTransactions, session
+from database.databaseController import session
+from database.transactions.StaffTransactions import StaffDbTransactions
 
 
 class TestStaffDatabaseOperations(unittest.TestCase) :

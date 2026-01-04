@@ -19,9 +19,11 @@ from classes.configer import Configer
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from classes.tasks import pending_bans
-from database.databaseController import BanDbTransactions, DatabaseTransactions, FlaggedTermsTransactions, \
-	ServerDbTransactions, \
-	StaffDbTransactions
+from database.FlaggedTermsTransactions import FlaggedTermsTransactions
+from database.transactions.StaffTransactions import StaffDbTransactions
+from database.transactions.BanTransactions import BanDbTransactions
+from database.transactions.ServerTransactions import ServerDbTransactions
+from database.transactions.BanReasonTransactions import DatabaseTransactions
 from view.modals.inputmodal import send_modal
 from discord.utils import get
 

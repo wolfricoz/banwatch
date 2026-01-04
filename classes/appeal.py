@@ -6,7 +6,7 @@ from discord_py_utilities.exceptions import NoPermissionException
 from discord_py_utilities.messages import send_message
 
 from classes.configdata import ConfigData
-from database.databaseController import ServerDbTransactions
+from database.transactions.ServerTransactions import ServerDbTransactions
 
 
 async def inform_user(guild: discord.Guild, user: discord.User):

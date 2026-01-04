@@ -6,7 +6,8 @@ from discord_py_utilities.messages import await_message, send_response
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from data.variables.messages import evidence_message_template
-from database.databaseController import BanDbTransactions, ProofDbTransactions
+from database.transactions.ProofTransactions import ProofDbTransactions
+from database.transactions.BanTransactions import BanDbTransactions
 from view.pagination.pagination import Pagination
 
 

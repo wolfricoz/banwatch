@@ -12,7 +12,8 @@ from classes.access import AccessControl
 from classes.configdata import ConfigData
 from classes.queue import queue
 from data.config.mappings import premium_toggles
-from database.databaseController import BanReasonsTransactions, ConfigDbTransactions
+from database.databaseController import BanReasonsTransactions
+from database.transactions.ConfigTransactions import ConfigDbTransactions
 from view.buttons.bottrap import bottrap
 from view.modals.banreasonmodal import BanReasonCreateModal, send_banreason_modal
 

@@ -1,6 +1,6 @@
 import random
 
-from database.databaseController import BanDbTransactions
+from database.transactions.BanTransactions import BanDbTransactions
 from database.factories.serverfactory import ServerFactory
 
 

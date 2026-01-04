@@ -1,0 +1,4 @@
+All flagged words:
+Term: test Action: review Regex: False
+Term: f.ggots? Action: block Regex: True
+Term: badword Action: review Regex: False

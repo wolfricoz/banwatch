@@ -2,7 +2,7 @@ import logging
 import re
 
 from database.current import FlaggedTerms
-from database.databaseController import FlaggedTermsTransactions
+from database.FlaggedTermsTransactions import FlaggedTermsTransactions
 
 
 class TermsChecker:

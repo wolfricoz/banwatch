@@ -4,7 +4,8 @@ from datetime import UTC, datetime, timedelta
 
 from discord.ext import commands, tasks
 
-from database.databaseController import BanDbTransactions, ServerDbTransactions
+from database.transactions.BanTransactions import BanDbTransactions
+from database.transactions.ServerTransactions import ServerDbTransactions
 
 
 class DatabaseTasks(commands.Cog):

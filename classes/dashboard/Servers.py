@@ -8,7 +8,7 @@ from database.current import Servers as dbServers
 import requests
 from discord.ext import commands
 
-from database.databaseController import ServerDbTransactions
+from database.transactions.ServerTransactions import ServerDbTransactions
 
 
 class Servers:

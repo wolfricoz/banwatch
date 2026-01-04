@@ -1,6 +1,6 @@
 import random
 
-from database.databaseController import ServerDbTransactions
+from database.transactions.ServerTransactions import ServerDbTransactions
 
 
 class ServerFactory :

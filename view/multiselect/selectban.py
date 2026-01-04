@@ -3,7 +3,7 @@ from discord_py_utilities.bans import ban_member
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.bans import Bans
-from database.databaseController import BanDbTransactions
+from database.transactions.BanTransactions import BanDbTransactions
 from view.base.secureview import SecureView
 from view.buttons.confirm import Confirm
 

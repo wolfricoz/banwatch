@@ -10,7 +10,8 @@ from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.queue import queue
 from database.current import Servers
-from database.databaseController import BanDbTransactions, ServerDbTransactions
+from database.transactions.BanTransactions import BanDbTransactions
+from database.transactions.ServerTransactions import ServerDbTransactions
 from view.buttons.baninform import BanInform
 from view.buttons.banoptionbuttons import BanOptionButtons
 
