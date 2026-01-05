@@ -1,5 +1,4 @@
 import logging
-from abc import ABC, abstractmethod
 
 from sqlalchemy import Select
 
@@ -8,7 +7,7 @@ from database.current import Config
 from database.transactions.BanReasonTransactions import DatabaseTransactions
 
 
-class ConfigDbTransactions(ABC) :
+class ConfigDbTransactions(DatabaseTransactions) :
 
 	
 	
@@ -63,87 +62,103 @@ class ConfigDbTransactions(ABC) :
 	
 	
 	def config_unique_get(self, guildid: int, key: str) :
-		if ConfigDbTransactions.key_exists_check(guildid, key) is False :
-			return
-		exists = session.scalar(Select(db.Config).where(db.Config.guild == guildid, db.Config.key == key.upper()))
-		return exists.value
+		with self.createsession() as session :
+
+			if ConfigDbTransactions.key_exists_check(guildid, key) is False :
+				return
+			exists = session.scalar(Select(db.Config).where(db.Config.guild == guildid, db.Config.key == key.upper()))
+			return exists.value
 
 	
 	
 	def config_key_add(self, guildid: int, key: str, value, overwrite) :
-		value = str(value)
-		if ConfigDbTransactions.key_multiple_exists_check(guildid, key, value) is True :
-			return False
-		item = db.Config(guild=guildid, key=key.upper(), value=value)
-		session.add(item)
-		DatabaseTransactions().commit(session)
+		with self.createsession() as session :
 
-		return True
+			value = str(value)
+			if ConfigDbTransactions.key_multiple_exists_check(guildid, key, value) is True :
+				return False
+			item = db.Config(guild=guildid, key=key.upper(), value=value)
+			session.add(item)
+			DatabaseTransactions().commit(session)
+
+			return True
 
 	
 	
 	def key_multiple_exists_check(self, guildid: int, key: str, value) :
-		exists = session.scalar(
-			Select(db.Config).where(db.Config.guild == guildid, db.Config.key == key, db.Config.value == value))
-		session.close()
-		if exists is not None :
-			return True
-		return False
+		with self.createsession() as session :
+
+			exists = session.scalar(
+				Select(db.Config).where(db.Config.guild == guildid, db.Config.key == key, db.Config.value == value))
+			session.close()
+			if exists is not None :
+				return True
+			return False
 
 	
 	
 	def config_key_remove(self, guildid: int, key: str, value) :
-		if ConfigDbTransactions.key_multiple_exists_check(guildid, key, value) is False :
-			return False
-		exists = session.scalar(
-			Select(db.Config).where(db.Config.guild == guildid, db.Config.key == key, db.Config.value == value))
-		session.delete(exists)
-		DatabaseTransactions().commit(session)
+		with self.createsession() as session :
+
+			if ConfigDbTransactions.key_multiple_exists_check(guildid, key, value) is False :
+				return False
+			exists = session.scalar(
+				Select(db.Config).where(db.Config.guild == guildid, db.Config.key == key, db.Config.value == value))
+			session.delete(exists)
+			DatabaseTransactions().commit(session)
 
 	
 	
 	def config_unique_remove(self, guild_id: int, key: str) :
-		if ConfigDbTransactions.key_exists_check(guild_id, key) is False :
-			return False
-		exists = session.scalar(
-			Select(db.Config).where(db.Config.guild == guild_id, db.Config.key == key))
-		session.delete(exists)
-		DatabaseTransactions().commit(session)
+		with self.createsession() as session :
+
+			if ConfigDbTransactions.key_exists_check(guild_id, key) is False :
+				return False
+			exists = session.scalar(
+				Select(db.Config).where(db.Config.guild == guild_id, db.Config.key == key))
+			session.delete(exists)
+			DatabaseTransactions().commit(session)
 
 	
 	
 	def key_exists_check(self, guildid: int, key: str, overwrite=False) :
-		exists = session.scalar(
-			Select(db.Config).where(db.Config.guild == guildid, db.Config.key == key.upper()))
-		if exists is None :
-			session.close()
-			return False
-		if overwrite is False :
+		with self.createsession() as session :
+
+			exists = session.scalar(
+				Select(db.Config).where(db.Config.guild == guildid, db.Config.key == key.upper()))
+			if exists is None :
+				session.close()
+				return False
+			if overwrite is False :
+				return True
+			session.delete(exists)
+			DatabaseTransactions().commit(session)
 			return True
-		session.delete(exists)
-		DatabaseTransactions().commit(session)
-		return True
 
 	
 	
 	def toggle_add(self, guildid, key, value=False) :
-		if ConfigDbTransactions.key_exists_check(guildid, key.upper()) :
-			item = session.query(db.Config).where(db.Config.guild == guildid, db.Config.key == key.upper()).first()
-			item.value = value
+		with self.createsession() as session :
+
+			if ConfigDbTransactions.key_exists_check(guildid, key.upper()) :
+				item = session.query(db.Config).where(db.Config.guild == guildid, db.Config.key == key.upper()).first()
+				item.value = value
+				DatabaseTransactions().commit(session)
+				from classes.configdata import ConfigData
+
+				ConfigData().load_guild(guildid)
+				return
+			welcome = Config(guild=guildid, key=key.upper(), value=value)
+			session.merge(welcome)
+			logging.info(f"Added toggle '{key}' with value '{value}' in {guildid}")
 			DatabaseTransactions().commit(session)
 			from classes.configdata import ConfigData
 
 			ConfigData().load_guild(guildid)
-			return
-		welcome = Config(guild=guildid, key=key.upper(), value=value)
-		session.merge(welcome)
-		logging.info(f"Added toggle '{key}' with value '{value}' in {guildid}")
-		DatabaseTransactions().commit(session)
-		from classes.configdata import ConfigData
-
-		ConfigData().load_guild(guildid)
 
 	
 	
 	def server_config_get(self, guildid) :
-		return session.scalars(Select(db.Config).where(db.Config.guild == guildid)).all()
+		with self.createsession() as session :
+
+			return session.scalars(Select(db.Config).where(db.Config.guild == guildid)).all()
