@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 import logging
 
-from database.transactions.BanTransactions import BanDbTransactions
+from database.transactions.BanTransactions import BanTransactions
 
 router = APIRouter()
 
@@ -26,7 +26,7 @@ async def bans_get(ban_request: BanRequest, request: Request) :
 	if ban_request.token != os.getenv("RPSECSECRET") :
 		logging.warning(f"{request.client.host} failed to connect with {ban_request}, failed at token")
 		return HTTPException(404)
-	bans = BanDbTransactions().get_all_user(ban_request.id)
+	bans = BanTransactions().get_all_user(ban_request.id)
 	bans = {ban.ban_id : ban.message for ban in bans if ban.message is not None}
 	if bans is None or len(bans) < 1:
 		logging.warning(f"{request.client.host} failed to connect with {ban_request}, No bans found")
@@ -41,5 +41,5 @@ async def bans_get(user_id: int, request: Request) :
 
 	if user_id is None or 16 < user_id < 19:
 		return HTTPException(404)
-	ban_count = BanDbTransactions().count_all_user(user_id)
+	ban_count = BanTransactions().count_all_user(user_id)
 	return json.dumps({"bans" : ban_count})

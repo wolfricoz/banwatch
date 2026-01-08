@@ -1,8 +1,8 @@
 import logging
 
 from classes.queue import queue
-from database.transactions.BanTransactions import BanDbTransactions
-from database.transactions.ServerTransactions import ServerDbTransactions
+from database.transactions.BanTransactions import BanTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 
 
 class Server :
@@ -15,7 +15,7 @@ class Server :
 		self.guild_id = guild_id
 
 	def get_banned_ids(self, guild_id: int) -> list[int] :
-		return ServerDbTransactions().get_bans(guild_id, uid_only=True)
+		return ServerTransactions().get_bans(guild_id, uid_only=True)
 
 	def check_ban(self, user_id: int) -> bool :
 		if user_id in self.banned_ids :
@@ -39,4 +39,4 @@ class Server :
 
 	async def soft_delete(self, user_id: int) -> None :
 		logging.info(f"Soft removing missing ban for {user_id} in {self.guild_id}")
-		BanDbTransactions().delete_soft(user_id + self.guild_id)
+		BanTransactions().delete_soft(user_id + self.guild_id)

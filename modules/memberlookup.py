@@ -9,7 +9,7 @@ from discord.ext import commands
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
-from database.transactions.BanTransactions import BanDbTransactions
+from database.transactions.BanTransactions import BanTransactions
 from view.buttons.lookup import LookUp
 
 
@@ -22,7 +22,7 @@ class BanCheck(ABC) :
 
 	async def checkerall(self, interaction, bot) :
 		bcount = 0
-		cache = BanDbTransactions().local_cache
+		cache = BanTransactions().local_cache
 		with open(f"bans.txt", 'w', encoding='utf-8') as f :
 			f.write(f"Bans:")
 		for member in interaction.guild.members :
@@ -67,7 +67,7 @@ class User(commands.GroupCog, name="user") :
 
 		# Handle lookup by ban ID
 		if ban_id :
-			ban = BanDbTransactions().get(int(ban_id), override=override)  # Fetch ban details by ID
+			ban = BanTransactions().get(int(ban_id), override=override)  # Fetch ban details by ID
 			if ban is None :  # If no ban is found, notify the user
 				logging.warning(f"Ban with id {ban_id} not found.")
 				return await send_response(interaction, "Ban not found.")
@@ -86,7 +86,7 @@ class User(commands.GroupCog, name="user") :
 			return await send_response(interaction, "You can not look up yourself!", ephemeral=True)
 
 		# Fetch all bans for the specified user
-		sr = BanDbTransactions().get_all_user(user_id=user.id, override=override)
+		sr = BanTransactions().get_all_user(user_id=user.id, override=override)
 		if sr is None :  # If no bans are found, notify the user
 			logging.info(f"No bans found for user {user.id}.")
 			await send_response(interaction, f"<@{user.id}> is not banned in any servers the bot is in.")
@@ -105,7 +105,7 @@ class User(commands.GroupCog, name="user") :
 	@app_commands.checks.has_permissions(ban_members=True)
 	async def checkall(self, interaction: discord.Interaction) :
 		await send_response(interaction,
-		                    f"Checking all users ({len(interaction.guild.members)}), please wait. Looking through {BanDbTransactions().count()} unique bans")
+		                    f"Checking all users ({len(interaction.guild.members)}), please wait. Looking through {BanTransactions().count()} unique bans")
 		start = time.time()
 		count = 0
 		logging.info("Starting checkall")

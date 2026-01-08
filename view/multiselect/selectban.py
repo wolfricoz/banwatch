@@ -3,7 +3,7 @@ from discord_py_utilities.bans import ban_member
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.bans import Bans
-from database.transactions.BanTransactions import BanDbTransactions
+from database.transactions.BanTransactions import BanTransactions
 from view.base.secureview import SecureView
 from view.buttons.confirm import Confirm
 
@@ -14,7 +14,7 @@ class SelectBan(SecureView):
 
 	def __init__(self, user_id):
 		super().__init__(timeout=None)
-		self.bans = BanDbTransactions().get_all_user(user_id)
+		self.bans = BanTransactions().get_all_user(user_id)
 
 		options = [discord.SelectOption(
 				label=f"{ban.guild.name} - {ban.uid}"[0:99],
@@ -35,7 +35,7 @@ class SelectBan(SecureView):
 	async def select_ban(self, interaction: discord.Interaction):
 		"""This function is called when the user selects a ban from the select menu."""
 		ban_id = int(self.children[0].values[0])
-		ban = BanDbTransactions().get(ban_id)
+		ban = BanTransactions().get(ban_id)
 		result = await Confirm().send_confirm(interaction, message=f'Are you sure you want to cross-ban this user with the ban from {ban.guild.name}?')
 		if not result:
 			await send_response(interaction, "Cancelled", ephemeral=True)

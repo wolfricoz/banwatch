@@ -1,6 +1,6 @@
 import random
 
-from database.transactions.BanTransactions import BanDbTransactions
+from database.transactions.BanTransactions import BanTransactions
 from database.factories.serverfactory import ServerFactory
 
 
@@ -10,7 +10,7 @@ class BanFactory :
 		if not guild:
 			guild = ServerFactory().create()
 		if amount == 1:
-			return BanDbTransactions().add(random.randrange(10**17, 10**18), guild.id, "reason", "staff", approved=approved)
+			return BanTransactions().add(random.randrange(10 ** 17, 10 ** 18), guild.id, "reason", "staff", approved=approved)
 		while len(records) < amount:
-			records.append(BanDbTransactions().add(random.randrange(10**17, 10**18), guild.id, "reason", "staff", approved=approved))
+			records.append(BanTransactions().add(random.randrange(10 ** 17, 10 ** 18), guild.id, "reason", "staff", approved=approved))
 		return records

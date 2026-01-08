@@ -20,9 +20,9 @@ from classes.evidence import EvidenceController
 from classes.queue import queue
 from classes.tasks import pending_bans
 from database.FlaggedTermsTransactions import FlaggedTermsTransactions
-from database.transactions.StaffTransactions import StaffDbTransactions
-from database.transactions.BanTransactions import BanDbTransactions
-from database.transactions.ServerTransactions import ServerDbTransactions
+from database.transactions.StaffTransactions import StaffTransactions
+from database.transactions.BanTransactions import BanTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 from database.transactions.BanReasonTransactions import DatabaseTransactions
 from view.modals.inputmodal import send_modal
 from discord.utils import get
@@ -55,12 +55,12 @@ class dev(commands.GroupCog, name="dev") :
 			pass
 
 		stats = {
-			"servers_total" : ServerDbTransactions().count(),
-			"bans_total"    : BanDbTransactions().count(),
-			"verified_bans" : BanDbTransactions().count(result_type="verified"),
-			"deleted_bans"  : BanDbTransactions().count(result_type="deleted"),
-			"hidden_bans"   : BanDbTransactions().count(result_type="hidden"),
-			"available"     : BanDbTransactions().count(result_type="available"),
+			"servers_total" : ServerTransactions().count(),
+			"bans_total"    : BanTransactions().count(),
+			"verified_bans" : BanTransactions().count(result_type="verified"),
+			"deleted_bans"  : BanTransactions().count(result_type="deleted"),
+			"hidden_bans"   : BanTransactions().count(result_type="hidden"),
+			"available"     : BanTransactions().count(result_type="available"),
 			"queue-status"  : queue().status()
 		}
 		embed = discord.Embed(title="Banwatch's stats")
@@ -74,7 +74,7 @@ class dev(commands.GroupCog, name="dev") :
 		checklist = await Configer.get_checklist()
 		for word in checklist :
 			try:
-				FlaggedTermsTransactions.add(term=word, action='review')
+				FlaggedTermsTransactions().add(term=word, action='review')
 			except Exception as e:
 				logging.warning(f"could not load {word} into flagged terms: {e}")
 
@@ -164,21 +164,21 @@ class dev(commands.GroupCog, name="dev") :
 	async def flaggedterms(self, interaction: discord.Interaction, operation: Choice[str], term: str, action: Choice[str], regex: bool = False) :
 		match operation.value :
 			case "add" :
-				result = FlaggedTermsTransactions.add(term=term, action=action.value, regex=regex)
+				result = FlaggedTermsTransactions().add(term=term, action=action.value, regex=regex)
 				if not result :
 					return await send_response(interaction, f"Failed to add {term}")
 
 				return await send_response(interaction,f"Added {term} to the flagged terms list with action {action.value} and regex status {regex}", ephemeral=True)
 
 			case "remove" :
-				result = FlaggedTermsTransactions.delete(term)
+				result = FlaggedTermsTransactions().delete(term)
 				if not result :
 					return await send_response(interaction, f"Failed to remove {term}")
 				return await send_response(interaction,f"Removed {term} from the checklist", ephemeral=True)
 
 			case "list" :
 				await send_response(interaction, "Fetching flagged words", )
-				flaggedWords = FlaggedTermsTransactions.get_all()
+				flaggedWords = FlaggedTermsTransactions().get_all()
 				result = ""
 				for word in flaggedWords :
 					result += f"Term: {word.term} Action: {word.action} Regex: {word.regex}\n"
@@ -221,7 +221,7 @@ class dev(commands.GroupCog, name="dev") :
 		                                                        category=backupsection)
 		ban_history = ban_channel.history(limit=None, oldest_first=True)
 		evidence_history = evidence_channel.history(limit=None, oldest_first=True)
-		bans = BanDbTransactions().get_all(override=True)
+		bans = BanTransactions().get_all(override=True)
 		async for message in evidence_history :
 			if message.content.startswith("Evidence") is False :
 				continue
@@ -257,7 +257,7 @@ class dev(commands.GroupCog, name="dev") :
 			except :
 				logging.warning(f"Failed to extract id from {message.content}")
 				continue
-			ban = BanDbTransactions().get(id, override=True)
+			ban = BanTransactions().get(id, override=True)
 			if ban is None :
 				continue
 			try :
@@ -298,11 +298,11 @@ class dev(commands.GroupCog, name="dev") :
 					logging.warning(f"Failed to extract ban id from {embed.footer.text}")
 					continue
 				ban_id = int(match.group(1))
-				ban = BanDbTransactions().get(ban_id, override=True)
+				ban = BanTransactions().get(ban_id, override=True)
 				if ban is None :
 					logging.warning(f"Ban ID {ban_id} not found in database")
 					continue
-				BanDbTransactions().update(ban_id, message=message.id, created_at=message.created_at if not ban.created_at else ban.created_at)
+				BanTransactions().update(ban_id, message=message.id, created_at=message.created_at if not ban.created_at else ban.created_at)
 
 		except discord.NotFound :
 			pass
@@ -345,7 +345,7 @@ class dev(commands.GroupCog, name="dev") :
 	async def add_staff(self, interaction: discord.Interaction, user: discord.User, role: Choice[str]) :
 		if interaction.user.id != int(os.getenv("OWNER")) :
 			return await send_response(interaction, "You do not have permission to add staff members")
-		StaffDbTransactions().add(user.id, role.value)
+		StaffTransactions().add(user.id, role.value)
 		await send_response(interaction, f"Staff member {user.mention} successfully added as a `{role.name}`!")
 		AccessControl().reload()
 
@@ -359,7 +359,7 @@ class dev(commands.GroupCog, name="dev") :
 	@app_commands.command(name="remove_staff", description="[DEV] Remove a staff member from the team")
 	@AccessControl().check_access("dev")
 	async def remove_staff(self, interaction: discord.Interaction, user: discord.User) :
-		StaffDbTransactions().delete(user.id)
+		StaffTransactions().delete(user.id)
 		await send_response(interaction, f"Staff member {user.mention} successfully removed!")
 		AccessControl().reload()
 

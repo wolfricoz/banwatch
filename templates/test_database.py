@@ -22,8 +22,8 @@ class TestDatabaseOperations(unittest.TestCase) :
 	def test_add_ban(self) :
 		guild_id = self.guild_id
 		user_id = self.user_id
-		server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
-		ban_controller = database.transactions.BanTransactions.BanDbTransactions()
+		server_controller = database.controllers.ServerTransactions.ServerTransactions()
+		ban_controller = database.transactions.BanTransactions.BanTransactions()
 
 		# Ensure the guild exists in the servers table
 		server_controller.add(guild_id, "owner", "server_name", 100, "invite")
@@ -38,8 +38,8 @@ class TestDatabaseOperations(unittest.TestCase) :
 	def test_get_ban(self) :
 		guild_id = self.guild_id
 		user_id = self.user_id
-		server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
-		ban_controller = database.transactions.BanTransactions.BanDbTransactions()
+		server_controller = database.controllers.ServerTransactions.ServerTransactions()
+		ban_controller = database.transactions.BanTransactions.BanTransactions()
 		ban_id = guild_id + user_id
 		# Ensure the guild exists in the servers table
 		server_controller.add(guild_id, "owner", "server_name", 100, "invite")
@@ -54,8 +54,8 @@ class TestDatabaseOperations(unittest.TestCase) :
 	def test_delete_ban(self) :
 		guild_id = self.guild_id
 		user_id = self.user_id
-		server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
-		ban_controller = database.transactions.BanTransactions.BanDbTransactions()
+		server_controller = database.controllers.ServerTransactions.ServerTransactions()
+		ban_controller = database.transactions.BanTransactions.BanTransactions()
 
 		# Ensure the guild exists in the servers table
 		server_controller.add(guild_id, "owner", "server_name", 100, "invite")
@@ -69,8 +69,8 @@ class TestDatabaseOperations(unittest.TestCase) :
 	def test_get_guild_status_from_ban(self) :
 		guild_id = self.guild_id
 		user_id = self.user_id
-		server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
-		ban_controller = database.transactions.BanTransactions.BanDbTransactions()
+		server_controller = database.controllers.ServerTransactions.ServerTransactions()
+		ban_controller = database.transactions.BanTransactions.BanTransactions()
 		ban_id = guild_id + user_id
 		# Ensure the guild exists in the servers table
 		guild = server_controller.add(guild_id, "owner", "server_name", 100, "invite")
@@ -86,8 +86,8 @@ class TestDatabaseOperations(unittest.TestCase) :
 	def test_update_ban(self) :
 		guild_id = self.guild_id
 		user_id = self.user_id
-		server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
-		ban_controller = database.transactions.BanTransactions.BanDbTransactions()
+		server_controller = database.controllers.ServerTransactions.ServerTransactions()
+		ban_controller = database.transactions.BanTransactions.BanTransactions()
 
 		# Ensure the guild exists in the servers table
 		server_controller.add(guild_id, "owner", "server_name", 100, "invite")
@@ -107,9 +107,9 @@ class TestDatabaseOperations(unittest.TestCase) :
 	def test_add_proof(self) :
 		guild_id = self.guild_id
 		user_id = self.user_id
-		server_controller = database.controllers.ServerTransactions.ServerDbTransactions()
-		ban_controller = database.transactions.BanTransactions.BanDbTransactions()
-		proof_controller = database.transactions.ProofTransactions.ProofDbTransactions()
+		server_controller = database.controllers.ServerTransactions.ServerTransactions()
+		ban_controller = database.transactions.BanTransactions.BanTransactions()
+		proof_controller = database.transactions.ProofTransactions.ProofTransactions()
 
 		# Ensure the guild exists in the servers table
 		server_controller.add(guild_id, "owner", "server_name", 100, "invite")

@@ -22,7 +22,7 @@ from classes.configer import Configer
 from classes.queue import queue
 from classes.tasks import pending_bans
 from database.current import create_bot_database
-from database.transactions.ServerTransactions import ServerDbTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 from view.buttons.appealbuttons import AppealButtons
 from view.buttons.baninform import BanInform
 from view.buttons.communicationbuttons import CommunicationButtons
@@ -162,8 +162,8 @@ async def on_guild_join(guild: discord.Guild) -> None :
 	               f"\n\nWelcome to the Banwatch collective!")
 	# Updates ban list
 	logging.info(f"{guild} joined, refreshing ban list")
-	ServerDbTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), "")
-	ServerDbTransactions().update(guild.id, active=True)
+	ServerTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), "")
+	ServerTransactions().update(guild.id, active=True)
 	await Bans().check_guild_invites(bot, guild)
 	queue().add(Bans().update(bot), priority=0)
 	approval_channel = bot.get_guild(int(os.getenv("GUILD"))).get_channel(int(os.getenv("BANS")))
@@ -176,7 +176,7 @@ async def on_guild_remove(guild) :
 	await log.send(f"left {guild}({guild.id}) :(. Ban watch is now in {len(bot.guilds)}")
 	logging.info(f"{guild} left, refreshing ban list")
 	await Bans().update(bot)
-	ServerDbTransactions().update(guild.id, active=False)
+	ServerTransactions().update(guild.id, active=False)
 
 
 # cogloader

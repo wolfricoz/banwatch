@@ -4,14 +4,14 @@ import discord
 from discord import app_commands
 
 from database.current import Bans
-from database.transactions.BanTransactions import BanDbTransactions
+from database.transactions.BanTransactions import BanTransactions
 
 
 async def autocomplete_appeal(interaction: discord.Interaction, text: str) -> typing.List[
 	app_commands.Choice[str]] :
 	ban: Bans
 	data = []
-	bans = BanDbTransactions().get_all_user(interaction.user.id)
+	bans = BanTransactions().get_all_user(interaction.user.id)
 	for ban in bans :
 		if ban == "name" :
 			continue

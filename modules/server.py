@@ -5,7 +5,7 @@ from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
 from classes.configdata import ConfigData
-from database.transactions.BanTransactions import BanDbTransactions
+from database.transactions.BanTransactions import BanTransactions
 from view.buttons.communicationbuttons import CommunicationButtons
 from view.modals.inputmodal import send_modal
 
@@ -25,7 +25,7 @@ class ServerMessenger(commands.GroupCog, name="server") :
 			await send_response(interaction, f"[Safeguard]You must have at least 250 members to use this command", ephemeral=True)
 			return
 
-		ban = BanDbTransactions().get(ban_id, override=staff)
+		ban = BanTransactions().get(ban_id, override=staff)
 		if ban is None:
 			await send_response(interaction, f"Failed to find {ban_id}, does it exist?", ephemeral=True)
 			return

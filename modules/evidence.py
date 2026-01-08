@@ -6,8 +6,8 @@ from discord_py_utilities.messages import await_message, send_response
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from data.variables.messages import evidence_message_template
-from database.transactions.ProofTransactions import ProofDbTransactions
-from database.transactions.BanTransactions import BanDbTransactions
+from database.transactions.ProofTransactions import ProofTransactions
+from database.transactions.BanTransactions import BanTransactions
 from view.pagination.pagination import Pagination
 
 
@@ -28,7 +28,7 @@ class Evidence(commands.GroupCog, name="evidence") :
 			except discord.NotFound :
 				await send_response(interaction, f"{user.mention} not found in this servers bans")
 				return
-		ban = BanDbTransactions().get(ban_id, override=True)
+		ban = BanTransactions().get(ban_id, override=True)
 		if ban is None :
 			queue().add(send_response(interaction,
 			                          f"Ban ID {ban_id} not found, please check if the user is banned. If this error persists please open a ticket in the support server.", ephemeral=True),
@@ -53,11 +53,11 @@ class Evidence(commands.GroupCog, name="evidence") :
 			await send_response(interaction, "Please fill in the user or ban_id field to get the user.")
 
 		if ban_id :
-			entries = ProofDbTransactions().get(ban_id=ban_id)
+			entries = ProofTransactions().get(ban_id=ban_id)
 			await EvidenceController().send_proof(interaction, entries, ban_id)
 			return
 		# user goes here
-		entries = ProofDbTransactions().get(user_id=user.id)
+		entries = ProofTransactions().get(user_id=user.id)
 		await EvidenceController().send_proof(interaction, entries, user.id)
 
 	# Add a way to manage bans, both for staff of a server as well as the banwatch staff
@@ -65,12 +65,12 @@ class Evidence(commands.GroupCog, name="evidence") :
 	@app_commands.checks.has_permissions(moderate_members=True)
 	async def manage(self, interaction: discord.Interaction, user: discord.User = None, ban_id: str = None) :
 		if ban_id :
-			entries = ProofDbTransactions().get(ban_id=ban_id)
+			entries = ProofTransactions().get(ban_id=ban_id)
 			view = Pagination(entries)
 			view.interaction = interaction
 			return await view.send_view()
 		# user goes here
-		entries = ProofDbTransactions().get(user_id=user.id)
+		entries = ProofTransactions().get(user_id=user.id)
 		view = Pagination(entries)
 		view.interaction = interaction
 		await view.send_view()

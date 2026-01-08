@@ -42,7 +42,7 @@ class BanReasonsTransactions(DatabaseTransactions) :
 	def add(self, server_id: int, name: str, description: str, reason: str, active: bool = True) -> BanReasons | bool :
 		with self.createsession() as session :
 
-			if BanReasonsTransactions.exists(reason) :
+			if BanReasonsTransactions().exists(reason) :
 				logging.warning(f"Attempt to add existing ban reason: {reason}")
 				return False
 			entry = BanReasons(server_id=server_id, name=name, description=description, reason=reason, active=active)
@@ -55,7 +55,7 @@ class BanReasonsTransactions(DatabaseTransactions) :
 		with self.createsession() as session :
 
 			if isinstance(reason_id, int) :
-				entry = BanReasonsTransactions.get(reason_id)
+				entry = BanReasonsTransactions().get(reason_id)
 			else :
 				entry = reason_id
 			if not entry :
@@ -77,7 +77,7 @@ class BanReasonsTransactions(DatabaseTransactions) :
 		with self.createsession() as session :
 
 			if isinstance(reason_id, int) :
-				entry = BanReasonsTransactions.get(reason_id)
+				entry = BanReasonsTransactions().get(reason_id)
 			else :
 				entry = reason_id
 			if not entry :
@@ -90,7 +90,7 @@ class BanReasonsTransactions(DatabaseTransactions) :
 		with self.createsession() as session :
 
 			if isinstance(reason_id, int) :
-				entry = BanReasonsTransactions.get(reason_id)
+				entry = BanReasonsTransactions().get(reason_id)
 			else :
 				entry = reason_id
 			if not entry :

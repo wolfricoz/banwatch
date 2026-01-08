@@ -10,7 +10,7 @@ from classes.access import AccessControl
 from classes.autocorrect import autocomplete_appeal
 from classes.configdata import ConfigData
 from database.AppealsTransactions import AppealsDbTransactions
-from database.transactions.BanTransactions import BanDbTransactions
+from database.transactions.BanTransactions import BanTransactions
 from view.buttons.appealbuttons import AppealButtons
 from view.modals import inputmodal
 
@@ -62,7 +62,7 @@ class Appeals(commands.GroupCog, name="appeal") :
 		                                     "Thank you for the report, we will investigate this and get back to you.")
 		ban_id = interaction.user.id + int(guild)
 		guild = self.bot.get_guild(int(guild))
-		ban = BanDbTransactions().get(ban_id, override=True)
+		ban = BanTransactions().get(ban_id, override=True)
 		staff_channel = self.bot.get_channel(int(os.getenv("BANS")))
 		embed = discord.Embed(title=f"{interaction.user.name} wants to report {ban_id}", description=reason)
 		embed.add_field(name=f"{interaction.user.name}({interaction.user.id}) banned in {guild.name}({guild.id})",

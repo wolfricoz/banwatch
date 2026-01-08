@@ -6,12 +6,12 @@ from discord_py_utilities.messages import send_message
 from classes.queue import queue
 
 from database.current import Bans
-from database.transactions.BanTransactions import BanDbTransactions
+from database.transactions.BanTransactions import BanTransactions
 from view.buttons.banapproval import BanApproval
 
 
 async def pending_bans(bot, revoked=False) :
-	bans = BanDbTransactions().get_all_pending()
+	bans = BanTransactions().get_all_pending()
 	channel = bot.get_channel(bot.BANCHANNEL)
 	ban: Bans
 	found_bans = []

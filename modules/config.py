@@ -6,7 +6,7 @@ from discord_py_utilities.messages import send_message, send_response
 from discord_py_utilities.permissions import check_missing_channel_permissions, get_bot_permissions
 
 from classes.configdata import ConfigData
-from database.transactions.ServerTransactions import ServerDbTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 
 
 class config(commands.GroupCog, name="config") :
@@ -37,7 +37,7 @@ class config(commands.GroupCog, name="config") :
 	@app_commands.checks.has_permissions(manage_guild=True)
 	@app_commands.guild_only()
 	async def visibility(self, interaction: discord.Interaction, hide: bool) :
-		ServerDbTransactions().update(interaction.guild.id, hidden=hide)
+		ServerTransactions().update(interaction.guild.id, hidden=hide)
 		await send_response(interaction,
 		                    f"Your server's visibility has ben set to: {'hidden' if hide is True else 'Visible'}\n\n"
 		                    f"Your bans may temporarily still be available in the checkall cache, which is reloaded every 10 minutes")

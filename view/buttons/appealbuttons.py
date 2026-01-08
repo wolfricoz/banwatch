@@ -6,7 +6,7 @@ from discord_py_utilities.messages import send_message, send_response
 from classes.configdata import ConfigData
 from database.AppealMsgTransactions import AppealMsgTransactions
 from database.AppealsTransactions import AppealsDbTransactions
-from database.transactions.BanTransactions import BanDbTransactions
+from database.transactions.BanTransactions import BanTransactions
 from view.base.secureview import SecureView
 from view.modals.inputmodal import send_modal
 from view.multiselect.statusselect import SelectStatus
@@ -69,11 +69,11 @@ class AppealButtons(SecureView) :
 			await send_response(interaction, "You don't have permission to do that!", ephemeral=True)
 			return
 		await self.load_data(interaction)
-		ban_entry = BanDbTransactions().get(self.ban_id, override=True)
+		ban_entry = BanTransactions().get(self.ban_id, override=True)
 		if ban_entry is None :
 			await send_response(interaction, "Ban not found", ephemeral=True)
 			return
-		BanDbTransactions().update(self.ban_id, approved=True, hidden=True)
+		BanTransactions().update(self.ban_id, approved=True, hidden=True)
 		await send_response(interaction,
 			f"`{self.ban_id}` was hidden by {interaction.user.mention}!")
 		await self.disable_buttons(interaction)
@@ -113,7 +113,7 @@ class AppealButtons(SecureView) :
 		self.bot = interaction.client
 		self.dmChannel = isinstance(interaction.channel, discord.DMChannel)
 		self.ban_id = int(interaction.message.embeds[0].footer.text)
-		ban = BanDbTransactions().get(self.ban_id, override=True)
+		ban = BanTransactions().get(self.ban_id, override=True)
 		self.ban = ban
 		self.guild = self.bot.get_guild(ban.gid)
 		self.user = self.bot.get_user(ban.uid)

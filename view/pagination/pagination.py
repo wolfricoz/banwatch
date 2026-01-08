@@ -4,7 +4,7 @@ from discord_py_utilities.messages import send_response
 
 from classes.access import AccessControl
 from database.current import Proof
-from database.transactions.ProofTransactions import ProofDbTransactions
+from database.transactions.ProofTransactions import ProofTransactions
 from view.base.secureview import SecureView
 
 
@@ -67,7 +67,7 @@ class Pagination(SecureView):
             await interaction.followup.send("Evidence may only be removed by the original server or banwatch staff.", ephemeral=True)
             return
 
-        result = ProofDbTransactions().delete(self.data[self.current_page].id)
+        result = ProofTransactions().delete(self.data[self.current_page].id)
         if not result:
             await interaction.followup.send("Failed to delete", ephemeral=True)
             return

@@ -8,7 +8,7 @@ from classes.configdata import ConfigData
 from classes.dashboard.Servers import Servers
 from classes.queue import queue
 from classes.tasks import pending_bans
-from database.transactions.ServerTransactions import ServerDbTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 
 
 class Tasks(commands.Cog) :
@@ -55,16 +55,16 @@ class Tasks(commands.Cog) :
 	@tasks.loop(hours=12)
 	async def check_active_servers(self) :
 		logging.info(f"Checking active servers")
-		guild_ids = ServerDbTransactions().get_all()
+		guild_ids = ServerTransactions().get_all()
 		for guild in self.bot.guilds :
 			if guild.id in guild_ids :
 				guild_ids.remove(guild.id)
-				ServerDbTransactions().update(guild.id, active=True)
+				ServerTransactions().update(guild.id, active=True)
 				continue
-			ServerDbTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), "")
+			ServerTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), "")
 		for gid in guild_ids :
-			ServerDbTransactions().update(gid, active=False)
-		guilds = ServerDbTransactions().get_all(id_only=False)
+			ServerTransactions().update(gid, active=False)
+		guilds = ServerTransactions().get_all(id_only=False)
 		servers = Servers()
 		servers.skip = False
 		for guild in guilds :
