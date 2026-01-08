@@ -9,9 +9,10 @@ from sqlalchemy.orm import joinedload
 from classes.singleton import Singleton
 from database.current import Bans, Proof, Servers
 from database.transactions.DatabaseController import DatabaseTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 
 
-class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
+class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 	local_cache = {}
 
 	def populate_cache(self) :
@@ -43,6 +44,8 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 		with self.createsession() as session :
 
 			logging.info(f"Adding ban {uid} in {gid} with reason {reason} by {staff}")
+			if ServerTransactions().exists(gid) is False :
+				return False
 			if self.exists(uid + gid, remove_deleted=remove_deleted) :
 				return False
 			ban = Bans(ban_id=uid + gid, uid=uid, gid=gid, reason=reason, approved=approved, verified=verified, hidden=hidden,
@@ -51,9 +54,10 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 			self.commit(session)
 			return ban
 
-	def get(self, ban_id: int = None, override: bool = False) -> Type[Bans] | None :
+	def get(self, ban_id: int = None, current_session = None, override: bool = False) -> Type[Bans] | None :
 		with self.createsession() as session :
-
+			if current_session :
+				session = current_session
 			if override :
 				return session.scalar(Select(Bans).options(joinedload(Bans.guild)).where(Bans.ban_id == ban_id))
 			return session.query(Bans) \
@@ -128,7 +132,7 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 		with self.createsession() as session :
 
 			logging.info(f"Ban soft removed {ban_id}.")
-			ban = self.get(ban_id)
+			ban = self.get(ban_id, session)
 			if not ban or ban.deleted_at :
 				return False
 			ban.deleted_at = datetime.now()
@@ -151,14 +155,14 @@ class BanDbTransactions(DatabaseTransactions, metaclass=Singleton) :
 	           approved: bool = None,
 	           verified: bool = None,
 	           hidden: bool = None,
-	           created_at: datetime.date = None,
+	           created_at: datetime = None,
 	           deleted_at: bool = None,
 	           message: int = None
 	           ) -> bool | Bans | type[Bans] :
 		with self.createsession() as session :
 
 			if isinstance(ban, int) :
-				ban = self.get(ban, override=True)
+				ban = self.get(ban, session, override=True)
 			if not ban :
 				logging.error(f"Ban {ban} not found.")
 				return False
