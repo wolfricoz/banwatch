@@ -5,10 +5,10 @@ from sqlalchemy import Select
 from sqlalchemy.util import to_list
 
 from database.current import Bans, Proof
-from database.transactions.BanReasonTransactions import DatabaseTransactions
+from database.transactions.DatabaseController import DatabaseTransactions
 
 
-class ProofDbTransactions(DatabaseTransactions) :
+class ProofTransactions(DatabaseTransactions) :
 
 
 	def exists(self, ban_id: int) :
