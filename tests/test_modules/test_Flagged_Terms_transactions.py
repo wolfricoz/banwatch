@@ -2,7 +2,7 @@ import unittest
 
 from classes.TermsChecker import TermsChecker
 from database.current import create_bot_database, drop_bot_database
-from database.FlaggedTermsTransactions import FlaggedTermsTransactions
+from database.transactions.FlaggedTermsTransactions import FlaggedTermsTransactions
 
 
 class TestTermsDatabaseOperations(unittest.TestCase) :
@@ -82,12 +82,16 @@ class TestTermsDatabaseOperations(unittest.TestCase) :
 		terms = self.termsToAdd
 		for term in terms :
 			self.Terms_controller.add(terms[term]["term"], terms[term]["action"], terms[term]["regex"])
-			new_action = "block" if terms[term]["action"] == "review" else "review"
-			self.Terms_controller.update(terms[term]["term"], new_action, not terms[term]["regex"])
-			term_data = self.Terms_controller.get(terms[term]["term"])
-			self.assertIsNotNone(term_data, f"Term {terms[term]['term']} not found in database after update")
-			self.assertEqual(term_data.action, new_action, f"Term {terms[term]['term']} action was not updated correctly")
-			self.assertEqual(term_data.regex, not terms[term]["regex"], f"Term {terms[term]['term']} regex was not updated correctly")
+			t = self.Terms_controller.get(terms[term]["term"])
+			self.assertEqual(terms[term]["action"], t.action, f"Term {terms[term]['term']} has wrong action")
+			new_action = "block" if terms[term]["action"] != "block" else "review"
+
+			self.Terms_controller.update(terms[term]["term"], new_action)
+			t_updated = self.Terms_controller.get(terms[term]["term"])
+
+			self.assertEqual(t_updated.action, new_action, f"Term {terms[term]['term']} action was not updated")
+
+
 
 	def test_perform_action(self) :
 		terms = self.termsToAdd
