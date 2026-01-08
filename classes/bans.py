@@ -1,4 +1,5 @@
 """This class generates the ban list, with functions to update it, and to check for similar names"""
+import asyncio
 import logging
 import os
 import re
@@ -220,6 +221,9 @@ class Bans(metaclass=Singleton) :
 				continue
 			await self.add_ban(banentry.user.id, guild.id, banentry.reason, guild.owner.name, approved=True)
 			count += 1
+			if count % 25 == 0 :
+				logging.info(f"Found {count} new bans so far in {guild.name}({guild.id})")
+				await asyncio.sleep(0)
 		queue().add(server.remove_missing_ids(), priority=0)
 		logging.info(f"Found {count} new bans in {guild.name}({guild.id})")
 
