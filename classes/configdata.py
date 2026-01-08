@@ -7,8 +7,8 @@ import discord
 from discord_py_utilities.messages import send_message
 
 from classes.singleton import Singleton
-from database.transactions.ConfigTransactions import ConfigDbTransactions
-from database.transactions.ServerTransactions import ServerDbTransactions
+from database.transactions.ConfigTransactions import ConfigTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 
 
 class KeyNotFound(Exception) :
@@ -20,7 +20,7 @@ class KeyNotFound(Exception) :
 class ConfigData(metaclass=Singleton) :
 	"""This class generates the config file, with functions to change and get values from it"""
 
-	configcontroller = ConfigDbTransactions
+	configcontroller = ConfigTransactions()
 	data = {}
 
 	async def migrate(self) :
@@ -33,9 +33,9 @@ class ConfigData(metaclass=Singleton) :
 					serverid = file[:-5]
 					if serverid.isnumeric() is False :
 						continue
-					guild = ServerDbTransactions().get(int(serverid))
+					guild = ServerTransactions().get(int(serverid))
 					if guild is None :
-						ServerDbTransactions().add(int(serverid), "None", "None", 0, "None", False)
+						ServerTransactions().add(int(serverid), "None", "None", 0, "None", False)
 						continue
 					logging.info(f"Migrating config for {serverid}")
 					with open(f"configs/{file}", "r") as f :
@@ -53,7 +53,7 @@ class ConfigData(metaclass=Singleton) :
 	def reload(self) :
 		"""Reloads the config data from the database"""
 		self.data = {}
-		for guild in ServerDbTransactions().get_all() :
+		for guild in ServerTransactions().get_all() :
 			try:
 				self.load_guild(guild)
 			except Exception as e :
@@ -66,15 +66,10 @@ class ConfigData(metaclass=Singleton) :
 
 	def load_guild(self, serverid) :
 		"""Loads the config for a guild"""
-		old_config = self.configcontroller.server_config_get(serverid)
+		config = self.configcontroller.server_config_get(serverid)
 		self.data[str(serverid)] = {}
-		bool_keys = [
-			"allow_appeals",
-		]
-		for item in old_config :
-			if item.key.lower() in bool_keys :
-				self.data[str(serverid)][item.key.upper()] = item.value.lower() == "true"
-				continue
+
+		for item in config :
 			self.data[str(serverid)][item.key.upper()] = item.value
 
 	def add_key(self, serverid, key, value: str | bool | int, overwrite=False) :
@@ -95,13 +90,15 @@ class ConfigData(metaclass=Singleton) :
 
 	def get_key(self, serverid, key, default=None) :
 		"""Gets a key from the config, throws KeyNotFound if not found"""
-
-		value: str = self.data.get(str(serverid), {}).get(key.upper(), default)
+		guild = self.get_guild(serverid)
+		value = guild.get(key.upper(), default)
 		if not value:
 			return default
 
 		if isinstance(value, bool) :
 			return value
+		if value.isnumeric() and value not in ["0", "1"] :
+			return int(value)
 		if isinstance(value, str) :
 			if value.lower() in  ["true", "1", "ENABLED"] :
 				return True
@@ -109,26 +106,14 @@ class ConfigData(metaclass=Singleton) :
 				return False
 
 			return value
-		if value.isnumeric() :
-			return int(value)
 
-
-		raise KeyNotFound(key)
+		return default
 
 
 
 	def get_key_or_none(self, serverid, key) :
 		"""Gets a key from the config, returns None if not found"""
-		value: str = self.data.get(str(serverid), {}).get(key.upper(), None)
-		if value is None :
-			return None
-		if isinstance(value, bool) :
-			return value
-		if isinstance(str, bool) :
-			return value
-		if value.isnumeric() :
-			return int(value)
-		return value
+		return self.get_key(serverid, key)
 
 	async def get_channel(self, guild: discord.Guild, channel_type: str = "modchannel") -> discord.TextChannel | None :
 		"""Gets the channel from the config"""
@@ -143,3 +128,9 @@ class ConfigData(metaclass=Singleton) :
 			                   f"Cannot find `{channel_type}` channel with id {channel_id} in {guild.name}, please set it up using the /config command")
 			return None
 		return channel
+
+	def get_guild(self, guild_id: int) -> dict[str, str | bool | int] :
+		if not guild_id in self.data:
+			self.load_guild(guild_id)
+		return self.data.get(str(guild_id), {})
+
