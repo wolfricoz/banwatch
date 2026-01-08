@@ -1,18 +1,19 @@
 import unittest
 
 from database.current import AppealMsgs, create_bot_database, drop_bot_database
-from database.AppealMsgTransactions import AppealMsgTransactions
-from database.AppealsTransactions import AppealsDbTransactions
+
 from database.factories.ban import BanFactory
+from database.transactions.AppealMsgTransactions import AppealMsgTransactions
+from database.transactions.AppealsTransactions import AppealsDbTransactions
 
 
 class TestAppealMessageDatabaseTransactions(unittest.TestCase) :
 	guild_id = 395614061393477632
 	user_id = 188647277181665280
-	appealMsgController = AppealMsgTransactions()
 
 	def setUp(self) :
 		create_bot_database()
+		self.appealMsgController = AppealMsgTransactions()
 
 	def tearDown(self) :
 		drop_bot_database()

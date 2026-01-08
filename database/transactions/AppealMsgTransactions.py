@@ -21,3 +21,4 @@ class AppealMsgTransactions(DatabaseTransactions) :
 		with self.createsession() as session :
 
 			return session.query(AppealMsgs).where(AppealMsgs.appeal_id == appeal.id).order_by(AppealMsgs.created).all()
+
