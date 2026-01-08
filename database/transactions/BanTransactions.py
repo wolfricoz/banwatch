@@ -5,6 +5,7 @@ from typing import Type
 
 from sqlalchemy import Select, and_, text
 from sqlalchemy.orm import joinedload
+from sqlalchemy.orm.strategies import JoinedLoader
 
 from classes.singleton import Singleton
 from database.current import Bans, Proof, Servers
@@ -94,9 +95,9 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 		with self.createsession() as session :
 
 			if override :
-				return session.scalars(Select(Bans).join(Servers)).all()
+				return session.scalars(Select(Bans).options(joinedload(Bans.guild))).all()
 			return session.scalars(
-				Select(Bans).join(Servers).where(
+				Select(Bans).options(joinedload(Bans.guild)).where(
 					and_(Bans.deleted_at.is_(None), Bans.hidden.is_(False), Bans.approved.is_(True), Servers.deleted_at.is_(None),
 					     Servers.hidden.is_(False)))).all()
 

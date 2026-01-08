@@ -4,8 +4,9 @@ import discord
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.configdata import ConfigData
-from database.AppealMsgTransactions import AppealMsgTransactions
-from database.AppealsTransactions import AppealsDbTransactions
+from database.transactions.AppealMsgTransactions import AppealMsgTransactions
+from database.transactions.AppealsTransactions import AppealsDbTransactions
+
 from database.transactions.BanTransactions import BanTransactions
 from view.base.secureview import SecureView
 from view.modals.inputmodal import send_modal

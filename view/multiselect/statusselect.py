@@ -3,7 +3,7 @@ import logging
 import discord.ui
 from discord_py_utilities.messages import send_response
 
-from database.AppealsTransactions import AppealsDbTransactions
+from database.transactions.AppealsTransactions import AppealsDbTransactions
 from database.transactions.BanTransactions import BanTransactions
 from view.base.secureview import SecureView
 

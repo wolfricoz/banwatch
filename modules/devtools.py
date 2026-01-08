@@ -19,7 +19,8 @@ from classes.configer import Configer
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from classes.tasks import pending_bans
-from database.FlaggedTermsTransactions import FlaggedTermsTransactions
+from database.transactions.FlaggedTermsTransactions import FlaggedTermsTransactions
+
 from database.transactions.StaffTransactions import StaffTransactions
 from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ServerTransactions import ServerTransactions

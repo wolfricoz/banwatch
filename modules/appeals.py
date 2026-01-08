@@ -9,7 +9,7 @@ from discord_py_utilities.messages import send_message, send_response
 from classes.access import AccessControl
 from classes.autocorrect import autocomplete_appeal
 from classes.configdata import ConfigData
-from database.AppealsTransactions import AppealsDbTransactions
+from database.transactions.AppealsTransactions import AppealsDbTransactions
 from database.transactions.BanTransactions import BanTransactions
 from view.buttons.appealbuttons import AppealButtons
 from view.modals import inputmodal
