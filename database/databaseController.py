@@ -37,7 +37,7 @@ class BanReasonsTransactions(DatabaseTransactions) :
 	@staticmethod
 	@abstractmethod
 	def add(server_id: int, name: str, description: str, reason: str, active: bool = True) -> BanReasons | bool :
-		if BanReasonsTransactions.exists(reason) :
+		if BanReasonsTransactions().exists(reason) :
 			logging.warning(f"Attempt to add existing ban reason: {reason}")
 			return False
 		entry = BanReasons(server_id=server_id, name=name, description=description, reason=reason, active=active)
@@ -50,7 +50,7 @@ class BanReasonsTransactions(DatabaseTransactions) :
 	def update(reason_id: int | BanReasons, name: str = None, description: str = None, reason: str = None,
 	           active: bool = None) -> BanReasons | bool :
 		if isinstance(reason_id, int) :
-			entry = BanReasonsTransactions.get(reason_id)
+			entry = BanReasonsTransactions().get(reason_id)
 		else :
 			entry = reason_id
 		if not entry :
@@ -71,7 +71,7 @@ class BanReasonsTransactions(DatabaseTransactions) :
 	@abstractmethod
 	def delete(reason_id: int | BanReasons) -> bool :
 		if isinstance(reason_id, int) :
-			entry = BanReasonsTransactions.get(reason_id)
+			entry = BanReasonsTransactions().get(reason_id)
 		else :
 			entry = reason_id
 		if not entry :
@@ -84,7 +84,7 @@ class BanReasonsTransactions(DatabaseTransactions) :
 	@abstractmethod
 	def toggle_active(reason_id: int | BanReasons, value: bool) -> bool :
 		if isinstance(reason_id, int) :
-			entry = BanReasonsTransactions.get(reason_id)
+			entry = BanReasonsTransactions().get(reason_id)
 		else :
 			entry = reason_id
 		if not entry :

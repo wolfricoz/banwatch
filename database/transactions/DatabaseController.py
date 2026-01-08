@@ -5,12 +5,12 @@ from sqlalchemy import text
 from sqlalchemy.exc import PendingRollbackError, InvalidRequestError, SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 
-from classes import singleton
+from classes.singleton import Singleton
 from database.current import engine
 from database.exceptions.CommitError import CommitError
 
 
-class DatabaseTransactions(metaclass=singleton) :
+class DatabaseTransactions(metaclass=Singleton) :
 	sessionmanager = sessionmaker(bind=engine)
 
 	def reload_guild(self, guild_id: int) :
@@ -18,6 +18,7 @@ class DatabaseTransactions(metaclass=singleton) :
 		ConfigData().load_guild(guild_id)
 
 	def createsession(self) :
+
 		return self.sessionmanager(expire_on_commit=False)
 
 	def commit(self, session) :

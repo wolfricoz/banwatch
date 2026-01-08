@@ -7,11 +7,11 @@ from typing import Type
 from sqlalchemy import ColumnElement, Select, and_, exists, text
 
 from database import current as db
-from database.transactions.BanReasonTransactions import DatabaseTransactions
+from database.transactions.DatabaseController import DatabaseTransactions
 from database.current import Bans, Servers
 
 
-class ServerDbTransactions(DatabaseTransactions) :
+class ServerTransactions(DatabaseTransactions) :
 
 
 	def exists(self, guild_id: int) -> object :
@@ -80,7 +80,9 @@ class ServerDbTransactions(DatabaseTransactions) :
 			logging.info(updates)
 			return guild
 
-	def get(self, guild_id: int) -> Type[Servers] | None :
+	def get(self, guild_id: int, current_session = None) -> Type[Servers] | None :
+		if current_session :
+			return current_session.scalar(Select(Servers).where(Servers.id == guild_id))
 		with self.createsession() as session :
 
 			return session.scalar(Select(Servers).where(Servers.id == guild_id))
@@ -89,7 +91,7 @@ class ServerDbTransactions(DatabaseTransactions) :
 		with self.createsession() as session :
 
 			logging.info(f"server soft removed {guildid}.")
-			server = self.get(guildid)
+			server = self.get(guildid, session)
 			if not server or server.deleted_at :
 				return False
 			server.deleted_at = datetime.now()
@@ -101,9 +103,11 @@ class ServerDbTransactions(DatabaseTransactions) :
 
 			if isinstance(server, int) :
 				server = self.get(server)
-			logging.info(f"Permanently removing {server.name}")
 			if not server :
+				logging.info(f"{self} not found for permanent deletion.")
 				return False
+			logging.info(f"Permanently removing {server.name}")
+
 			session.delete(server)
 			self.commit(session)
 			return True
