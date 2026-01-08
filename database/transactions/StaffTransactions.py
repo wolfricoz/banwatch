@@ -2,10 +2,10 @@ from sqlalchemy import Select
 from sqlalchemy.util import to_list
 
 from database.current import Staff
-from database.transactions.BanReasonTransactions import DatabaseTransactions
+from database.transactions.DatabaseController import DatabaseTransactions
 
 
-class StaffDbTransactions(DatabaseTransactions) :
+class StaffTransactions(DatabaseTransactions) :
 
 	def get(self, uid: int) -> Staff | None :
 		with self.createsession() as session :
