@@ -33,6 +33,12 @@ class Servers:
 		}
 
 		discord_guild = bot.get_guild(guild.id)
+		if not discord_guild:
+			discord_guild = await bot.fetch_guild(guild.id)
+		if not discord_guild:
+			logging.info(f"Server {guild.id} could not be updated: Failed to fetch guild")
+			return
+
 		data = {
 			"id": guild.id,
 			"banwatch": guild.active,
