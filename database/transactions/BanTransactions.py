@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import logging
 from datetime import datetime
@@ -35,6 +36,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			count+=1
 			if count % 1000 == 0 :
 				logging.info(f"Cached {count} bans...")
+				await asyncio.sleep(0)
 		logging.info(f"Completed caching {count} bans.")
 
 
@@ -100,11 +102,10 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 
 	def get_all(self, override=False) :
 		with self.createsession() as session :
-
 			if override :
 				return session.scalars(Select(Bans).options(joinedload(Bans.guild))).all()
 			return session.scalars(
-				Select(Bans).options(joinedload(Bans.guild)).where(
+				Select(Bans).join(Servers).options(joinedload(Bans.guild)).where(
 					and_(Bans.deleted_at.is_(None), Bans.hidden.is_(False), Bans.approved.is_(True), Servers.deleted_at.is_(None),
 					     Servers.hidden.is_(False)))).all()
 
