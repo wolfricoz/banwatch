@@ -1,3 +1,5 @@
+import logging
+
 import discord
 from discord import app_commands
 from discord.app_commands import Choice
@@ -49,7 +51,8 @@ class config(commands.GroupCog, name="config") :
 		await send_response(interaction, "⌛ Checking permissions...", ephemeral=True)
 		if interaction.guild is None :
 			return send_response(interaction, "This command can only be used in a guild.")
-		modchannel = self.bot.get_channel(ConfigData().get_key(interaction.guild.id, "modchannel"))
+		modchannel = await ConfigData().get_channel(interaction.guild)
+		logging.info(modchannel)
 		if modchannel is None :
 			return await send_response(interaction, "❌ Mod channel not set. Please set it using `/config change`")
 		missing = check_missing_channel_permissions(modchannel,
