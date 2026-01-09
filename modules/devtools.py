@@ -67,7 +67,7 @@ class dev(commands.GroupCog, name="dev") :
 		embed = discord.Embed(title="Banwatch's stats")
 		for i, v in stats.items() :
 			embed.add_field(name=i, value=v, inline=False)
-		await send_message(interaction.channel, embed=embed)
+		await send_response(interaction, "Here are the stats!", embed=embed, ephemeral=True)
 
 	@app_commands.command(name="loadflaggedterms", description="[DEV] Loads old watchlist into flagged terms", )
 	@AccessControl().check_access("dev")

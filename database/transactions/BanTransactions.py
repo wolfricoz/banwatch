@@ -119,13 +119,13 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 
 			match result_type.lower() :
 				case "available" :
-					return session.execute(text("SELECT count(*) FROM bans where hidden=0 and deleted_at is NULL")).scalar()
+					return session.execute(text("SELECT count(*) FROM bans WHERE hidden = false AND deleted_at IS NULL")).scalar()
 				case "verified" :
-					return session.execute(text("SELECT count(*) FROM bans where verified=1")).scalar()
+					return session.execute(text("SELECT count(*) FROM bans WHERE verified = true")).scalar()
 				case "hidden" :
-					return session.execute(text("SELECT count(*) FROM bans where hidden=1")).scalar()
+					return session.execute(text("SELECT count(*) FROM bans WHERE hidden = true")).scalar()
 				case "deleted" :
-					return session.execute(text("SELECT count(*) FROM bans where deleted_at is not NULL")).scalar()
+					return session.execute(text("SELECT count(*) FROM bans WHERE deleted_at IS NOT NULL")).scalar()
 				case _ :
 					return session.execute(text("SELECT count(*) FROM bans")).scalar()
 
