@@ -16,10 +16,12 @@ from database.transactions.ServerTransactions import ServerTransactions
 class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 	local_cache = {}
 
-	def populate_cache(self) :
+	async def populate_cache(self) :
 		ban: Bans
 		bans = self.get_all()
 		self.local_cache = {}
+		count = 0
+
 		for ban in bans :
 			data = {
 				"guild"    : ban.guild.name,
@@ -30,6 +32,11 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			if str(ban.uid) not in self.local_cache :
 				self.local_cache[str(ban.uid)] = {}
 			self.local_cache[str(ban.uid)][str(ban.ban_id)] = data
+			count+=1
+			if count % 1000 == 0 :
+				logging.info(f"Cached {count} bans...")
+		logging.info(f"Completed caching {count} bans.")
+
 
 	def exists(self, ban_id: int, remove_deleted: bool = False) -> bool :
 		with self.createsession() as session :

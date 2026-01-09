@@ -23,14 +23,14 @@ class Refresher(commands.Cog):
         logging.info(f"[auto refresh]refreshing banlist")
         bot = self.bot
         await Bans().update(bot)
-        BanTransactions().populate_cache()
+        await BanTransactions().populate_cache()
         logging.info(f"[auto refresh]Bans Updated")
 
     @tasks.loop(minutes=10)
     async def ban_update_task(self) :
         await self.bot.wait_until_ready()
         logging.info("Rebuilding cache")
-        BanTransactions().populate_cache()
+        await BanTransactions().populate_cache()
         logging.info("Finished building cache")
 
 
