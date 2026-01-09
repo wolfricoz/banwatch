@@ -69,9 +69,9 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			if current_session :
 				session = current_session
 			if override :
-				return session.scalar(Select(Bans).options(joinedload(Bans.guild)).where(Bans.ban_id == ban_id))
+				return session.scalar(Select(Bans).options(joinedload(Bans.guild),  joinedload(Bans.proof)).where(Bans.ban_id == ban_id))
 			return session.query(Bans) \
-				.options(joinedload(Bans.guild)) \
+				.options(joinedload(Bans.guild), joinedload(Bans.proof)) \
 				.join(Proof, Proof.ban_id == Bans.ban_id, isouter=True) \
 				.join(Servers, Servers.id == Bans.gid) \
 				.filter(
