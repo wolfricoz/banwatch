@@ -2,6 +2,7 @@ import json
 import logging
 
 from sqlalchemy import Select
+from sqlalchemy.orm import joinedload
 from sqlalchemy.util import to_list
 
 from database.current import Bans, Proof
@@ -31,8 +32,8 @@ class ProofTransactions(DatabaseTransactions) :
 			if isinstance(ban_id, str) :
 				ban_id = int(ban_id)
 			if user_id :
-				return to_list(session.scalars(Select(Proof).join(Bans).where(Proof.uid == user_id)).all())
-			return to_list(session.scalars(Select(Proof).join(Bans).where(Proof.ban_id == ban_id)).all())
+				return to_list(session.scalars(Select(Proof).join(Bans).options(joinedload(Proof.ban)).where(Proof.uid == user_id)).all())
+			return to_list(session.scalars(Select(Proof).join(Bans).options(joinedload(Proof.ban)).where(Proof.ban_id == ban_id)).all())
 
 	def delete(self, proof_id: int) -> bool :
 		with self.createsession() as session :
