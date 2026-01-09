@@ -1,6 +1,6 @@
 import random
 
-from database.databaseController import ServerDbTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 
 
 class ServerFactory :
@@ -8,7 +8,7 @@ class ServerFactory :
 		records = []
 
 		if amount == 1:
-			return ServerDbTransactions().add(random.randrange(10**17, 10**18), "owner", "server_name", 100, "invite")
+			return ServerTransactions().add(random.randrange(10 ** 17, 10 ** 18), "owner", "server_name", 100, "invite")
 		while len(records) <= amount:
-			records.append(ServerDbTransactions().add(random.randrange(10**17, 10**18), "owner", "server_name", 100, "invite"))
+			records.append(ServerTransactions().add(random.randrange(10 ** 17, 10 ** 18), "owner", "server_name", 100, "invite"))
 		return records

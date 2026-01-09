@@ -13,7 +13,8 @@ from classes.queue import queue
 from classes.rpsec import RpSec
 from classes.tasks import pending_bans
 from data.variables.messages import evidence_message_template
-from database.databaseController import BanDbTransactions, ServerDbTransactions
+from database.transactions.BanTransactions import BanTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 
 GUILD = int(os.getenv("GUILD"))
 
@@ -52,7 +53,7 @@ class Staff(commands.GroupCog, name="staff") :
 		if guild is None :
 			return
 		embed = discord.Embed(title=f"{guild.name}'s info")
-		server_info = ServerDbTransactions().get(guild.id)
+		server_info = ServerTransactions().get(guild.id)
 		guild_data = {
 			"Owner"         : f"{guild.owner}({guild.owner.id})",
 			"User count"    : len([m for m in guild.members if not m.bot]),
@@ -60,7 +61,7 @@ class Staff(commands.GroupCog, name="staff") :
 			"Channel count" : len(guild.channels),
 			"Role count"    : len(guild.roles),
 			"Created at"    : guild.created_at.strftime("%m/%d/%Y"),
-			"bans"          : len(ServerDbTransactions().get_bans(guild.id)),
+			"bans"          : len(ServerTransactions().get_bans(guild.id)),
 			"MFA level"     : guild.mfa_level,
 			"invite"        : server_info.invite,
 			"server ID"     : guild.id,
@@ -76,7 +77,7 @@ class Staff(commands.GroupCog, name="staff") :
 	@app_commands.guilds(GUILD)
 	async def userinfo(self, interaction: discord.Interaction, user: discord.User) :
 		embed = discord.Embed(title=f"{user.name}({user.id})'s info")
-		ban_info = BanDbTransactions().get_all_user(user.id)
+		ban_info = BanTransactions().get_all_user(user.id)
 
 		guild_data = {
 			"global name"    : user.global_name,
@@ -100,7 +101,7 @@ class Staff(commands.GroupCog, name="staff") :
 	@AccessControl().check_access()
 	@app_commands.guilds(GUILD)
 	async def verifyban(self, interaction: discord.Interaction, ban_id: str, status: bool, provide_proof: bool) :
-		ban = BanDbTransactions().get(int(ban_id), override=True)
+		ban = BanTransactions().get(int(ban_id), override=True)
 		if not ban :
 			return await send_response(interaction, f"Ban not found.")
 		if ban.verified == status :
@@ -110,20 +111,20 @@ class Staff(commands.GroupCog, name="staff") :
 			evidence = await await_message(interaction, evidence_message_template.format(user=user.name, ban_id=ban_id))
 			channel = self.bot.get_channel(int(os.getenv("APPROVED")))
 			await EvidenceController.add_evidence(interaction, evidence, ban_id, user)
-			ban = BanDbTransactions().get(int(ban_id))
+			ban = BanTransactions().get(int(ban_id))
 		if len(ban.proof) < 1 and status is True :
 			return await send_response(interaction, f"Evidence is required to approve a ban.")
-		BanDbTransactions().update(ban, verified=status)
+		BanTransactions().update(ban, verified=status)
 		await send_response(interaction, f"{ban_id} verified status changed to {status} by {interaction.user.mention}")
 
 	@app_commands.command(name="banvisibility", description="[staff] Change if a ban is hidden or not.")
 	@AccessControl().check_access()
 	@app_commands.guilds(GUILD)
 	async def banvisibility(self, interaction: discord.Interaction, ban_id: str, hide: bool) :
-		ban = BanDbTransactions().get(int(ban_id), override=True)
+		ban = BanTransactions().get(int(ban_id), override=True)
 		if not ban :
 			return await send_response(interaction, f"Ban not found.")
-		BanDbTransactions().update(ban, hidden=hide)
+		BanTransactions().update(ban, hidden=hide)
 		await send_response(interaction, f"{ban_id} hidden status changed to {hide} by {interaction.user.mention}")
 
 	@app_commands.command(name="rpsecsearch",
@@ -159,7 +160,7 @@ class Staff(commands.GroupCog, name="staff") :
 	@app_commands.autocomplete(server=autocomplete_guild)
 	@app_commands.checks.has_permissions(manage_guild=True)
 	async def staff_visibility(self, interaction: discord.Interaction, server: str, hide: bool) :
-		ServerDbTransactions().update(int(server), hidden=hide)
+		ServerTransactions().update(int(server), hidden=hide)
 		await send_response(interaction,
 		                    f"{server}'s visibility has ben set to: {'hidden' if hide is True else 'Visible'}\n\n"
 		                    f"Your bans may temporarily still be available in the checkall cache, which is reloaded every 10 minutes")

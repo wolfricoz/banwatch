@@ -9,7 +9,7 @@ from discord_py_utilities.messages import send_message
 from discord_py_utilities.permissions import check_missing_channel_permissions
 
 from classes.evidence import EvidenceController
-from database.databaseController import ProofDbTransactions
+from database.transactions.ProofTransactions import ProofTransactions
 from view.base.secureview import SecureView
 from view.multiselect.selectban import SelectBan
 
@@ -21,7 +21,7 @@ class LookUp(SecureView) :
 		super().__init__(timeout=None)
 		if not user_id :
 			return
-		entries = ProofDbTransactions().get(user_id=user_id)
+		entries = ProofTransactions().get(user_id=user_id)
 		if not entries :
 			self.evidence.disabled = True
 
@@ -100,7 +100,7 @@ class LookUp(SecureView) :
 	@discord.ui.button(label="view evidence", style=discord.ButtonStyle.primary, custom_id="banoptions_evidence")
 	async def evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		user_id = await self.get_user_id(interaction)
-		entries = ProofDbTransactions().get(user_id=user_id)
+		entries = ProofTransactions().get(user_id=user_id)
 		await EvidenceController().send_proof(interaction, entries, user_id)
 
 	@discord.ui.button(label="Cross-ban", style=discord.ButtonStyle.danger, custom_id="Cross-ban")

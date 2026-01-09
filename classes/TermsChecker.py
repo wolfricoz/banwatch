@@ -2,7 +2,7 @@ import logging
 import re
 
 from database.current import FlaggedTerms
-from database.databaseController import FlaggedTermsTransactions
+from database.transactions.FlaggedTermsTransactions import FlaggedTermsTransactions
 
 
 class TermsChecker:
@@ -19,9 +19,9 @@ class TermsChecker:
 		action = getattr(self, action.lower(), None)
 		if action is None:
 			raise ValueError("Action not found")
-		self.terms = FlaggedTermsTransactions.get_all(self.action)
+		self.terms = FlaggedTermsTransactions().get_all(self.action)
 		if not self.terms or len(self.terms) == 0:
-			logging.warn(f"No terms found for action {self.action}")
+			logging.warning(f"No terms found for action {self.action}")
 			return
 		action()
 
@@ -54,7 +54,7 @@ class TermsChecker:
 		for term in self.terms:
 			if first_stop and len(self.found) > 0:
 				return self.found
-			if term.regex is True :
+			if term.regex :
 				matches = re.findall(term.term, self.target, flags=re.IGNORECASE)
 				self.found.extend(matches)
 				continue

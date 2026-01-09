@@ -10,7 +10,8 @@ from discord_py_utilities.messages import send_message, send_response
 from classes.autocorrect import autocomplete_guild
 from classes.bans import Bans
 from classes.queue import queue
-from database.databaseController import BanDbTransactions, ServerDbTransactions
+from database.transactions.BanTransactions import BanTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 from view.modals.inputmodal import send_modal
 from view.multiselect.selectreason import SelectReason
 
@@ -178,13 +179,13 @@ class Tools(commands.Cog) :
 	@app_commands.checks.has_permissions(ban_members=True)
 	async def search_bans(self, interaction: discord.Interaction, word: str, hide: bool = False) :
 		await send_response(interaction, f"Checking bans for the word `{word}`")
-		bans = ServerDbTransactions().get_bans(interaction.guild.id)
+		bans = ServerTransactions().get_bans(interaction.guild.id)
 		with open("bans.txt", "w", encoding='utf-16') as file :
 			for ban_entry in bans :
 				if word in ban_entry.reason :
 					file.write(f"ban id: {ban_entry.uid} - Reason: {ban_entry.reason}\n")
 					if hide :
-						BanDbTransactions().update(ban_entry, hidden=True)
+						BanTransactions().update(ban_entry, hidden=True)
 		# Send the file to the channel
 		await interaction.followup.send(f"Here are all your bans with `{word}`!", file=discord.File("bans.txt"))
 

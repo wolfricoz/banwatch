@@ -3,7 +3,7 @@ from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
 from classes.configer import Configer
-from database.databaseController import ServerDbTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 from view.base.secureview import SecureView
 
 
@@ -14,7 +14,7 @@ class ServerInfo(SecureView) :
 
 	async def send(self, channel, guild: discord.Guild) :
 		embed = discord.Embed(title=f"{guild.name}'s info")
-		server_info = ServerDbTransactions().get(guild.id)
+		server_info = ServerTransactions().get(guild.id)
 		guild_data = {
 			"Owner"         : f"{guild.owner}({guild.owner.id})",
 			"User count"    : len([m for m in guild.members if not m.bot]),
@@ -22,7 +22,7 @@ class ServerInfo(SecureView) :
 			"Channel count" : len(guild.channels),
 			"Role count"    : len(guild.roles),
 			"Created at"    : guild.created_at.strftime("%m/%d/%Y"),
-			"bans"          : len(ServerDbTransactions().get_bans(guild.id)),
+			"bans"          : len(ServerTransactions().get_bans(guild.id)),
 			"MFA level"     : guild.mfa_level,
 			"invite"        : server_info.invite
 		}

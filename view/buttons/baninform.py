@@ -8,7 +8,8 @@ from discord_py_utilities.bans import ban_member, ban_user
 from discord_py_utilities.messages import send_message, send_response
 
 from database.current import Proof
-from database.databaseController import BanDbTransactions, ProofDbTransactions
+from database.transactions.ProofTransactions import ProofTransactions
+from database.transactions.BanTransactions import BanTransactions
 from view.base.secureview import SecureView
 from view.buttons.confirm import Confirm
 from view.modals.inputmodal import send_modal
@@ -23,7 +24,7 @@ class BanInform(SecureView) :
 		self.ban_id = ban_id
 		if ban_id is None:
 			return
-		entries = ProofDbTransactions().get(ban_id=ban_id)
+		entries = ProofTransactions().get(ban_id=ban_id)
 		if not entries:
 			self.evidence.disabled = True
 
@@ -39,7 +40,7 @@ class BanInform(SecureView) :
 		if ban_id is None :
 			logging.error(f"Could not find ban id in {interaction.guild.name}.")
 			await send_response(interaction, f"[REGEX ERROR] Could not retrieve ban_id!")
-		entry = BanDbTransactions().get(ban_id)
+		entry = BanTransactions().get(ban_id)
 		user = interaction.client.get_user(entry.uid)
 		guild = interaction.client.get_guild(entry.gid)
 		reason_modal = await send_modal(interaction, "Thank you for submitting your reason!", "Ban Reason")
@@ -51,7 +52,7 @@ class BanInform(SecureView) :
 		if ban_id is None :
 			logging.error(f"Could not find ban id in {interaction.guild.name}.")
 			await send_response(interaction, f"[REGEX ERROR] Could not retrieve ban_id!")
-		entry = BanDbTransactions().get(ban_id)
+		entry = BanTransactions().get(ban_id)
 		user = interaction.client.get_user(entry.uid)
 		guild = interaction.client.get_guild(entry.gid)
 		result = await Confirm().send_confirm(interaction, message=f'Are you sure you want to cross-ban this user with the ban from {guild.name}?')
@@ -65,7 +66,7 @@ class BanInform(SecureView) :
 	@discord.ui.button(label="view evidence", style=discord.ButtonStyle.primary, custom_id="evidence")
 	async def evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		ban_id = await self.get_ban_id(interaction)
-		entries = ProofDbTransactions().get(ban_id=ban_id)
+		entries = ProofTransactions().get(ban_id=ban_id)
 		await self.send_proof(interaction, entries, ban_id)
 
 	async def retrieve_proof(self, evidence: Proof) :

@@ -7,7 +7,8 @@ from discord import app_commands
 
 from classes.configer import Configer
 from classes.singleton import Singleton
-from database.databaseController import ServerDbTransactions, StaffDbTransactions
+from database.transactions.StaffTransactions import StaffTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 
 
 class AccessControl(metaclass=Singleton) :
@@ -27,7 +28,7 @@ class AccessControl(metaclass=Singleton) :
 
 	def add_staff_to_dict(self) :
 		self.staff = {}
-		staff_members = StaffDbTransactions().get_all()
+		staff_members = StaffTransactions().get_all()
 		for staff in staff_members :
 			role = staff.role.lower()
 			if role in self.staff :
@@ -38,7 +39,7 @@ class AccessControl(metaclass=Singleton) :
 		logging.info(self.staff)
 
 	def add_premium_to_dict(self) :
-		self.premium = ServerDbTransactions().get_premium_ids()
+		self.premium = ServerTransactions().get_premium_ids()
 
 	def reload_premium(self) :
 		self.add_premium_to_dict()

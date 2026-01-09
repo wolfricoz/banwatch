@@ -1,4 +1,5 @@
 """This class generates the ban list, with functions to update it, and to check for similar names"""
+import asyncio
 import logging
 import os
 import re
@@ -14,7 +15,9 @@ from classes.rpsec import RpSec
 from classes.server import Server
 from classes.singleton import Singleton
 from database.current import Proof
-from database.databaseController import BanDbTransactions, ProofDbTransactions, ServerDbTransactions
+from database.transactions.ProofTransactions import ProofTransactions
+from database.transactions.BanTransactions import BanTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 from view.buttons.baninform import BanInform
 
 
@@ -26,19 +29,19 @@ class Bans(metaclass=Singleton) :
 	async def update(self, bot, override=False) :
 		"""Updates the ban list"""
 		guild: discord.Guild
-		known_guilds = ServerDbTransactions().get_all()
+		known_guilds = ServerTransactions().get_all()
 		for guild in bot.guilds :
 			if guild.id in known_guilds :
 				known_guilds.remove(guild.id)
 			try:
-				ServerDbTransactions().add(guild.id, guild.owner.name if guild.owner else 'unknown', guild.name, len(guild.members), None)
+				ServerTransactions().add(guild.id, guild.owner.name if guild.owner else 'unknown', guild.name, len(guild.members), None)
 			except Exception as e :
 				logging.error(f"Error adding guild {guild.id}: {e}")
 			queue().add(Bans().check_guild_bans(guild), priority=0)
 			queue().add(Bans().check_guild_invites(bot, guild), priority=0)
 		for k in known_guilds :
-			ServerDbTransactions().delete_soft(k)
-		queue().add(BanDbTransactions().populate_cache(), priority=0)
+			ServerTransactions().delete_soft(k)
+		queue().add(BanTransactions().populate_cache(), priority=0)
 
 	def create_ban_id(self, user_id, guild_id) :
 		return user_id + guild_id
@@ -72,7 +75,7 @@ class Bans(metaclass=Singleton) :
 	async def send_to_ban_channel(self, approved_channel, banembed, guild, user, bot: commands.Bot,
 	                              wait_id) :
 		approved_message = await approved_channel.send(embed=banembed)
-		BanDbTransactions().update(wait_id, message=approved_message.id)
+		BanTransactions().update(wait_id, message=approved_message.id)
 		dev_guild: discord.Guild = bot.get_guild(bot.SUPPORTGUILD)
 
 		queue().add(self.open_thread(user, guild, approved_message, dev_guild, bot), priority=1)
@@ -94,7 +97,7 @@ class Bans(metaclass=Singleton) :
 			text_bans = '\n'.join([f"{ban.jump_url}" for ban in prev_bans])
 			await send_message(thread, f"Previous bans for {user.name}:"
 			                           f"\n{text_bans}")
-		entries = ProofDbTransactions().get(ban_id=wait_id)
+		entries = ProofTransactions().get(ban_id=wait_id)
 		if not entries :
 			return
 		await send_message(thread, f"## __Proof for {wait_id}__")
@@ -108,7 +111,7 @@ class Bans(metaclass=Singleton) :
 			queue().add(send_message(thread, content))
 
 	async def check_previous_bans(self, original_message, dev_guild: discord.Guild, user_id) -> list[discord.Message] :
-		ban_record = BanDbTransactions().get_all_user(user_id)
+		ban_record = BanTransactions().get_all_user(user_id)
 
 		ban_channel: discord.TextChannel = dev_guild.get_channel(int(os.getenv("APPROVED")))
 		bans = []
@@ -203,7 +206,7 @@ class Bans(metaclass=Singleton) :
 				continue
 			queue().add(self.search_messages(bot, channel, banid, reason))
 		if staff :
-			BanDbTransactions().update(int(banid), approved=False)
+			BanTransactions().update(int(banid), approved=False)
 		channel = bot.get_channel(bot.APPROVALCHANNEL)
 		queue().add(self.search_messages(bot, channel, banid, reason))
 
@@ -218,11 +221,14 @@ class Bans(metaclass=Singleton) :
 				continue
 			await self.add_ban(banentry.user.id, guild.id, banentry.reason, guild.owner.name, approved=True)
 			count += 1
+			if count % 25 == 0 :
+				logging.info(f"Found {count} new bans so far in {guild.name}({guild.id})")
+				await asyncio.sleep(0)
 		queue().add(server.remove_missing_ids(), priority=0)
 		logging.info(f"Found {count} new bans in {guild.name}({guild.id})")
 
 	async def check_guild_invites(self, bot: commands.AutoShardedBot, guild: discord.Guild) :
-		guild_record = ServerDbTransactions().get(guild.id)
+		guild_record = ServerTransactions().get(guild.id)
 		invite: None | discord.Invite = None
 		if guild_record and guild_record.invite :
 			try :
@@ -236,13 +242,13 @@ class Bans(metaclass=Singleton) :
 					invite = await channel.create_invite(reason="Banwatch invite")
 				except discord.NotFound :
 					continue
-				ServerDbTransactions().update(guild.id, invite=invite.url)
+				ServerTransactions().update(guild.id, invite=invite.url)
 				return
 		except discord.Forbidden :
 			logging.info(f"No permission to create invites in {guild.name}")
 		try :
 			invite: discord.Invite = (await guild.invites())[0]
-			ServerDbTransactions().update(guild.id, invite=invite.url)
+			ServerTransactions().update(guild.id, invite=invite.url)
 		except discord.Forbidden :
 			logging.info(f"No permission to fetch invites in {guild.name}")
 		except IndexError :
@@ -260,19 +266,19 @@ class Bans(metaclass=Singleton) :
 			hidden = True
 			reason = reason[8 :]
 		logging.info(f"Adding ban for {user_id} in {guild_id} with reason: {reason} and approval status: {approved}")
-		BanDbTransactions().add(user_id, guild_id, reason, staff, hidden=hidden, approved=approved,
-		                        remove_deleted=remove_deleted)
+		BanTransactions().add(user_id, guild_id, reason, staff, hidden=hidden, approved=approved,
+		                      remove_deleted=remove_deleted)
 
 	async def delete_ban(self, user_id, guild_id, permanent=False) :
 		"""Removes a ban from the database"""
 
 		if permanent :
-			BanDbTransactions().delete_permanent(user_id + guild_id)
-		BanDbTransactions().delete_soft(user_id + guild_id)
+			BanTransactions().delete_permanent(user_id + guild_id)
+		BanTransactions().delete_soft(user_id + guild_id)
 
 	async def change_ban_approval_status(self, ban_id: int, status: bool, verified=False) :
-		BanDbTransactions().update(ban_id, approved=status, verified=verified)
+		BanTransactions().update(ban_id, approved=status, verified=verified)
 
 	async def get_user_bans(self, user_id) :
-		return BanDbTransactions().get_all_user(user_id)
+		return BanTransactions().get_all_user(user_id)
 

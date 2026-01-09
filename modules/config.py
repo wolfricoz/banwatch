@@ -1,3 +1,5 @@
+import logging
+
 import discord
 from discord import app_commands
 from discord.app_commands import Choice
@@ -6,7 +8,7 @@ from discord_py_utilities.messages import send_message, send_response
 from discord_py_utilities.permissions import check_missing_channel_permissions, get_bot_permissions
 
 from classes.configdata import ConfigData
-from database.databaseController import ServerDbTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 
 
 class config(commands.GroupCog, name="config") :
@@ -37,7 +39,7 @@ class config(commands.GroupCog, name="config") :
 	@app_commands.checks.has_permissions(manage_guild=True)
 	@app_commands.guild_only()
 	async def visibility(self, interaction: discord.Interaction, hide: bool) :
-		ServerDbTransactions().update(interaction.guild.id, hidden=hide)
+		ServerTransactions().update(interaction.guild.id, hidden=hide)
 		await send_response(interaction,
 		                    f"Your server's visibility has ben set to: {'hidden' if hide is True else 'Visible'}\n\n"
 		                    f"Your bans may temporarily still be available in the checkall cache, which is reloaded every 10 minutes")
@@ -49,7 +51,8 @@ class config(commands.GroupCog, name="config") :
 		await send_response(interaction, "⌛ Checking permissions...", ephemeral=True)
 		if interaction.guild is None :
 			return send_response(interaction, "This command can only be used in a guild.")
-		modchannel = self.bot.get_channel(ConfigData().get_key(interaction.guild.id, "modchannel"))
+		modchannel = await ConfigData().get_channel(interaction.guild)
+		logging.info(modchannel)
 		if modchannel is None :
 			return await send_response(interaction, "❌ Mod channel not set. Please set it using `/config change`")
 		missing = check_missing_channel_permissions(modchannel,

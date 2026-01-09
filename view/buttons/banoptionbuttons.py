@@ -15,7 +15,7 @@ from classes.configer import Configer
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from data.variables.messages import evidence_message_template
-from database.databaseController import ServerDbTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 from view.base.secureview import SecureView
 from view.buttons.banapproval import BanApproval
 
@@ -72,7 +72,7 @@ class BanOptionButtons(SecureView) :
 
 	async def process(self, interaction, evidence=None, hidden=False, silent=False) :
 		guild, user, ban = await self.get_data(interaction)
-		guild_db = ServerDbTransactions().get(guild.id)
+		guild_db = ServerTransactions().get(guild.id)
 
 		staff_member: discord.User = await self.get_staff_member(guild, user)
 		message: discord.Message = interaction.message

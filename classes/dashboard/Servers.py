@@ -8,7 +8,7 @@ from database.current import Servers as dbServers
 import requests
 from discord.ext import commands
 
-from database.databaseController import ServerDbTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 
 
 class Servers:
@@ -55,7 +55,7 @@ class Servers:
 			return
 		result = result.json()
 		logging.info(f"Server {guild.id} updated: {result}")
-		ServerDbTransactions().update(discord_guild.id, discord_guild.owner.name , discord_guild.name, len(discord_guild.members), guild.invite, owner_id=discord_guild.owner_id, premium=result.get('premium', None))
+		ServerTransactions().update(discord_guild.id, discord_guild.owner.name, discord_guild.name, len(discord_guild.members), guild.invite, owner_id=discord_guild.owner_id, premium=result.get('premium', None))
 		logging.info(f"Server {guild.id} updated to {result.get('premium', True)}")
 		logging.info(f"Server {guild.id} updated")
 

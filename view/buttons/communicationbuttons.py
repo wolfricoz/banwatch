@@ -5,7 +5,7 @@ import discord
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.configdata import ConfigData
-from database.databaseController import BanDbTransactions
+from database.transactions.BanTransactions import BanTransactions
 from view.base.secureview import SecureView
 from view.modals.inputmodal import send_modal
 
@@ -71,7 +71,7 @@ class CommunicationButtons(SecureView) :
 		if self.recipient is None :
 			self.recipient = await self.bot.fetch_guild(footer_list[0])
 		self.ban_id = footer_list[1]
-		ban = BanDbTransactions().get(self.ban_id, override=True)
+		ban = BanTransactions().get(self.ban_id, override=True)
 		self.ban = ban
 		self.guild = self.bot.get_guild(ban.gid)
 		self.user = self.bot.get_user(ban.uid)

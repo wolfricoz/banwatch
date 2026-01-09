@@ -6,7 +6,8 @@ from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.evidence import EvidenceController
 from classes.queue import queue
-from database.databaseController import BanDbTransactions, ProofDbTransactions
+from database.transactions.ProofTransactions import ProofTransactions
+from database.transactions.BanTransactions import BanTransactions
 from view.base.secureview import SecureView
 from view.modals.inputmodal import send_modal
 
@@ -27,7 +28,7 @@ class BanApproval(SecureView) :
 		if self.bot is None or self.wait_id is None :
 			await send_response(interaction, "Error: The bot has restarted, the data of this button was lost", ephemeral=True)
 			return
-		ban_entry = BanDbTransactions().get(self.wait_id, override=True)
+		ban_entry = BanTransactions().get(self.wait_id, override=True)
 		if ban_entry is None :
 			await send_response(interaction, "Ban not found", ephemeral=True)
 			return
@@ -57,7 +58,7 @@ class BanApproval(SecureView) :
 		if self.bot is None or self.wait_id is None :
 			await send_response(interaction, "Error: The bot has restarted, the data of this button was lost", ephemeral=True)
 			return
-		ban_entry = BanDbTransactions().get(self.wait_id)
+		ban_entry = BanTransactions().get(self.wait_id)
 		if ban_entry is None :
 			await send_response(interaction, "Ban not found", ephemeral=True)
 			return
@@ -82,7 +83,7 @@ class BanApproval(SecureView) :
 		                          title="What evidence do we require?")
 		if not reason :
 			return None
-		ban_entry = BanDbTransactions().get(self.wait_id, override=True)
+		ban_entry = BanTransactions().get(self.wait_id, override=True)
 		if ban_entry is None :
 			return await send_response(interaction, "Ban not found")
 		guild: discord.Guild = interaction.client.get_guild(ban_entry.gid)
@@ -98,13 +99,13 @@ class BanApproval(SecureView) :
 
 	@discord.ui.button(label="view evidence", style=discord.ButtonStyle.primary, custom_id="view_evidence")
 	async def view_evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
-		ban_entry = BanDbTransactions().get(self.wait_id, override=True)
+		ban_entry = BanTransactions().get(self.wait_id, override=True)
 		if ban_entry is None :
 			await send_response(interaction, "Ban not found", ephemeral=True)
 			return
 		guild, user, reason = await self.get_ban_data(ban_entry)
 		user_id = user.id
-		entries = ProofDbTransactions().get(ban_id=self.wait_id)
+		entries = ProofTransactions().get(ban_id=self.wait_id)
 		await EvidenceController().send_proof(interaction, entries, self.wait_id)
 
 	@discord.ui.button(label="Hide & Inform", style=discord.ButtonStyle.danger, custom_id="deny_broadcast")
@@ -114,7 +115,7 @@ class BanApproval(SecureView) :
 		if self.bot is None or self.wait_id is None :
 			await send_response(interaction, "Error: The bot has restarted, the data of this button was lost", ephemeral=True)
 			return
-		ban_entry = BanDbTransactions().get(self.wait_id, override=True)
+		ban_entry = BanTransactions().get(self.wait_id, override=True)
 		if ban_entry is None :
 			await send_response(interaction, "Ban not found", ephemeral=True)
 			return
@@ -125,7 +126,7 @@ class BanApproval(SecureView) :
 		banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
 		                         description=f"{reason}")
 		banembed.set_footer(text=f"Ban Hidden: {deny_reason}")
-		BanDbTransactions().update(self.wait_id, approved=True, hidden=True)
+		BanTransactions().update(self.wait_id, approved=True, hidden=True)
 		await self.update_embed(interaction, "hide")
 		await send_response(interaction, 
 			f"Hidden `{interaction.message.embeds[0].title}`  with reason `{deny_reason}` by {interaction.user.mention}!",
@@ -140,7 +141,7 @@ class BanApproval(SecureView) :
 		if self.bot is None or self.wait_id is None :
 			await send_response(interaction, "Error: The bot has restarted, the data of this button was lost", ephemeral=True)
 			return
-		ban_entry = BanDbTransactions().get(self.wait_id, override=True)
+		ban_entry = BanTransactions().get(self.wait_id, override=True)
 		if ban_entry is None :
 			await send_response(interaction, "Ban not found", ephemeral=True)
 			return
@@ -150,7 +151,7 @@ class BanApproval(SecureView) :
 		banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
 		                         description=f"{reason}")
 		banembed.set_footer(text=f"Ban Hidden")
-		BanDbTransactions().update(self.wait_id, approved=True, hidden=True)
+		BanTransactions().update(self.wait_id, approved=True, hidden=True)
 		await self.update_embed(interaction, "hidesilent")
 		await send_response(interaction,
 			f"Silently Hidden `{interaction.message.embeds[0].title}`  by {interaction.user.mention}!")

@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 from classes.queue import queue
-from database.databaseController import DatabaseTransactions
+from database.transactions.BanReasonTransactions import DatabaseTransactions
 
 router = APIRouter()
 

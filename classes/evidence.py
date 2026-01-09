@@ -9,13 +9,14 @@ from discord_py_utilities.messages import send_message, send_response
 from classes.bans import Bans
 from classes.queue import queue
 from database.current import Proof
-from database.databaseController import BanDbTransactions, ProofDbTransactions
+from database.transactions.ProofTransactions import ProofTransactions
+from database.transactions.BanTransactions import BanTransactions
 
 
 class EvidenceController() :
 	@staticmethod
 	async def add_evidence(interaction: discord.Interaction, evidence, ban_id: int, user: discord.User) :
-		ban = BanDbTransactions().get(ban_id, override=True)
+		ban = BanTransactions().get(ban_id, override=True)
 		if ban is None :
 			queue().add(send_response(interaction,
 			                          f"Ban ID {ban_id} not found, please check if the user is banned. If this error persists please open a ticket in the support server."), priority=2)
@@ -53,7 +54,7 @@ class EvidenceController() :
 
 	@staticmethod
 	async def add_evidence_standalone(interaction: discord.Interaction, ban_id: int, user: discord.User, text: str, attachments: list[discord.Attachment]) :
-		ban = BanDbTransactions().get(ban_id, override=True)
+		ban = BanTransactions().get(ban_id, override=True)
 		if ban is None :
 			queue().add(send_response(interaction,
 			                          f"Ban ID {ban_id} not found, please check if the user is banned. If this error persists please open a ticket in the support server."), priority=2)
@@ -97,8 +98,8 @@ class EvidenceController() :
 		stored: discord.Message = await send_message(evidence_channel, reason, files=attachments)
 		attachments = [await a.to_file() for a in stored.attachments if a is not None]
 		attachments_urls = [a.url for a in stored.attachments]
-		result = ProofDbTransactions().add(ban_id=ban_id, user_id=user_id, proof=reason,
-		                                   attachments=attachments_urls)
+		result = ProofTransactions().add(ban_id=ban_id, user_id=user_id, proof=reason,
+		                                 attachments=attachments_urls)
 		return attachments, result
 
 
@@ -118,8 +119,8 @@ class EvidenceController() :
 			stored = evidence
 		attachments = [await a.to_file() for a in stored.attachments]
 		attachments_urls = [a.url for a in stored.attachments]
-		result = ProofDbTransactions().add(ban_id=ban_id, user_id=user_id, proof=f"{evidence.content} {f'forwarded: {snapshot_message}' if snapshot_message else ''}",
-		                                   attachments=attachments_urls)
+		result = ProofTransactions().add(ban_id=ban_id, user_id=user_id, proof=f"{evidence.content} {f'forwarded: {snapshot_message}' if snapshot_message else ''}",
+		                                 attachments=attachments_urls)
 
 		if log_evidence is False:
 			return attachments, result

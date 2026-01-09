@@ -10,7 +10,8 @@ from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.queue import queue
 from database.current import Servers
-from database.databaseController import BanDbTransactions, ServerDbTransactions
+from database.transactions.BanTransactions import BanTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 from view.buttons.baninform import BanInform
 from view.buttons.banoptionbuttons import BanOptionButtons
 
@@ -36,9 +37,9 @@ class BanEvents(commands.Cog) :
 			return
 
 		# Check if old ban entry exists, and delete it to prevent data from mixing - this only gets triggered if the user is banned again!
-		ban_entry = BanDbTransactions().get(user.id + guild.id, override=True)
+		ban_entry = BanTransactions().get(user.id + guild.id, override=True)
 		if ban_entry is not None :
-			BanDbTransactions().delete_permanent(ban_entry)
+			BanTransactions().delete_permanent(ban_entry)
 		ban: discord.BanEntry = await guild.fetch_ban(user)
 		mod_channel = bot.get_channel(ConfigData().get_key_or_none(guild.id, "modchannel" ))
 		# Check if modchannel is set, else just log it.
@@ -60,7 +61,7 @@ class BanEvents(commands.Cog) :
 			await send_message(mod_channel, f"Hidden ban for {user}({user.id}).")
 			return
 		# Check if the server is hidden
-		if ServerDbTransactions().is_hidden(guild.id):
+		if ServerTransactions().is_hidden(guild.id):
 			await Bans().add_ban(user.id, guild.id, ban.reason, "Unknown")
 			return
 
@@ -79,7 +80,7 @@ class BanEvents(commands.Cog) :
 		logging.info(ConfigData().get_key(guild.id, "cross_ban", False))
 		if ConfigData().get_key(guild.id, "cross_ban", False) is True and AccessControl().is_premium(guild.id):
 			logging.info("Cross-ban with premium")
-			servers = ServerDbTransactions.get_owners_servers(owner_id=guild.owner.id)
+			servers = ServerTransactions.get_owners_servers(owner_id=guild.owner.id)
 			server_names = []
 			for server in servers :
 				logging.info(f"Premium cross-ban with server {server.name} ({server.id})")

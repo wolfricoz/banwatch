@@ -12,7 +12,8 @@ from classes.access import AccessControl
 from classes.configdata import ConfigData
 from classes.queue import queue
 from data.config.mappings import premium_toggles
-from database.databaseController import BanReasonsTransactions, ConfigDbTransactions
+from database.databaseController import BanReasonsTransactions
+from database.transactions.ConfigTransactions import ConfigTransactions
 from view.buttons.bottrap import bottrap
 from view.modals.banreasonmodal import BanReasonCreateModal, send_banreason_modal
 
@@ -98,7 +99,7 @@ class Premium(GroupCog) :
 	@app_commands.checks.has_permissions(manage_guild=True)
 	@AccessControl().check_premium()
 	async def traprole(self, interaction: discord.Interaction, role: discord.Role):
-		ConfigDbTransactions.config_unique_add(interaction.guild.id, "TRAP_ROLE", role.id)
+		ConfigTransactions().config_unique_add(interaction.guild.id, "TRAP_ROLE", role.id)
 		await send_response(interaction, f"Set the bot trap role to {role.mention}", ephemeral=True)
 
 	@app_commands.command(name="toggle_feature", description="Toggles a premium feature on or off")
@@ -109,7 +110,7 @@ class Premium(GroupCog) :
 	async def toggle_feature(self, interaction: Interaction, feature_name: Choice[str], enable: bool) :
 		await send_response(interaction, f"Toggling feature `{feature_name.value}` to `{'enabled' if enable else 'disabled'}`",
 		                    ephemeral=True)
-		ConfigDbTransactions.toggle_add(interaction.guild.id, feature_name.value, enable)
+		ConfigTransactions().toggle_add(interaction.guild.id, feature_name.value, enable)
 
 
 
@@ -124,7 +125,7 @@ class Premium(GroupCog) :
 	async def premade_ban_reasons(self, interaction: Interaction, operation: Choice['str'], name: str = None) :
 		match operation.name:
 			case "list" :
-				reasons = BanReasonsTransactions.get_all()
+				reasons = BanReasonsTransactions().get_all()
 				if not reasons :
 					return await send_response(interaction, "No premade ban reasons found.", ephemeral=True)
 				reason_list = "\n".join([f"- {reason.reason} (ID: {reason.id})" for reason in reasons])
@@ -134,18 +135,18 @@ class Premium(GroupCog) :
 				name = values["name"]
 				description = values["description"]
 				reason = values["reason"]
-				existing = BanReasonsTransactions.get(name)
+				existing = BanReasonsTransactions().get(name)
 				if existing :
 					return await send_response(interaction, f"Ban reason `{name}` already exists.", ephemeral=True)
-				BanReasonsTransactions.add(interaction.guild.id, name, description, reason)
+				BanReasonsTransactions().add(interaction.guild.id, name, description, reason)
 				await send_response(interaction, f"Added premade ban reason `{name}`.", ephemeral=True)
 			case "remove" :
 				if name is None :
 					return await send_response(interaction, "Please provide the name of the ban reason to remove.", ephemeral=True)
-				existing = BanReasonsTransactions.get(name)
+				existing = BanReasonsTransactions().get(name)
 				if not existing :
 					return await send_response(interaction, f"Ban reason `{name}` not found.", ephemeral=True)
-				BanReasonsTransactions.delete(existing.id)
+				BanReasonsTransactions().delete(existing.id)
 				await send_response(interaction, f"Removed premade ban reason `{name}`.", ephemeral=True)
 
 
