@@ -378,6 +378,27 @@ class dev(commands.GroupCog, name="dev") :
 			return
 		await send_message(interaction.channel, "successfully tested config, no errors found")
 
+	@app_commands.command(name="test_channel", description="[DEV] fills queue with 1000 channel fetches to test fetching failures")
+	@AccessControl().check_access("dev")
+	async def test_channel(self, interaction: discord.Interaction):
+		await send_response(interaction, "Starting channel fetch test.", ephemeral=True)
+		async def test_fetch(last = False):
+			channel = ConfigData().get_channel(interaction.guild)
+			if channel is None:
+				await send_message(interaction.channel, "Failed to fetch channel")
+				return
+			if last is True:
+				await send_message(interaction.channel, "Successfully fetched channel 1000 times.")
+
+
+		for i in range(1000):
+			if i == 999:
+				queue().add(test_fetch(last=True))
+				continue
+			queue().add(test_fetch())
+
+		await send_response(interaction, "Queued 1000 channel fetches.", ephemeral=True)
+
 
 
 async def setup(bot: commands.Bot) :
