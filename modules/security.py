@@ -3,7 +3,6 @@ from discord.ext import commands
 from discord_py_utilities.messages import send_response
 
 from classes.configer import Configer
-from data.variables.messages import BotMessages
 
 
 class Security(commands.Cog) :

@@ -2,7 +2,7 @@ import logging
 
 import discord.ui
 
-from database.databaseController import BanReasonsTransactions
+from database.transactions.BanReasonTransactions import BanReasonsTransactions
 from view.base.secureview import SecureView
 
 

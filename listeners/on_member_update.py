@@ -1,7 +1,7 @@
 import logging
 
 import discord
-from discord.ext.commands import Cog, GroupCog, Bot
+from discord.ext.commands import Bot, Cog
 
 from classes.access import AccessControl
 from classes.configdata import ConfigData

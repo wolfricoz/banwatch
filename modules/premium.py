@@ -9,13 +9,12 @@ from discord.ext.commands import Bot, GroupCog
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
-from classes.configdata import ConfigData
 from classes.queue import queue
 from data.config.mappings import premium_toggles
-from database.databaseController import BanReasonsTransactions
+from database.transactions.BanReasonTransactions import BanReasonsTransactions
 from database.transactions.ConfigTransactions import ConfigTransactions
 from view.buttons.bottrap import bottrap
-from view.modals.banreasonmodal import BanReasonCreateModal, send_banreason_modal
+from view.modals.banreasonmodal import send_banreason_modal
 
 
 class Premium(GroupCog) :

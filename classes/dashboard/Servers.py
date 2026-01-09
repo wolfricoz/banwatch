@@ -2,12 +2,10 @@ import base64
 import logging
 import os
 
-import discord
-
-from database.current import Servers as dbServers
 import requests
 from discord.ext import commands
 
+from database.current import Servers as dbServers
 from database.transactions.ServerTransactions import ServerTransactions
 
 

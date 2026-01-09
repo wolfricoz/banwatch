@@ -5,7 +5,7 @@ import database.transactions.ProofTransactions
 import database.transactions.ServerTransactions
 import database.databaseController
 from database.current import create_bot_database, drop_bot_database
-from database.databaseController import session
+
 
 
 class TestDatabaseOperations(unittest.TestCase) :
@@ -33,7 +33,7 @@ class TestDatabaseOperations(unittest.TestCase) :
 		self.assertEqual(ban.ban_id, user_id + guild_id)
 		ban = ban_controller.add(user_id, guild_id, "reason", "staff")
 		self.assertFalse(ban)
-		session.rollback()
+		
 
 	def test_get_ban(self) :
 		guild_id = self.guild_id
@@ -49,7 +49,7 @@ class TestDatabaseOperations(unittest.TestCase) :
 		assert_entry = ban_controller.get(ban_id)
 		self.assertIsNotNone(assert_entry)
 		self.assertEqual(assert_entry.ban_id, user_id + guild_id)
-		session.rollback()
+		
 
 	def test_delete_ban(self) :
 		guild_id = self.guild_id
@@ -64,7 +64,7 @@ class TestDatabaseOperations(unittest.TestCase) :
 		ban = ban_controller.add(user_id, guild_id, "reason", "staff")
 		self.assertTrue(ban_controller.delete_soft(ban.ban_id))
 		self.assertIsNone(ban_controller.get(ban.ban_id))
-		session.rollback()
+		
 
 	def test_get_guild_status_from_ban(self) :
 		guild_id = self.guild_id
@@ -100,7 +100,7 @@ class TestDatabaseOperations(unittest.TestCase) :
 		self.assertTrue(ban.verified)
 		self.assertTrue(ban.hidden)
 
-		session.rollback()
+		
 
 	# proof table
 	#

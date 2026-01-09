@@ -1,14 +1,13 @@
 import datetime
 import logging
-from abc import abstractmethod
 from datetime import datetime
 from typing import Type
 
 from sqlalchemy import ColumnElement, Select, and_, exists, text
 
 from database import current as db
-from database.transactions.DatabaseController import DatabaseTransactions
 from database.current import Bans, Servers
+from database.transactions.DatabaseController import DatabaseTransactions
 
 
 class ServerTransactions(DatabaseTransactions) :

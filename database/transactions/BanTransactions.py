@@ -6,7 +6,6 @@ from typing import Type
 
 from sqlalchemy import Select, and_, text
 from sqlalchemy.orm import joinedload
-from sqlalchemy.orm.strategies import JoinedLoader
 
 from classes.singleton import Singleton
 from database.current import Bans, Proof, Servers

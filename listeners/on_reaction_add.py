@@ -1,7 +1,5 @@
-import logging
-
 import discord
-from discord.ext.commands import Cog, GroupCog, Bot
+from discord.ext.commands import Bot, Cog
 from discord_py_utilities.messages import send_message
 
 from classes.access import AccessControl

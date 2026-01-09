@@ -3,8 +3,6 @@ import logging
 
 import discord
 
-from view.base.secureview import SecureView
-
 
 class InputModal(discord.ui.Modal):
     custom_id = "InputModal"
