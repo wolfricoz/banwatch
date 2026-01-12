@@ -6,6 +6,7 @@ import os
 import discord
 from discord import CategoryChannel, ForumChannel, StageChannel, TextChannel, Thread, VoiceChannel
 from discord_py_utilities.messages import send_message
+from discord_py_utilities.permissions import find_first_accessible_text_channel
 
 from classes.singleton import Singleton
 from database.transactions.ConfigTransactions import ConfigTransactions
@@ -121,14 +122,18 @@ class ConfigData(metaclass=Singleton) :
 	async def get_channel(self, guild: discord.Guild, channel_type: str = "modchannel") -> None | VoiceChannel | StageChannel | ForumChannel | TextChannel | CategoryChannel | Thread :
 		"""Gets the channel from the config"""
 		channel_id = self.get_key_or_none(guild.id, channel_type)
-		if isinstance(channel_id, str) :
-			if channel_id.isnumeric() :
+		if not isinstance(channel_id, int) :
+
+			if isinstance(channel_id, str) and channel_id.isnumeric() :
 				channel_id = int(channel_id)
 			else :
 				channel_id = None
 
 		if channel_id is None :
-			await send_message(guild.owner,
+			channel = find_first_accessible_text_channel(guild)
+			if channel is None:
+				channel = guild.owner
+			await send_message(channel,
 			                   f"No `{channel_type}` channel set for {guild.name}, please set it up using the /config command")
 			return None
 		channel = guild.get_channel(channel_id)
@@ -140,7 +145,11 @@ class ConfigData(metaclass=Singleton) :
 				except discord.NotFound:
 					continue
 		if channel is None :
-			await send_message(guild.owner,
+			channel = find_first_accessible_text_channel(guild)
+			if channel is None:
+				channel = guild.owner
+
+			await send_message(channel,
 			                   f"Banwatch could not fetch the `{channel_type}` channel with id {channel_id} in {guild.name}, please verify it exists and is accessible by the bot. If it does then discord may be having issues.")
 			return None
 		return channel

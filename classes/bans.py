@@ -7,6 +7,7 @@ import re
 import discord
 from discord.ext import commands
 from discord_py_utilities.messages import send_message
+from discord_py_utilities.permissions import find_first_accessible_text_channel
 
 from classes.appeal import inform_user
 from classes.configdata import ConfigData
@@ -15,8 +16,8 @@ from classes.rpsec import RpSec
 from classes.server import Server
 from classes.singleton import Singleton
 from database.current import Proof
-from database.transactions.ProofTransactions import ProofTransactions
 from database.transactions.BanTransactions import BanTransactions
+from database.transactions.ProofTransactions import ProofTransactions
 from database.transactions.ServerTransactions import ServerTransactions
 from view.buttons.baninform import BanInform
 
@@ -33,8 +34,9 @@ class Bans(metaclass=Singleton) :
 		for guild in bot.guilds :
 			if guild.id in known_guilds :
 				known_guilds.remove(guild.id)
-			try:
-				ServerTransactions().add(guild.id, guild.owner.name if guild.owner else 'unknown', guild.name, len(guild.members), None)
+			try :
+				ServerTransactions().add(guild.id, guild.owner.name if guild.owner else 'unknown', guild.name,
+				                         len(guild.members), None)
 			except Exception as e :
 				logging.error(f"Error adding guild {guild.id}: {e}")
 			queue().add(Bans().check_guild_bans(guild), priority=0)
@@ -47,12 +49,7 @@ class Bans(metaclass=Singleton) :
 		return user_id + guild_id
 
 	async def inform_server(self, bot: commands.Bot, guild: discord.Guild, banembed: discord.Embed, ban_id: int) :
-		modchannel_id = ConfigData().get_key(guild.id, "modchannel")
-		modchannel = bot.get_channel(modchannel_id)
-		if modchannel is None :
-			await send_message(guild.owner,
-			                   f"Mod channel not found in {guild.name} ({guild.id}). Current value: {modchannel_id}")
-			return
+		modchannel = await ConfigData().get_channel(guild, "modchannel")
 		options = BanInform(ban_class=Bans(), ban_id=ban_id)
 		queue().add(modchannel.send(embed=banembed, view=options), priority=0)
 
@@ -214,6 +211,10 @@ class Bans(metaclass=Singleton) :
 		count = 0
 		server = Server(guild.id)
 
+		if not guild:
+			logging.error(f"Guild {guild.id} not found")
+			return
+
 		async for banentry in guild.bans(limit=None) :
 			if banentry.user.bot :
 				continue
@@ -281,4 +282,3 @@ class Bans(metaclass=Singleton) :
 
 	async def get_user_bans(self, user_id) :
 		return BanTransactions().get_all_user(user_id)
-

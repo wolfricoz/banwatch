@@ -28,7 +28,7 @@ class DatabaseTasks(commands.Cog):
             if ban.deleted_at.replace(tzinfo=UTC)  < datetime.now(tz=UTC) - timedelta(days=30):
                 BanTransactions().delete_permanent(ban)
         for server in servers:
-            if server.deleted_at.replace(tzinfo=UTC) < datetime.now() - timedelta(days=30):
+            if server.deleted_at.replace(tzinfo=UTC) < datetime.now(tz=UTC) - timedelta(days=30):
                 try:
                     ServerTransactions().delete_permanent(server)
                 except Exception as e:

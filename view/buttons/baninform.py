@@ -42,6 +42,11 @@ class BanInform(SecureView) :
 			await send_response(interaction, f"[REGEX ERROR] Could not retrieve ban_id!")
 		entry = BanTransactions().get(ban_id)
 		user = interaction.client.get_user(entry.uid)
+		if user is None :
+			user = await interaction.client.fetch_user(entry.uid)
+		if user is None :
+			logging.error(f"Could not find user id {entry.uid} in {interaction.guild.name}.")
+			await send_response(interaction, f"[USER ERROR] Could not retrieve user!")
 		guild = interaction.client.get_guild(entry.gid)
 		reason_modal = await send_modal(interaction, "Thank you for submitting your reason!", "Ban Reason")
 		await ban_user(interaction, user, "", f"Cross-ban from {guild.name} with ban id: {ban_id} with reason: {reason_modal}", self.ban_class, clean=False)
