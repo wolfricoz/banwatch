@@ -7,6 +7,8 @@ class RpSec:
     @staticmethod
     def get_user(user_id):
         """Get the user's RP Security thread ID"""
+        return None
+
         url = "https://rpsecurity.webrender.net/"
         data = {
             "token" : os.getenv("RPSECSECRET"),
