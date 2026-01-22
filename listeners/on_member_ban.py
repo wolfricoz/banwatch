@@ -80,7 +80,7 @@ class BanEvents(commands.Cog) :
 		logging.info(ConfigData().get_key(guild.id, "cross_ban", False))
 		if ConfigData().get_key(guild.id, "cross_ban", False) is True and AccessControl().is_premium(guild.id):
 			logging.info("Cross-ban with premium")
-			servers = ServerTransactions.get_owners_servers(owner_id=guild.owner.id)
+			servers = ServerTransactions().get_owners_servers(owner_id=guild.owner.id)
 			server_names = []
 			for server in servers :
 				logging.info(f"Premium cross-ban with server {server.name} ({server.id})")
