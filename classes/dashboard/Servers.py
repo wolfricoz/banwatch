@@ -14,52 +14,54 @@ class Servers:
 	key = os.getenv('DASHBOARD_KEY')
 	secret = os.getenv('DASHBOARD_SECRET')
 	skip = False
+	def __init__(self):
+		self.path = "/api/server/create"
+		self.url = f"{self.ip_address}{self.path}"
+		self.encoded = base64.b64encode(f"{self.key}:{self.secret}".encode('ascii')).decode()
 
 
-	async def update_server(self, bot: commands.Bot, guild: dbServers):
-		if self.skip:
-			logging.warning(f"Skipping {guild.name} ({guild.id}) update due to previous connection error")
-			return
-			return
-		path = "/api/server/create"
-		url = f"{self.ip_address}{path}"
-		encoded = base64.b64encode(f"{self.key}:{self.secret}".encode('ascii')).decode()
+
+	async def update_servers(self, guilds: list[dbServers]):
 
 		headers = {
-			"Authorization": f"Basic {encoded}",
+			"Authorization": f"Basic {self.encoded}",
 			"Content-Type": "application/json"
 		}
+		logging.info(f"headers: {headers}")
+		if guilds is None:
+			return None
 
-		discord_guild = bot.get_guild(guild.id)
-		if not discord_guild:
-			discord_guild = await bot.fetch_guild(guild.id)
-		if not discord_guild:
-			logging.info(f"Server {guild.id} could not be updated: Failed to fetch guild")
-			return
-
-		data = {
+		data = [{
 			"id": guild.id,
 			"banwatch": guild.active,
 			"name": guild.name,
 			"owner": guild.owner,
-			"owner_id": discord_guild.owner.id,
+			"owner_id": guild.owner_id,
 			"member_count": guild.member_count,
 			"invite": guild.invite
-		}
-
+		} for guild in guilds]
 		try:
+			result = requests.post(self.url, headers=headers, json={"servers": data}, timeout=5)
+			if result.status_code != 200:
+				logging.info(
+					f"server group {[g.id for g in guilds]} could not be updated: {result.status_code}: {result.text}")
+				print(
+					f"server group {[g.id for g in guilds]} could not be updated: {result.status_code}: {result.text}")
+				# logging.info(f"Variables:\npath: {path}\nurl: {url}\nheaders: {headers}, key: {self.key}\nsecret: {self.secret}")
+				return None
 
-			result = requests.post(url, headers=headers, json=data, timeout=5)
-		except requests.exceptions.ConnectionError:
-			self.skip = True
-			logging.info(f"Server {guild.id} could not be updated: Connection error")
-			return
-		if result.status_code != 200:
-			logging.info(f"Server {guild.id} could not be updated: {result.status_code}")
-			return
-		result = result.json()
-		logging.info(f"Server {guild.id} updated: {result}")
-		ServerTransactions().update(discord_guild.id, discord_guild.owner.name, discord_guild.name, len(discord_guild.members), guild.invite, owner_id=discord_guild.owner_id, premium=result.get('premium', None))
-		logging.info(f"Server {guild.id} updated to {result.get('premium', True)}")
-		logging.info(f"Server {guild.id} updated")
+			results = result.json()
+			for result in results:
+				server_id = result.get('id', 0)
+				if server_id == 0:
+					logging.info("No server id returned, skipping")
+					continue
+				ServerTransactions().update(server_id, premium=result.get('premium', None))
+
+				logging.info(f"Server {server_id} updated successfully: {result}")
+				print(f"Server {server_id} updated successfully: {result}")
+			logging.info(f"{len(guilds)} Servers updated")
+		except Exception as e:
+			logging.warning(f"Error updating server {[g.id for g in guilds]}: {e}", exc_info=True)
+
 
