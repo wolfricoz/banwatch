@@ -120,7 +120,7 @@ class BanOptionButtons(SecureView) :
 			if evidence :
 				queue().add(self.provide_proof(interaction, evidence), priority=2)
 			queue().add(self.status(interaction.client, guild, user, "waiting_approval", ban.reason, word=checkListResult,
-			                        message=message, silent=silent))
+			                        message=message, silent=silent), priority=2)
 
 			embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
 			                      description=f"{ban.reason}")
@@ -128,7 +128,7 @@ class BanOptionButtons(SecureView) :
 			embed.set_footer(text=f"invite: {guild_db.invite} To approve it manually: /approve_ban {wait_id} ")
 			queue().add(
 				send_message(channel, f"<@&{os.getenv('STAFF_ROLE')}>", embed=embed,
-				             view=BanApproval(interaction.client, wait_id, True, silent=silent)))
+				             view=BanApproval(interaction.client, wait_id, True, silent=silent)), priority=1)
 			return
 
 		queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=True), priority=2)
@@ -146,7 +146,7 @@ class BanOptionButtons(SecureView) :
 		embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
 		                      description=f"{ban.reason}")
 		embed.set_footer(text=f"Server Invite: {guild_db.invite} Staff member: {staff_member} ban ID: {wait_id}")
-		queue().add(Bans().check_guilds(interaction, interaction.client, guild, user, embed, wait_id))
+		queue().add(Bans().check_guilds(interaction, interaction.client, guild, user, embed, wait_id), priority=2)
 		queue().add(self.status(interaction.client, guild, user), priority=0)
 
 
@@ -154,7 +154,7 @@ class BanOptionButtons(SecureView) :
 		if not evidence :
 			return
 		channel = interaction.client.get_channel(int(os.getenv("BANS")))
-		queue().add(EvidenceController.add_evidence(interaction, evidence, self.wait_id, self.user))
+		queue().add(EvidenceController.add_evidence(interaction, evidence, self.wait_id, self.user), priority=2)
 
 	async def check_checklisted_words(self, ban) :
 		found = None

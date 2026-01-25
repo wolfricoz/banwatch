@@ -26,9 +26,9 @@ class UnBanEvents(commands.Cog):
         except discord.Forbidden:
             reason = "User was unbanned by the server with no reason provided"
             await guild.owner.send(f"Please give me the permission to view audit logs to get the reason for the unban of {user}")
+        await Bans().revoke_bans(self.bot, unique_id, reason)
         await Bans().delete_ban(user.id, guild.id)
         # await Bans().update(self.bot)
-        await Bans().revoke_bans(self.bot, unique_id, reason)
         logging.info("List updated")
 
 

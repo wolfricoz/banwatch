@@ -38,7 +38,7 @@ class queue(metaclass=Singleton) :
 			case 0 :
 				self.low_priority_queue.append(task)
 			case _ :
-				self.normal_priority_queue.append(task)
+				self.low_priority_queue.append(task)
 		return round(self.get_queue_time() / 60, 2)
 
 	def remove(self, task) :

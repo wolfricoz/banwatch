@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 from discord.ext import commands, tasks
@@ -59,16 +60,24 @@ class Tasks(commands.Cog) :
 		for guild in self.bot.guilds :
 			if guild.id in guild_ids :
 				guild_ids.remove(guild.id)
-				ServerTransactions().update(guild.id, active=True)
+				ServerTransactions().update(guild.id, owner=guild.owner.name, owner_id=guild.owner.id, member_count=guild.member_count, name=guild.name,  active=True)
 				continue
 			ServerTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), "")
 		for gid in guild_ids :
-			ServerTransactions().update(gid, active=False)
+			ServerTransactions().update(gid,  active=False)
 		guilds = ServerTransactions().get_all(id_only=False)
 		servers = Servers()
 		servers.skip = False
+		guild_list= []
 		for guild in guilds :
-			queue().add(servers.update_server(self.bot, guild), 0)
+			guild_list.append(guild)
+			if len(guild_list) >= 100  :
+				queue().add(Servers().update_servers(guilds), 0)
+				guild_list.clear()
+				await asyncio.sleep(0)
+		else:
+			queue().add(Servers().update_servers(guilds), 0)
+			guild_list.clear()
 		AccessControl().reload_premium()
 
 	@tasks.loop(hours=1)

@@ -150,6 +150,12 @@ class BanReasons(Base) :
 	reason: Mapped[str] = mapped_column(String(512), unique=True)
 	active: Mapped[bool] = mapped_column(Boolean, default=True)
 
+class BanMessages(Base) :
+	__tablename__ = "ban_messages"
+	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+	server_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("servers.id", ondelete="CASCADE"))
+	ban_id: Mapped[int] = mapped_column(BigInteger)
+	message_id: Mapped[int] = mapped_column(BigInteger, unique=True)
 
 def create_bot_database() :
 	Base.metadata.create_all(engine)

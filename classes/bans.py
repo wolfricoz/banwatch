@@ -15,7 +15,8 @@ from classes.queue import queue
 from classes.rpsec import RpSec
 from classes.server import Server
 from classes.singleton import Singleton
-from database.current import Proof
+from database.current import Proof, BanMessages
+from database.transactions.BanMessageTransactions import BanMessageTransactions
 from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ProofTransactions import ProofTransactions
 from database.transactions.ServerTransactions import ServerTransactions
@@ -51,7 +52,8 @@ class Bans(metaclass=Singleton) :
 	async def inform_server(self, bot: commands.Bot, guild: discord.Guild, banembed: discord.Embed, ban_id: int) :
 		modchannel = await ConfigData().get_channel(guild, "modchannel")
 		options = BanInform(ban_class=Bans(), ban_id=ban_id)
-		queue().add(modchannel.send(embed=banembed, view=options), priority=0)
+		message = await send_message(modchannel, embed=banembed, view=options)
+		BanMessageTransactions().add_ban_message(ban_id, guild.id, message.id)
 
 	async def check_guilds(self, interaction, bot, guild, user, banembed, wait_id, open_thread=False, verified=False) :
 		approved_channel = bot.get_channel(bot.APPROVALCHANNEL)
@@ -73,6 +75,7 @@ class Bans(metaclass=Singleton) :
 	                              wait_id) :
 		approved_message = await approved_channel.send(embed=banembed)
 		BanTransactions().update(wait_id, message=approved_message.id)
+		BanMessageTransactions().add_ban_message(ban_id=wait_id, guild_id=guild.id, message_id=approved_message.id)
 		dev_guild: discord.Guild = bot.get_guild(bot.SUPPORTGUILD)
 
 		queue().add(self.open_thread(user, guild, approved_message, dev_guild, bot), priority=1)
@@ -131,14 +134,6 @@ class Bans(metaclass=Singleton) :
 
 		return invite
 
-	async def delete_message(self, message: discord.Message) :
-		try :
-			thread = await message.fetch_thread()
-			await thread.delete()
-		except :
-			pass
-		await message.delete()
-		print(f"deleted {message.id}")
 
 	def get_ban_id(self, embed: discord.Embed) :
 		match = re.search(r'ban ID: (\w+)', embed.footer.text)
@@ -164,48 +159,87 @@ class Bans(metaclass=Singleton) :
 				continue
 			result = self.get_ban_id(embed)
 			if result and int(ban_id) == int(result) :
+				BanMessageTransactions().add_ban_message(ban_id, channel.guild.id, message.id)
 				print(f"Found {message.id} in {channel.name} ({channel.guild.name})")
 				return message, embed
 		return None, None
 
-	async def search_messages(self, bot, channel: discord.TextChannel, banid: str, reason: str) :
-		"""
+	# Deprecated function
+	# async def search_messages(self, bot, channel: discord.TextChannel, banid: str, reason: str) :
+	# 	"""
+	#
+	# 	:param bot:
+	# 	:param channel:
+	# 	:param banid:
+	# 	:param reason:
+	# 	:return:
+	# 	"""
+	# 	banid = str(banid)
+	# 	try :
+	# 		message, embed = await self.find_ban_record(bot, banid, channel)
+	# 	except discord.Forbidden :
+	# 		await channel.guild.owner.send(
+	# 			f"Banwatch does not have permission to view chat history or access to the channel in {channel.name} ({channel.guild}). Please give Banwatch the necessary permissions to revoke bans from the channel. This is to ensure that"
+	# 			f" the correct information is shared and bans with false information can be removed.")
+	# 		logging.warning(f"Missing permissions to search messages in {channel.name} ({channel.guild})")
+	# 		return
+	# 	if message is None :
+	# 		return
+	# 	queue().add(self.delete_message(message), priority=2)
+	# 	queue().add(channel.send(f"Revoked ban `{embed.title}`! Reason: \n"
+	# 	                         f"{reason}"), priority=2)
+	# 	print(f"[revoke_ban] Queued deletion of {message.id} in {channel.name} ({channel.guild.name})")
+	# 	logging.info(f"[revoke_ban] Queued deletion of {message.id} in {channel.name} ({channel.guild.name})")
 
-		:param bot:
-		:param channel:
-		:param banid:
-		:param reason:
-		:return:
-		"""
-		banid = str(banid)
-		try :
-			message, embed = await self.find_ban_record(bot, banid, channel)
-		except discord.Forbidden :
-			await channel.guild.owner.send(
-				f"Banwatch does not have permission to view chat history or access to the channel in {channel.name} ({channel.guild}). Please give Banwatch the necessary permissions to revoke bans from the channel. This is to ensure that"
-				f" the correct information is shared and bans with false information can be removed.")
-			logging.warning(f"Missing permissions to search messages in {channel.name} ({channel.guild})")
-			return
-		if message is None :
-			return
-		queue().add(self.delete_message(message), priority=2)
-		queue().add(channel.send(f"Revoked ban `{embed.title}`! Reason: \n"
-		                         f"{reason}"), priority=2)
-		print(f"[revoke_ban] Queued deletion of {message.id} in {channel.name} ({channel.guild.name})")
-		logging.info(f"[revoke_ban] Queued deletion of {message.id} in {channel.name} ({channel.guild.name})")
-
-	async def revoke_bans(self, bot, banid, reason, staff=False) :
+	async def revoke_bans(self, bot: commands.Bot, ban_id, reason, staff=False) :
 		print("revoking bans")
-		for guild in bot.guilds :
-			modchannel = ConfigData().get_key_or_none(guild.id, "modchannel")
-			channel = bot.get_channel(modchannel)
-			if channel is None :
+		ban_messages = BanMessageTransactions().get_by_ban_id(ban_id=ban_id)
+		ban_message: BanMessages
+
+		for ban_message in ban_messages :
+			guild = bot.get_guild(ban_message.server_id)
+			if guild is None :
+				guild = bot.fetch_guild(ban_message.server_id)
+			if guild is None :
+				logging.error(f"Guild {ban_message.server_id} not found for ban message {ban_message.message_id}")
 				continue
-			queue().add(self.search_messages(bot, channel, banid, reason))
-		if staff :
-			BanTransactions().update(int(banid), approved=False)
-		channel = bot.get_channel(bot.APPROVALCHANNEL)
-		queue().add(self.search_messages(bot, channel, banid, reason))
+			channel = await ConfigData().get_channel(guild, "modchannel")
+			if channel is None :
+				logging.info("No modchannel found, skipping")
+				continue
+
+
+			queue().add(self.delete_message(channel, ban_message.message_id, reason=reason), priority=0)
+			BanMessageTransactions().delete_bm(int(ban_message.message_id))
+			if staff:
+				BanTransactions().update(int(ban_id), approved=False)
+
+
+
+	async def delete_message(self, channel: discord.TextChannel, message_id, reason=None) :
+		try :
+			message = await channel.fetch_message(message_id)
+			if reason:
+				await message.reply(f"Ban `{message.embeds[0].title}` revoked. Reason:\n{reason}")
+
+			await message.delete()
+			logging.info(f"Deleted ban message {message_id} in {channel.guild.name}")
+		except discord.NotFound :
+			logging.info(f"Ban message {message_id} not found in {channel.guild.name}, may have already been deleted")
+		except discord.Forbidden :
+			logging.error(f"Missing permissions to delete ban message {message_id} in {channel.guild.name}")
+		except Exception as e :
+			logging.error(f"Error deleting ban message {message_id} in {channel.guild.name}: {e}")
+
+		# for guild in bot.guilds :
+		# 	channel = ConfigData().get_channel(guild.id, "modchannel")
+		# 	if channel is None :
+		# 		continue
+		# 	queue().add(self.search_messages(bot, channel, ban_id, reason), 0)
+		# if staff :
+		# 	BanTransactions().update(int(ban_id), approved=False)
+		# channel = bot.get_channel(bot.APPROVALCHANNEL)
+		# queue().add(self.search_messages(bot, channel, ban_id, reason), 0)
 
 	async def check_guild_bans(self, guild: discord.Guild) :
 		count = 0

@@ -19,6 +19,7 @@ from classes.configer import Configer
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from classes.tasks import pending_bans
+from database.transactions.BanMessageTransactions import BanMessageTransactions
 from database.transactions.FlaggedTermsTransactions import FlaggedTermsTransactions
 
 from database.transactions.StaffTransactions import StaffTransactions
@@ -273,22 +274,27 @@ class dev(commands.GroupCog, name="dev") :
 
 	@app_commands.command(name="rebuild_bans")
 	@AccessControl().check_access("dev")
-	async def rebuild_bans(self, interaction: discord.Interaction, channel: discord.TextChannel = None) :
+	async def rebuild_bans(self, interaction: discord.Interaction, channel: discord.TextChannel = None, only_messages: bool = False) :
 		if channel is None :
 			channel = interaction.client.get_channel(int(os.getenv("APPROVED")))
 
 		await send_response(interaction, "Rebuilding bans channel", ephemeral=True)
+		if only_messages is False :
+			await self.find_ban_id(channel)
+		logging.info("Rebuilding ban messages from all guilds")
+		count = 0
+		for guild in self.bot.guilds:
+			count += 1
+			if count % 10 == 0 :
+				logging.info(f"Rebuilding ban messages: processed {count} guilds so far")
+				await asyncio.sleep(0)
 
-		DatabaseTransactions().truncate("bans")
-		await self.find_ban_id(channel)
-		await interaction.followup.send(f"Rebuilding bans channel complete", ephemeral=True)
-
-	async def find_ban_id(self, channel) :
-		history = channel.history(limit=None, oldest_first=True)
-		try :
-			async for message in history :
+			modchannel = await ConfigData().get_channel(guild, "modchannel")
+			if modchannel is None:
+				continue
+			async for message in modchannel.history(limit=None, oldest_first=True):
+				# We search for ANY embed with a ban ID in the footer, and then add it to the BanMessages if it's missing
 				if len(message.embeds) < 1 :
-					logging.info(f"Message {message.id} has no embeds ({len(message.embeds)})")
 					continue
 				embed = message.embeds[0]
 				try:
@@ -296,17 +302,19 @@ class dev(commands.GroupCog, name="dev") :
 				except:
 					match = None
 				if not match :
-					logging.warning(f"Failed to extract ban id from {embed.footer.text}")
 					continue
 				ban_id = int(match.group(1))
 				ban = BanTransactions().get(ban_id, override=True)
 				if ban is None :
-					logging.warning(f"Ban ID {ban_id} not found in database")
+					logging.warning(f"[rebuild ban] Ban ID {ban_id} not found in database, deleting message {message.id} in guild {guild.name}")
+					await message.delete()
 					continue
-				BanTransactions().update(ban_id, message=message.id, created_at=message.created_at if not ban.created_at else ban.created_at)
+				BanMessageTransactions().add_ban_message(ban_id, guild.id, message.id)
 
-		except discord.NotFound :
-			pass
+
+		await interaction.followup.send(f"Rebuilding bans channel complete", ephemeral=True)
+
+
 
 	@app_commands.command(name="testban", description="[DEV] unbans and rebans the test account")
 	@AccessControl().check_access("dev")
@@ -399,7 +407,37 @@ class dev(commands.GroupCog, name="dev") :
 
 		await send_response(interaction, "Queued 1000 channel fetches.", ephemeral=True)
 
+	@app_commands.command(name="reload_access", description="[DEV] Reloads access control")
+	@AccessControl().check_access("dev")
+	async def reload_access(self, interaction: discord.Interaction):
+		AccessControl().reload()
+		await send_response(interaction, "Reloaded access control", ephemeral=True)
 
 
+
+	async def find_ban_id(self, channel) :
+		history = channel.history(limit=None, oldest_first=True)
+		try :
+			async for message in history :
+				if len(message.embeds) < 1 :
+					logging.info(f"Message {message.id} has no embeds ({len(message.embeds)})")
+					continue
+				embed = message.embeds[0]
+				try:
+					match = re.search(r'ban ID: (\d+)', embed.footer.text)
+				except:
+					match = None
+				if not match :
+					logging.warning(f"Failed to extract ban id from {embed.footer.text}")
+					continue
+				ban_id = int(match.group(1))
+				ban = BanTransactions().get(ban_id, override=True)
+				if ban is None :
+					logging.warning(f"Ban ID {ban_id} not found in database")
+					continue
+				BanTransactions().update(ban_id, message=message.id, created_at=message.created_at if not ban.created_at else ban.created_at)
+
+		except discord.NotFound :
+			pass
 async def setup(bot: commands.Bot) :
 	await bot.add_cog(dev(bot))
