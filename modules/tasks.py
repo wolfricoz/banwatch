@@ -72,7 +72,7 @@ class Tasks(commands.Cog) :
 		for guild in guilds :
 			guild_list.append(guild)
 			if len(guild_list) >= 100  :
-				queue().add(Servers().update_servers(guilds), 0)
+				queue().add(Servers().update_servers(guild_list), 0)
 				guild_list.clear()
 				await asyncio.sleep(0)
 		else:
