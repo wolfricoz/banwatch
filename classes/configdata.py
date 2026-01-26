@@ -1,4 +1,4 @@
-"""This class is for the guild's config data, which is stored in the database. It is used to store and retrieve data from the database."""
+"""This class is for the guild's Config data, which is stored in the database. It is used to store and retrieve data from the database."""
 import json
 import logging
 import os
@@ -16,11 +16,11 @@ from database.transactions.ServerTransactions import ServerTransactions
 class KeyNotFound(Exception) :
 	def __init__(self, key) :
 		self.key = key
-		super().__init__(f"Key {key} not found in config")
+		super().__init__(f"Key {key} not found in Config")
 
 
 class ConfigData(metaclass=Singleton) :
-	"""This class generates the config file, with functions to change and get values from it"""
+	"""This class generates the Config file, with functions to change and get values from it"""
 
 	configcontroller = ConfigTransactions()
 	data = {}
@@ -39,7 +39,7 @@ class ConfigData(metaclass=Singleton) :
 					if guild is None :
 						ServerTransactions().add(int(serverid), "None", "None", 0, "None", False)
 						continue
-					logging.info(f"Migrating config for {serverid}")
+					logging.info(f"Migrating Config for {serverid}")
 					with open(f"configs/{file}", "r") as f :
 						config = json.load(f)
 						for key, value in config.items() :
@@ -53,7 +53,7 @@ class ConfigData(metaclass=Singleton) :
 
 	# os.rmdir("configs")
 	def reload(self) :
-		"""Reloads the config data from the database"""
+		"""Reloads the Config data from the database"""
 		self.data = {}
 		for guild in ServerTransactions().get_all() :
 			try:
@@ -67,7 +67,7 @@ class ConfigData(metaclass=Singleton) :
 			self.load_guild(guild.id)
 
 	def load_guild(self, serverid) :
-		"""Loads the config for a guild"""
+		"""Loads the Config for a guild"""
 		config = self.configcontroller.server_config_get(serverid)
 		self.data[str(serverid)] = {}
 
@@ -75,23 +75,23 @@ class ConfigData(metaclass=Singleton) :
 			self.data[str(serverid)][item.key.upper()] = item.value
 
 	def add_key(self, serverid, key, value: str | bool | int, overwrite=False) :
-		"""Adds a key to the config"""
+		"""Adds a key to the Config"""
 
 		self.configcontroller.config_unique_add(serverid, key, value, overwrite=overwrite)
 		self.load_guild(serverid)
 
 	def remove_key(self, serverid, key) :
-		"""Removes a key from the config"""
+		"""Removes a key from the Config"""
 		self.configcontroller.config_unique_remove(serverid, key)
 		self.load_guild(serverid)
 
 	def update_key(self, serverid, key, value) :
-		"""Updates a key in the config"""
+		"""Updates a key in the Config"""
 		self.configcontroller.config_update(serverid, key, value)
 		self.load_guild(serverid)
 
 	def get_key(self, serverid, key, default=None) :
-		"""Gets a key from the config, throws KeyNotFound if not found"""
+		"""Gets a key from the Config, throws KeyNotFound if not found"""
 		guild = self.get_guild(serverid)
 		value = guild.get(key.upper(), default)
 		if not value:
@@ -114,13 +114,13 @@ class ConfigData(metaclass=Singleton) :
 
 
 	def get_key_or_none(self, serverid, key) :
-		"""Gets a key from the config, returns None if not found"""
+		"""Gets a key from the Config, returns None if not found"""
 		return self.get_key(serverid, key)
 
-		"""Gets channel from the config."""
+		"""Gets channel from the Config."""
 
 	async def get_channel(self, guild: discord.Guild, channel_type: str = "modchannel") -> None | VoiceChannel | StageChannel | ForumChannel | TextChannel | CategoryChannel | Thread :
-		"""Gets the channel from the config"""
+		"""Gets the channel from the Config"""
 		channel_id = self.get_key_or_none(guild.id, channel_type)
 		if not isinstance(channel_id, int) :
 
@@ -134,7 +134,7 @@ class ConfigData(metaclass=Singleton) :
 			if channel is None:
 				channel = guild.owner
 			await send_message(channel,
-			                   f"No `{channel_type}` channel set for {guild.name}, please set it up using the /config command")
+			                   f"No `{channel_type}` channel set for {guild.name}, please set it up using the /Config command")
 			return None
 		channel = guild.get_channel(channel_id)
 		if channel is None:
@@ -144,6 +144,8 @@ class ConfigData(metaclass=Singleton) :
 					channel = await guild.fetch_channel(channel_id)
 				except discord.NotFound:
 					continue
+				except discord.HTTPException:
+					return None
 		if channel is None :
 			channel = find_first_accessible_text_channel(guild)
 			if channel is None:
