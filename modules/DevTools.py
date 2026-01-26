@@ -35,7 +35,7 @@ GUILD = int(os.getenv("GUILD"))
 SUPPORT_GUILD = discord.Object(GUILD)
 
 
-class dev(commands.GroupCog, name="dev") :
+class DevTools(commands.GroupCog, name="dev") :
 
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
@@ -46,7 +46,7 @@ class dev(commands.GroupCog, name="dev") :
 		await modchannel.send(embed=banembed)
 
 	@app_commands.command(name="updatecommands", description="[DEV] Unloads and syncs commands again", )
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def update_commands(self, interaction: discord.Interaction) :
 		queue().add(self.bot.tree.sync(), priority=2)
 		await send_response(interaction,"Command sync queue, high priority queue.")
@@ -71,7 +71,7 @@ class dev(commands.GroupCog, name="dev") :
 		await send_response(interaction, "Here are the stats!", embed=embed, ephemeral=True)
 
 	@app_commands.command(name="loadflaggedterms", description="[DEV] Loads old watchlist into flagged terms", )
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def update_flagged_terms(self, interaction: discord.Interaction) :
 		checklist = await Configer.get_checklist()
 		for word in checklist :
@@ -84,7 +84,7 @@ class dev(commands.GroupCog, name="dev") :
 
 
 	@app_commands.command(name="announce", description="[DEV] Send an announcement to all guild owners")
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def announce(self, interaction: discord.Interaction) :
 		message = await send_modal(interaction, "What is the announcement?", "Announcement", 1700)
 		if interaction.user.id != 188647277181665280 :
@@ -106,20 +106,20 @@ class dev(commands.GroupCog, name="dev") :
 			except Exception as e :
 				try :
 					await guild.owner.send(
-						f"Banwatch could not send the announcement to your modchannel in {guild.name}, please check the mod channel settings. You can setup your modchannel with: ```/config change option:Mod channel channel:```")
+						f"Banwatch could not send the announcement to your modchannel in {guild.name}, please check the mod channel settings. You can setup your modchannel with: ```/Config change option:Mod channel channel:```")
 					await guild.owner.send(announcement)
 				except Exception as e :
 					await interaction.channel.send(f"Error sending to {guild}({guild.owner}): {e}")
 
 	@app_commands.command(name="leave_server", description="[DEV] Leave a server")
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def leave_server(self, interaction: discord.Interaction, guildid: int) :
 		guild = self.bot.get_guild(guildid)
 		await guild.leave()
 		await send_response(interaction,f"Left {guild}")
 
 	@app_commands.command(name="blacklist_server", description="[DEV] Blacklist a server")
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def blacklist_server(self, interaction: discord.Interaction, guildid: str) :
 		guildid = int(guildid)
 		guild = self.bot.get_guild(guildid)
@@ -128,7 +128,7 @@ class dev(commands.GroupCog, name="dev") :
 		await send_response(interaction,f"Blacklisted {guild}")
 
 	@app_commands.command(name="unblacklist_server", description="[DEV] Remove a server from the blacklist")
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def unblacklist_server(self, interaction: discord.Interaction, guildid: str) :
 		guildid = int(guildid)
 		await Configer.remove_from_blacklist(guildid)
@@ -136,14 +136,14 @@ class dev(commands.GroupCog, name="dev") :
 
 	# blacklist user goes here
 	@app_commands.command(name="blacklist_user", description="[DEV] Blacklist a user")
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def blacklist_user(self, interaction: discord.Interaction, userid: str) :
 		userid = int(userid)
 		await Configer.add_to_user_blacklist(userid)
 		await send_response(interaction, f"Blacklisted {userid}")
 
 	@app_commands.command(name="unblacklist_user", description="[DEV] Remove a user from the blacklist")
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def unblacklist_user(self, interaction: discord.Interaction, userid: str) :
 		userid = int(userid)
 		await Configer.remove_from_user_blacklist(userid)
@@ -162,7 +162,7 @@ class dev(commands.GroupCog, name="dev") :
 		Choice(name="countreview", value="countreview"),
 		Choice(name="countblock", value="countblock"),
 	])
-	@AccessControl().check_access(role="dev")
+	@AccessControl().check_access(role="DevTools")
 	async def flaggedterms(self, interaction: discord.Interaction, operation: Choice[str], term: str, action: Choice[str], regex: bool = False) :
 		match operation.value :
 			case "add" :
@@ -194,7 +194,7 @@ class dev(commands.GroupCog, name="dev") :
 		return None
 
 	@app_commands.command(name="backup")
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def copy(self, interaction: discord.Interaction, evidence_only: bool = False) :
 		await send_response(interaction, "Backup Started", ephemeral=True)
 		dev_guild: discord.Guild = self.bot.get_guild(int(os.getenv("GUILD")))
@@ -245,7 +245,7 @@ class dev(commands.GroupCog, name="dev") :
 				                embeds=message.embeds), 0)
 
 	@app_commands.command(name="rebuild_evidence")
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def rebuild_evidence(self, interaction: discord.Interaction, channel: discord.TextChannel, log: bool = False) :
 		await send_response(interaction, "Rebuilding evidence channel", ephemeral=True)
 
@@ -273,7 +273,7 @@ class dev(commands.GroupCog, name="dev") :
 		queue().add(send_message(interaction.channel, "Rebuilding evidence complete"), priority=0)
 
 	@app_commands.command(name="rebuild_bans")
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def rebuild_bans(self, interaction: discord.Interaction, channel: discord.TextChannel = None, only_messages: bool = False) :
 		if channel is None :
 			channel = interaction.client.get_channel(int(os.getenv("APPROVED")))
@@ -282,34 +282,36 @@ class dev(commands.GroupCog, name="dev") :
 		if only_messages is False :
 			await self.find_ban_id(channel)
 		logging.info("Rebuilding ban messages from all guilds")
-		count = 0
-		for guild in self.bot.guilds:
-			count += 1
-			if count % 10 == 0 :
-				logging.info(f"Rebuilding ban messages: processed {count} guilds so far")
-				await asyncio.sleep(0)
-
+		async def inspect_guild_messages():
 			modchannel = await ConfigData().get_channel(guild, "modchannel")
-			if modchannel is None:
-				continue
-			async for message in modchannel.history(limit=None, oldest_first=True):
+			if modchannel is None :
+				return
+			async for message in modchannel.history(limit=None, oldest_first=True) :
 				# We search for ANY embed with a ban ID in the footer, and then add it to the BanMessages if it's missing
 				if len(message.embeds) < 1 :
-					continue
+					return
 				embed = message.embeds[0]
-				try:
+				try :
 					match = re.search(r'ban ID: (\d+)', embed.footer.text)
-				except:
+				except :
 					match = None
 				if not match :
-					continue
+					return
 				ban_id = int(match.group(1))
 				ban = BanTransactions().get(ban_id, override=True)
 				if ban is None :
-					logging.warning(f"[rebuild ban] Ban ID {ban_id} not found in database, deleting message {message.id} in guild {guild.name}")
-					await message.delete()
-					continue
+					logging.warning(
+						f"[rebuild ban] Ban ID {ban_id} not found in database, deleting message {message.id} in guild {guild.name}")
+					queue().add(message.delete(), 0)
+					return
+				logging.info(f"[rebuild ban] Adding ban message {message.id} for ban ID {ban_id} in guild {guild.name}")
 				BanMessageTransactions().add_ban_message(ban_id, guild.id, message.id)
+
+		for guild in self.bot.guilds:
+			queue().add(inspect_guild_messages(), 0)
+
+
+
 
 
 		await interaction.followup.send(f"Rebuilding bans channel complete", ephemeral=True)
@@ -317,7 +319,7 @@ class dev(commands.GroupCog, name="dev") :
 
 
 	@app_commands.command(name="testban", description="[DEV] unbans and rebans the test account")
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def testban(self, interaction: discord.Interaction, checklist: bool = True) :
 		user = self.bot.get_user(474365489670389771)
 		if user is None:
@@ -330,21 +332,21 @@ class dev(commands.GroupCog, name="dev") :
 			pass
 		try :
 			await interaction.guild.ban(user,
-			                            reason=f"{'Test Ban that is longer than four words' if checklist else 'dev ban that is longer than four words'}")
+			                            reason=f"{'Test Ban that is longer than four words' if checklist else 'DevTools ban that is longer than four words'}")
 		except AttributeError :
 			user = await self.bot.fetch_user(474365489670389771)
 			await interaction.guild.ban(user,
-			                            reason=f"{'Test Ban that is longer than four words' if checklist else 'dev ban that is longer than four words'}")
+			                            reason=f"{'Test Ban that is longer than four words' if checklist else 'DevTools ban that is longer than four words'}")
 		await send_response(interaction,"Test ban complete", ephemeral=True)
 
 	@app_commands.command(name="pendingbans", description="[DEV] Lists all pending bans")
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def pendingbans(self, interaction: discord.Interaction) :
 		await pending_bans(self.bot)
 		await send_response(interaction, "Checking for pending bans", ephemeral=True)
 
 	@app_commands.command(name="refreshbans", description="[DEV] Refreshes the bans")
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def refreshbans(self, interaction: discord.Interaction) :
 		await Bans().update(self.bot, override=True)
 		await send_response(interaction,"Bans refresh queued", ephemeral=True)
@@ -366,14 +368,14 @@ class dev(commands.GroupCog, name="dev") :
 		quit(0)
 
 	@app_commands.command(name="remove_staff", description="[DEV] Remove a staff member from the team")
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def remove_staff(self, interaction: discord.Interaction, user: discord.User) :
 		StaffTransactions().delete(user.id)
 		await send_response(interaction, f"Staff member {user.mention} successfully removed!")
 		AccessControl().reload()
 
 	@app_commands.command(name="test_config", description="[DEV] Tests if features are working correctly.")
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def test_config(self, interaction: discord.Interaction):
 		await send_response(interaction, "Starting test.", ephemeral=True)
 		try:
@@ -384,10 +386,10 @@ class dev(commands.GroupCog, name="dev") :
 		if channel is None:
 			await send_message(interaction.channel, "Failed to retrieve channel")
 			return
-		await send_message(interaction.channel, "successfully tested config, no errors found")
+		await send_message(interaction.channel, "successfully tested Config, no errors found")
 
 	@app_commands.command(name="test_channel", description="[DEV] fills queue with 1000 channel fetches to test fetching failures")
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def test_channel(self, interaction: discord.Interaction):
 		await send_response(interaction, "Starting channel fetch test.", ephemeral=True)
 		async def test_fetch(last = False):
@@ -408,7 +410,7 @@ class dev(commands.GroupCog, name="dev") :
 		await send_response(interaction, "Queued 1000 channel fetches.", ephemeral=True)
 
 	@app_commands.command(name="reload_access", description="[DEV] Reloads access control")
-	@AccessControl().check_access("dev")
+	@AccessControl().check_access("DevTools")
 	async def reload_access(self, interaction: discord.Interaction):
 		AccessControl().reload()
 		await send_response(interaction, "Reloaded access control", ephemeral=True)
@@ -440,4 +442,4 @@ class dev(commands.GroupCog, name="dev") :
 		except discord.NotFound :
 			pass
 async def setup(bot: commands.Bot) :
-	await bot.add_cog(dev(bot))
+	await bot.add_cog(DevTools(bot))
