@@ -16,7 +16,11 @@ Commands to look up users and check for bans across all monitored servers.
 
 **Usage:** `/memberlookup lookup <user> <ban_id> <override>`
 
-> Missing Documentation
+> Looks up a user's ban history across all monitored servers.
+Can search by user or a specific ban ID.
+
+**Permissions:**
+- `Ban Members`
 
 ---
 
@@ -24,7 +28,11 @@ Commands to look up users and check for bans across all monitored servers.
 
 **Usage:** `/memberlookup checkall`
 
-> Missing Documentation
+> Scans all members in the current server against the global ban database.
+Reports users who are found in the database.
+
+**Permissions:**
+- `Ban Members`
 
 ---
 

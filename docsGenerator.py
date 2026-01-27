@@ -28,7 +28,7 @@ class DocGenerator():
         for file in glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "modules", "*.py")):
 
             if file.split("\\")[-1].lower() in ['logs.py', 'lobbyevents.py', 'QueueTask.py', 'whitelist.py',
-                                                'devtools.py', 'inviteinfo.py', 'tasks.py', 'databasetasks.py', 'refresher.py', 'security.py']:
+                                                'devtools.py', 'inviteinfo.py', 'tasks.py', 'databasetasks.py', 'refresher.py', 'security.py', 'queuetask.py']:
                 continue
 
             self.load_file(file, nav=count)
@@ -109,6 +109,9 @@ nav_order: {nav}
 
         if not docstring:
             docstring = "Missing Documentation"
+        if docstring.startswith("skip") or docstring.startswith("[skip]"):
+            return
+
         param_string = ""
         try:
             # Use the callback if it exists, otherwise use the function object itself

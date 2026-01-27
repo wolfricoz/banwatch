@@ -12,11 +12,14 @@ nav_order: 2
 Configure Banwatch for your server. Set channels, toggle features, and check permissions.
 
 
-### `crole`
+### `change`
 
-**Usage:** `/config crole <option> <channel>`
+**Usage:** `/config change <option> <channel>`
 
-> Missing Documentation
+> Changes server-specific settings for Banwatch.
+
+**Permissions:**
+- `Manage Server`
 
 ---
 
@@ -24,7 +27,10 @@ Configure Banwatch for your server. Set channels, toggle features, and check per
 
 **Usage:** `/config appeals <allow>`
 
-> Missing Documentation
+> Enables or disables the ban appeal system for this server.
+
+**Permissions:**
+- `Manage Server`
 
 ---
 
@@ -32,7 +38,10 @@ Configure Banwatch for your server. Set channels, toggle features, and check per
 
 **Usage:** `/config visibility <hide>`
 
-> Missing Documentation
+> Toggles whether this server's bans are visible in public lookups.
+
+**Permissions:**
+- `Manage Server`
 
 ---
 
@@ -40,7 +49,10 @@ Configure Banwatch for your server. Set channels, toggle features, and check per
 
 **Usage:** `/config permissioncheck`
 
-> Missing Documentation
+> Checks if the bot has the required permissions in the current channel and server. This is the first step in troubleshooting if the bot is not functioning as expected. Please run this command before contacting support.
+
+**Permissions:**
+- None required for the user.
 
 ---
 

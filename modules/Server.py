@@ -10,7 +10,11 @@ from view.buttons.communicationbuttons import CommunicationButtons
 from view.modals.inputmodal import send_modal
 
 
-class ServerMessenger(commands.GroupCog, name="server") :
+class Server(commands.GroupCog, name="server") :
+	"""
+	These commands are for server staff to communicate regarding bans, and anything related to server management and communication.
+	Access to these commands is restricted to users with appropriate permissions.
+	"""
 
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
@@ -18,7 +22,7 @@ class ServerMessenger(commands.GroupCog, name="server") :
 	@app_commands.command(name="message")
 	@app_commands.checks.has_permissions(moderate_members=True)
 	async def send(self, interaction: discord.Interaction, ban_id: str ) :
-		"""Sends a message to the server who owns the ban"""
+		"""Sends a message to the server who owns the ban for more information. This way you can communicate directly with the server staff regarding the ban without having to join the server."""
 		staff = AccessControl().access_all(interaction.user.id)
 
 		if interaction.guild.member_count < 250 and not staff:
@@ -50,4 +54,4 @@ class ServerMessenger(commands.GroupCog, name="server") :
 
 
 async def setup(bot: commands.Bot) :
-	await bot.add_cog(ServerMessenger(bot))
+	await bot.add_cog(Server(bot))

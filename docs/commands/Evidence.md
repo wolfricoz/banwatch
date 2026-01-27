@@ -16,7 +16,11 @@ Commands to add, retrieve, and manage evidence for user bans.
 
 **Usage:** `/evidence add <user> <ban_id> <info> <attachment1> <attachment2> <attachment3>`
 
-> Adds evidence to a user's record
+> Adds evidence to a user's ban record.
+Can be text, attachments, or both.
+
+**Permissions:**
+- `Moderate Members`
 
 ---
 
@@ -24,7 +28,10 @@ Commands to add, retrieve, and manage evidence for user bans.
 
 **Usage:** `/evidence get <user> <ban_id>`
 
-> Missing Documentation
+> Retrieves and displays all evidence for a given user or ban ID.
+
+**Permissions:**
+- `Moderate Members`
 
 ---
 
@@ -32,7 +39,11 @@ Commands to add, retrieve, and manage evidence for user bans.
 
 **Usage:** `/evidence manage <user> <ban_id>`
 
-> Missing Documentation
+> Displays evidence in a paginated view for management.
+Allows staff to review and handle evidence entries.
+
+**Permissions:**
+- `Moderate Members`
 
 ---
 

@@ -30,6 +30,7 @@ class Premium(GroupCog, name="premium") :
 		self.bot.add_view(bottrap())
 
 	async def check_deleted(self, banned_user: discord.User | discord.Member) -> bool :
+		"""[skip]"""
 		if banned_user.bot :
 			return False
 		if not (banned_user.name == banned_user.global_name or banned_user.global_name is None) :
@@ -47,7 +48,9 @@ class Premium(GroupCog, name="premium") :
 	@AccessControl().check_premium()
 	async def remove_deleted(self, interaction: Interaction) :
 		"""
-		[PREMIUM] Scans the server's ban list and removes entries for deleted user accounts.
+		Scans the server's ban list and removes entries for deleted user accounts, and kicks any deleted accounts still present in the server! This will help you clean up IP bans and ensure your server is free of inactive or deleted users.
+
+		Why would you want to remove IP bans for deleted users? In many cases the IP has been reassigned to a new person because most ISPs recycle IP addresses. Keeping bans for deleted users can inadvertently block new users who are assigned those IPs, potentially causing frustration and loss of legitimate members.
 
 		**Permissions:**
 		- `Manage Server`
@@ -102,8 +105,10 @@ class Premium(GroupCog, name="premium") :
 	@AccessControl().check_premium()
 	async def trapbutton(self, interaction: discord.Interaction):
 		"""
-		[PREMIUM] Creates a message with a button that instantly bans any user who clicks it.
-		Useful for catching malicious bots.
+		Creates a message with a button that instantly bans any user who clicks it.
+		Useful for catching malicious bots. Make sure to warn your members not to click it!
+
+		This feature is currently a test; if you have feedback on how to improve its efficacy, please reach out to the support server.
 
 		**Permissions:**
 		- `Manage Server`
@@ -122,7 +127,9 @@ class Premium(GroupCog, name="premium") :
 	@AccessControl().check_premium()
 	async def traprole(self, interaction: discord.Interaction, role: discord.Role):
 		"""
-		[PREMIUM] Designates a 'trap role'. Any user assigned this role will be instantly banned.
+		[PREMIUM] Designates a 'trap role'. Any user assigned this role will be instantly banned. This is useful for catching bots that assign themselves roles through onboarding or other automated processes; simply assign the trap role to the bot and it will be banned when the task runs (every hour!).
+
+		This feature is currently a test; if you have feedback on how to improve its efficacy, please reach out to the support server.
 
 		**Permissions:**
 		- `Manage Server`
@@ -138,7 +145,7 @@ class Premium(GroupCog, name="premium") :
 	@AccessControl().check_premium()
 	async def toggle_feature(self, interaction: discord.Interaction, feature_name: app_commands.Choice[str], enable: bool) :
 		"""
-		[PREMIUM] Toggles various premium features on or off for the server.
+		Toggles various premium features on or off for the server. Choose the feature you want to enable or disable from the list.
 
 		**Permissions:**
 		- `Manage Server`
@@ -160,7 +167,7 @@ class Premium(GroupCog, name="premium") :
 	@AccessControl().check_premium()
 	async def ban_presets(self, interaction: discord.Interaction, operation: Choice[str], name: str = None) :
 		"""
-		[PREMIUM] Manages preset ban reasons for quick moderation.
+		Manages preset ban reasons for quick moderation. They will appear on the top of the ban reason list when banning a user with the ban command.
 		Allows adding, removing, and listing presets.
 
 		**Permissions:**
