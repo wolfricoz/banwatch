@@ -1,0 +1,21 @@
+{
+    "create": "Submit an appeal for a ban from a specific server. You can't appeal if:\n- The server does not allow appeals.\n- You have already appealed to that server.\n- You are blacklisted from using the bot.\n- The ban is hidden\n\n**Permissions:**\n- No special permissions are needed. This command can be used by anyone to appeal their own bans.",
+    "report": "Report a ban that you believe to be unjust or harmful to Banwatch staff for further investigation. You can't report if:\n- The server allows appeals and you have not appealed yet.\n- You are blacklisted from using the bot.\n- The ban is hidden.",
+    "crole": "Missing Documentation",
+    "appeals": "Missing Documentation",
+    "visibility": "Missing Documentation",
+    "permissioncheck": "Missing Documentation",
+    "add": "Adds evidence to a user's record",
+    "get": "Missing Documentation",
+    "manage": "Missing Documentation",
+    "lookup": "Missing Documentation",
+    "checkall": "Missing Documentation",
+    "check_deleted": "Missing Documentation",
+    "remove_deleted": "Missing Documentation",
+    "trapbutton": "Missing Documentation",
+    "traprole": "Missing Documentation",
+    "toggle_feature": "Missing Documentation",
+    "premade_ban_reasons": "Missing Documentation",
+    "queue": "A background task helper that abstracts the loop and reconnection logic for you.\n\nThe main interface to create this is through :func:`loop`.",
+    "display_status": "A background task helper that abstracts the loop and reconnection logic for you.\n\nThe main interface to create this is through :func:`loop`."
+}

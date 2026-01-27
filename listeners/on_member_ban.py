@@ -46,7 +46,7 @@ class BanEvents(commands.Cog) :
 		if mod_channel is None:
 			logging.warning(f"{guild.name}({guild.id}) doesn't have modchannel set.")
 			await Bans().add_ban(user.id, guild.id, ban.reason, "No Modchannel Set", approved=False)
-			queue().add(send_message(guild.owner, f"{guild.name}({guild.id}) doesn't have modchannel set. Please set it using the /config change command."), priority=2)
+			queue().add(send_message(guild.owner, f"{guild.name}({guild.id}) doesn't have modchannel set. Please set it using the /Config change command."), priority=2)
 			return
 
 		# check if ban has to be hidden
@@ -96,12 +96,12 @@ class BanEvents(commands.Cog) :
 			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name)
 			try :
 				await guild.owner.send(
-					"No moderation channel set, please setup your moderation channel using the /config commands. Your ban has not been broadcasted but has been recorded")
+					"No moderation channel set, please setup your moderation channel using the /Config commands. Your ban has not been broadcasted but has been recorded")
 			except :
 				for channel in guild.channels :
 					try :
 						await channel.send(
-							"No moderation channel set, please setup your moderation channel using the /config commands. Your ban has not been broadcasted but has been recorded")
+							"No moderation channel set, please setup your moderation channel using the /Config commands. Your ban has not been broadcasted but has been recorded")
 					except discord.NotFound or discord.Forbidden :
 						continue
 					return

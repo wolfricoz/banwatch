@@ -4,7 +4,7 @@ from discord.ext import commands, tasks
 from classes.queue import queue
 
 
-class queueTask(commands.Cog) :
+class QueueTask(commands.Cog) :
 	status = None
 
 	def __init__(self, bot: commands.Bot) :
@@ -41,4 +41,4 @@ class queueTask(commands.Cog) :
 
 
 async def setup(bot) :
-	await bot.add_cog(queueTask(bot))
+	await bot.add_cog(QueueTask(bot))

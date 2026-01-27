@@ -1,4 +1,4 @@
-"""This class generates the config file, with functions to change and get values from it"""
+"""This class generates the Config file, with functions to change and get values from it"""
 import json
 import logging
 import os
@@ -7,10 +7,10 @@ cache_path = "settings/cache.json"
 
 
 class LongTermCache():
-    """This class generates the config file, with functions to change and get values from it"""
+    """This class generates the Config file, with functions to change and get values from it"""
 
     def create(self):
-        """Creates the config"""
+        """Creates the Config"""
         dictionary = {
             "bans": {}
 

@@ -16,14 +16,26 @@ from view.modals import inputmodal
 
 
 class Appeals(commands.GroupCog, name="appeal") :
+	"""
+	Commands for users to appeal their bans or report unjust bans.
+	"""
 
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
 
-	@app_commands.command(description="You can use this command to appeal a ban")
+	@app_commands.command(description="Appeal a ban from a server. You must not be blacklisted.")
 	@app_commands.autocomplete(guild=autocomplete_appeal)
 	@AccessControl().check_blacklist()
 	async def create(self, interaction: discord.Interaction, guild: str) :
+		"""
+		Allows a user to appeal a ban from a server they are banned from.
+		The user must not be on the bot's global blacklist.
+
+		**Permissions:**
+		- None required for the user.
+		"""
+		if not guild.isnumeric() :
+			return await send_response(interaction, "Invalid guild selected.", ephemeral=True)
 		appeals_allowed = ConfigData().get_key(int(guild), "allow_appeals", True)
 		if appeals_allowed is False or appeals_allowed is None :
 			return await send_response(interaction, "This server does not allow appeals.")
@@ -45,10 +57,20 @@ class Appeals(commands.GroupCog, name="appeal") :
 		await modchannel.send(embed=embed, view=AppealButtons())
 		await interaction.followup.send(f"Ban appeal sent to moderators of {guild.name}", ephemeral=True)
 
-	@app_commands.command(description="Report a harmful ban here!")
+	@app_commands.command(description="Report a potentially harmful or unjust ban to Banwatch staff.")
 	@app_commands.autocomplete(guild=autocomplete_appeal)
 	@AccessControl().check_blacklist()
 	async def report(self, interaction: discord.Interaction, guild: str) :
+		"""
+		Reports a ban to the Banwatch staff for review.
+		This is for bans that may be unjust or harmful.
+		The user must not be on the bot's global blacklist.
+
+		**Permissions:**
+		- None required for the user.
+		"""
+		if not guild.isnumeric() :
+			return await send_response(interaction, "Invalid guild selected.", ephemeral=True)
 		if guild.lower() == "none" :
 			await interaction.response.send_message("No bans to report", ephemeral=True)
 			return

@@ -45,16 +45,25 @@ class BanCheck(ABC) :
 		return bcount
 
 
-class User(commands.GroupCog, name="user") :
+class MemberLookup(commands.GroupCog, name="user") :
+	"""
+	Commands to look up users and check for bans across all monitored servers.
+	"""
 
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
 
-	@app_commands.command(name="lookup", description="Looks up user's bans and displays them in the channel")
+	@app_commands.command(name="lookup", description="Looks up a user's ban history by user or ban ID.")
 	@app_commands.checks.has_permissions(ban_members=True)  # Ensure the user has the 'ban_members' permission
 	async def lookup(self, interaction: discord.Interaction, user: discord.User = None, ban_id: str = None,
 	                 override: bool = False) :
+		"""
+		Looks up a user's ban history across all monitored servers.
+		Can search by user or a specific ban ID.
 
+		**Permissions:**
+		- `Ban Members`
+		"""
 		# Check if override is enabled and the user has access to use it
 		if override and not AccessControl().check_access() :
 			logging.warning(f"Access denied for override by {interaction.user}.")
@@ -101,11 +110,19 @@ class User(commands.GroupCog, name="user") :
 		await view.send_message(interaction.client, interaction.channel, sr, user, interaction=interaction,
 		                        override=override)
 
-	@app_commands.command(name="checkall", description="checks ALL users")
+	@app_commands.command(name="checkall", description="Checks all members in the server against the global ban database.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	async def checkall(self, interaction: discord.Interaction) :
+		"""
+		Scans all members in the current server against the global ban database.
+		Reports users who are found in the database.
+
+		**Permissions:**
+		- `Ban Members`
+		"""
 		await send_response(interaction,
-		                    f"Checking all users ({len(interaction.guild.members)}), please wait. Looking through {BanTransactions().count()} unique bans")
+		                    "Checking all members... This may take a while.",
+		                    ephemeral=True)
 		start = time.time()
 		count = 0
 		logging.info("Starting checkall")
@@ -120,4 +137,4 @@ class User(commands.GroupCog, name="user") :
 
 
 async def setup(bot: commands.Bot) :
-	await bot.add_cog(User(bot))
+	await bot.add_cog(MemberLookup(bot))

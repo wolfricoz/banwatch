@@ -1,43 +1,43 @@
-"""This class generates the config file, with functions to change and get values from it"""
+"""This class generates the Config file, with functions to change and get values from it"""
 import json
 import logging
 import os
 from abc import ABC, abstractmethod
 
 appeals_path = "settings/appeals.json"
-config_path = "settings/config.json"
+config_path = "settings/Config.json"
 
 
 class Configer(ABC) :
-	"""This class generates the config file, with functions to change and get values from it"""
+	"""This class generates the Config file, with functions to change and get values from it"""
 
 	@staticmethod
 	@abstractmethod
 	async def create(guildid, guildname) :
-		"""Creates the config"""
+		"""Creates the Config"""
 		return
-		# print("updating config")
+		# print("updating Config")
 		# path = f"configs/{guildid}.json"
-		# config = {}
+		# Config = {}
 		# if not os.path.isdir('configs'):
 		#     os.mkdir('configs')
 		# if os.path.exists(path):
 		#     with open(path, 'r') as f:
-		#         config = json.load(f)
+		#         Config = json.load(f)
 		# dictionary = {
-		#     "name"      : config.get("name", guildname),
-		#     "modchannel": config.get("modchannel", 0),
-		#     "allow_appeals": config.get("allow_appeals", True)
+		#     "name"      : Config.get("name", guildname),
+		#     "modchannel": Config.get("modchannel", 0),
+		#     "allow_appeals": Config.get("allow_appeals", True)
 		# }
 		# json_object = json.dumps(dictionary, indent=4)
 		# with open(f"configs/{guildid}.json", "w") as outfile:
 		#     outfile.write(json_object)
-		# logging.info(f"config created for {guildid}")
+		# logging.info(f"Config created for {guildid}")
 
 	@staticmethod
 	@abstractmethod
 	async def create_bot_config() :
-		"""Creates the general config"""
+		"""Creates the general Config"""
 		if not os.path.isdir("settings") :
 			os.mkdir("settings")
 		dictionary = {
@@ -60,12 +60,12 @@ class Configer(ABC) :
 			return
 		with open(config_path, "w") as outfile :
 			outfile.write(json_object)
-			logging.info(f"universal config created")
+			logging.info(f"universal Config created")
 
 	@staticmethod
 	@abstractmethod
 	async def create_appeals() :
-		"""Creates the general config"""
+		"""Creates the general Config"""
 		dictionary = {
 
 		}
@@ -133,11 +133,11 @@ class Configer(ABC) :
 			json.dump(data, f, indent=4)
 			logging.info(f"{guildid} changed to {status}")
 
-	# config editing starts hee
+	# Config editing starts hee
 	@staticmethod
 	@abstractmethod
 	async def change(guildid, interaction, value, key) :
-		"""Changes value in the config"""
+		"""Changes value in the Config"""
 		if os.path.exists(f"configs/{guildid}.json") :
 			with open(f"configs/{guildid}.json") as f :
 				data = json.load(f)
@@ -147,7 +147,7 @@ class Configer(ABC) :
 			await interaction.followup.send(f"Config key **{key}** changed to **{value}**")
 
 	async def get(guildid, key) :
-		"""Gets a value from the config"""
+		"""Gets a value from the Config"""
 		if os.path.exists(f"configs/{guildid}.json") :
 			with open(f"configs/{guildid}.json") as f :
 				data = json.load(f)

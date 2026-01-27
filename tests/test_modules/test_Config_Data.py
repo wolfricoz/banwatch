@@ -15,7 +15,7 @@ class TestConfigData(unittest.TestCase) :
 	def tearDown(self) :
 		drop_bot_database()
 
-	# Adding keys to the config
+	# Adding keys to the Config
 	def test_add_config_string(self):
 		guild = ServerFactory().create()
 		self.config_controller.add_key(guild.id, "TEST_MESSAGE", "This is a test message")
@@ -40,7 +40,7 @@ class TestConfigData(unittest.TestCase) :
 		self.config_controller.add_key(guild.id, "TEST_MESSAGE", "This is a new test message", overwrite=True)
 		self.assertEqual(ConfigTransactions().config_unique_get(guild.id, "TEST_MESSAGE"), "This is a new test message")
 
-	# Getting keys from the config
+	# Getting keys from the Config
 	def test_get_str(self):
 		guild = ServerFactory().create()
 		self.config_controller.add_key(guild.id, "TEST_MESSAGE", "This is a test message")

@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import tempfile
 
 import discord
 from discord import Interaction, app_commands
@@ -17,7 +18,10 @@ from view.buttons.bottrap import bottrap
 from view.modals.banreasonmodal import send_banreason_modal
 
 
-class Premium(GroupCog) :
+class Premium(GroupCog, name="premium") :
+	"""
+	Exclusive commands for servers with a premium subscription.
+	"""
 	toggles = premium_toggles
 
 	def __init__(self, bot: Bot) :
@@ -38,15 +42,24 @@ class Premium(GroupCog) :
 			return False
 		return True
 
-	@app_commands.command(name="remove_deleted", description="removes deleted accounts from the ban list and server")
+	@app_commands.command(name="remove_deleted", description="[PREMIUM] Removes deleted user accounts from your server and ban list.")
 	@app_commands.checks.has_permissions(manage_guild=True)
 	@AccessControl().check_premium()
 	async def remove_deleted(self, interaction: Interaction) :
-		await send_response(interaction, "Checking for deleted accounts...", ephemeral=True)
+		"""
+		[PREMIUM] Scans the server's ban list and removes entries for deleted user accounts.
+
+		**Permissions:**
+		- `Manage Server`
+		- `Premium Server`
+		"""
+		await send_response(interaction, "Removing deleted users from ban list...", ephemeral=True)
+		banlist = [entry async for entry in interaction.guild.bans(limit=None)]
+		banlist_file = tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt")
 		deleted_bans = []
 		kicked_users = []
 
-		async for ban in interaction.guild.bans() :
+		for ban in banlist :
 			banned_user = ban.user
 			if not await self.check_deleted(banned_user) :
 				continue
@@ -84,72 +97,98 @@ class Premium(GroupCog) :
 		os.remove(banlist_file.name)
 
 
-	@app_commands.command(name="bot_trap_button", description="Create a bot trap button in the channel, when pressed will ban the user")
+	@app_commands.command(name="bot_trap_button", description="[PREMIUM] Creates a button that bans any user who clicks it.")
 	@app_commands.checks.has_permissions(manage_guild=True)
 	@AccessControl().check_premium()
 	async def trapbutton(self, interaction: discord.Interaction):
+		"""
+		[PREMIUM] Creates a message with a button that instantly bans any user who clicks it.
+		Useful for catching malicious bots.
+
+		**Permissions:**
+		- `Manage Server`
+		- `Premium Server`
+		"""
 		view = bottrap()
-		embed = discord.Embed(title="Get Access (for bots!)", description="Press the buttons below or react to this to be banned from the server!\nKeywords: Gain Access, Verify, rules, accept, agree, click, press\n\n*This is a bot trap, pressing the button will result in an automatic ban from the server.*", color=0xff0000)
+		await send_response(interaction, "Creating bot trap button...", ephemeral=True)
+		embed = discord.Embed(title="Bot Trap", description="This button is a trap for bots. Do not click it.",
+		                      color=0xff0000)
 		embed.set_footer(text="Bot Trap Button")
 		msg = await send_message(interaction.channel, "-# gain access, for bots!",embed=embed, view=view)
 		await msg.add_reaction("✅")
 
-	@app_commands.command(name="bot_trap_role", description="Set a role that will automatically be banned when they get it")
+	@app_commands.command(name="bot_trap_role", description="[PREMIUM] Designates a role that will ban a user upon receiving it.")
 	@app_commands.checks.has_permissions(manage_guild=True)
 	@AccessControl().check_premium()
 	async def traprole(self, interaction: discord.Interaction, role: discord.Role):
+		"""
+		[PREMIUM] Designates a 'trap role'. Any user assigned this role will be instantly banned.
+
+		**Permissions:**
+		- `Manage Server`
+		- `Premium Server`
+		"""
 		ConfigTransactions().config_unique_add(interaction.guild.id, "TRAP_ROLE", role.id)
 		await send_response(interaction, f"Set the bot trap role to {role.mention}", ephemeral=True)
 
-	@app_commands.command(name="toggle_feature", description="Toggles a premium feature on or off")
+	@app_commands.command(name="toggle_feature", description="[PREMIUM] Toggles a specific premium feature on or off for your server.")
 	@app_commands.choices(feature_name=[
 		app_commands.Choice(name=feature, value=feature) for feature in toggles.keys()
 	])
 	@AccessControl().check_premium()
-	async def toggle_feature(self, interaction: Interaction, feature_name: Choice[str], enable: bool) :
+	async def toggle_feature(self, interaction: discord.Interaction, feature_name: app_commands.Choice[str], enable: bool) :
+		"""
+		[PREMIUM] Toggles various premium features on or off for the server.
+
+		**Permissions:**
+		- `Manage Server`
+		- `Premium Server`
+		"""
 		await send_response(interaction, f"Toggling feature `{feature_name.value}` to `{'enabled' if enable else 'disabled'}`",
 		                    ephemeral=True)
 		ConfigTransactions().toggle_add(interaction.guild.id, feature_name.value, enable)
 
 
 
-	@app_commands.command(name="ban_presets", description="Configures ban presets reasons for quick selection")
+	@app_commands.command(name="ban_presets", description="[PREMIUM] Manage preset ban reasons for quick and consistent moderation.")
 	@app_commands.checks.has_permissions(manage_guild=True)
 	@app_commands.choices(operation=[
 		Choice(name="list", value="list"),
 		Choice(name="add", value="add"),
-		Choice(name="remove", value="remove"),
+		Choice(name="remove", value="remove")
 	])
 	@AccessControl().check_premium()
-	async def premade_ban_reasons(self, interaction: Interaction, operation: Choice['str'], name: str = None) :
-		match operation.name:
-			case "list" :
-				reasons = BanReasonsTransactions().get_all()
-				if not reasons :
-					return await send_response(interaction, "No premade ban reasons found.", ephemeral=True)
-				reason_list = "\n".join([f"- {reason.reason} (ID: {reason.id})" for reason in reasons])
-				await send_response(interaction, f"Premade Ban Reasons:\n{reason_list}", ephemeral=True)
-			case "add" :
-				values = await send_banreason_modal(interaction, "Create Premade Ban Reason", "Custom Ban Reason")
-				name = values["name"]
-				description = values["description"]
-				reason = values["reason"]
-				existing = BanReasonsTransactions().get(name)
-				if existing :
-					return await send_response(interaction, f"Ban reason `{name}` already exists.", ephemeral=True)
-				BanReasonsTransactions().add(interaction.guild.id, name, description, reason)
-				await send_response(interaction, f"Added premade ban reason `{name}`.", ephemeral=True)
-			case "remove" :
-				if name is None :
-					return await send_response(interaction, "Please provide the name of the ban reason to remove.", ephemeral=True)
-				existing = BanReasonsTransactions().get(name)
-				if not existing :
-					return await send_response(interaction, f"Ban reason `{name}` not found.", ephemeral=True)
-				BanReasonsTransactions().delete(existing.id)
-				await send_response(interaction, f"Removed premade ban reason `{name}`.", ephemeral=True)
+	async def ban_presets(self, interaction: discord.Interaction, operation: Choice[str], name: str = None) :
+		"""
+		[PREMIUM] Manages preset ban reasons for quick moderation.
+		Allows adding, removing, and listing presets.
 
-
-		
+		**Permissions:**
+		- `Manage Server`
+		- `Premium Server`
+		"""
+		if operation.value == "list" :
+			presets = ConfigTransactions().config_key_get(interaction.guild.id, "BAN_PRESET")
+			if not presets :
+				return await send_response(interaction, "No ban presets found.", ephemeral=True)
+			preset_list = "\n".join([f"- {preset}" for preset in presets.split(",")])
+			await send_response(interaction, f"Current Ban Presets:\n{preset_list}", ephemeral=True)
+		elif operation.value == "add" :
+			if not name :
+				return await send_response(interaction, "Please provide a name for the ban preset.", ephemeral=True)
+			existing = ConfigTransactions().config_key_get(interaction.guild.id, "BAN_PRESET", key_value=name)
+			if existing :
+				return await send_response(interaction, f"Ban preset `{name}` already exists.", ephemeral=True)
+			ConfigTransactions().config_unique_add(interaction.guild.id, "BAN_PRESET", name)
+			await send_response(interaction, f"Added ban preset `{name}`.", ephemeral=True)
+		elif operation.value == "remove" :
+			if not name :
+				return await send_response(interaction, "Please provide the name of the ban preset to remove.", ephemeral=True)
+			existing = ConfigTransactions().config_key_get(interaction.guild.id, "BAN_PRESET", key_value=name)
+			if not existing :
+				return await send_response(interaction, f"Ban preset `{name}` does not exist.", ephemeral=True)
+			ConfigTransactions().config_unique_remove(interaction.guild.id, "BAN_PRESET", name)
+			await send_response(interaction, f"Removed ban preset `{name}`.", ephemeral=True)
 
 
 async def setup(bot: Bot) :

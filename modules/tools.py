@@ -69,7 +69,7 @@ class Tools(commands.Cog) :
 			try :
 				user = await self.bot.fetch_user(int(user_id))
 			except discord.errors.NotFound :
-				await interaction.channel.send(f"User with id {user_id} not found")
+				await interaction.channel.send(f"MemberLookup with id {user_id} not found")
 				continue
 			except :
 				await interaction.channel.send(
@@ -85,7 +85,7 @@ class Tools(commands.Cog) :
 		try :
 			await interaction.guild.unban(user)
 		except discord.NotFound :
-			return await send_message(interaction.channel, "User is not banned/cannot be found")
+			return await send_message(interaction.channel, "MemberLookup is not banned/cannot be found")
 		embed = discord.Embed(title=f"{user.name} unbanned", color=discord.Color.green())
 		await interaction.channel.send(embed=embed)
 
@@ -100,7 +100,7 @@ class Tools(commands.Cog) :
 			try :
 				user = await self.bot.fetch_user(int(user_id))
 			except discord.errors.NotFound :
-				await interaction.channel.send(f"User with id {user_id} not found")
+				await interaction.channel.send(f"MemberLookup with id {user_id} not found")
 				continue
 			except Exception :
 				await interaction.channel.send(
@@ -169,7 +169,7 @@ class Tools(commands.Cog) :
 			async for ban_entry in bans :
 				user = ban_entry.user
 				reason = ban_entry.reason if ban_entry.reason else "No reason provided"
-				file.write(f"User: {user} (ID: {user.id}) - Reason: {reason}\n")
+				file.write(f"MemberLookup: {user} (ID: {user.id}) - Reason: {reason}\n")
 
 		# Send the file to the channel
 		await interaction.followup.send("Here are all your bans!", file=discord.File("bans.txt"))

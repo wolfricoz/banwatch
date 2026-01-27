@@ -132,7 +132,7 @@ async def on_ready() :
 
 @bot.event
 async def on_guild_join(guild: discord.Guild) -> None :
-	"""When the bot it creates a config and sends a DM to the owner with instructions."""
+	"""When the bot it creates a Config and sends a DM to the owner with instructions."""
 	# adds user to database
 	log = bot.get_channel(DEV)
 	membercount = len([m for m in guild.members if not m.bot])

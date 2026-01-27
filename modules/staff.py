@@ -56,7 +56,7 @@ class Staff(commands.GroupCog, name="staff") :
 		server_info = ServerTransactions().get(guild.id)
 		guild_data = {
 			"Owner"         : f"{guild.owner}({guild.owner.id})",
-			"User count"    : len([m for m in guild.members if not m.bot]),
+			"MemberLookup count"    : len([m for m in guild.members if not m.bot]),
 			"Bot count"     : len([m for m in guild.members if m.bot]),
 			"Channel count" : len(guild.channels),
 			"Role count"    : len(guild.roles),

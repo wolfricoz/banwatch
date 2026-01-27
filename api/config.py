@@ -16,7 +16,7 @@ class BanRequest(BaseModel) :
 
 
 
-@router.post("/config/refresh", )
+@router.post("/Config/refresh", )
 async def bans_get(request: Request) :
 	if request.headers.get('token') != os.getenv("RPSECSECRET") :
 		logging.warning(f"Invalid token {request.headers.get('token')} from {request.client.host}")
