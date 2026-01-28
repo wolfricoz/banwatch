@@ -369,21 +369,22 @@ class DevTools(commands.GroupCog, name="dev") :
 			try:
 				# We search for ANY embed with a ban ID in the footer, and then add it to the BanMessages if it's missing
 				if len(message.embeds) < 1 :
-					return
+					logging.info("No embeds found")
+					continue
 				embed = message.embeds[0]
 				try :
 					match = re.search(r'ban ID: (\d+)', embed.footer.text)
 				except :
 					match = None
 				if not match :
-					return
+					continue
 				ban_id = int(match.group(1))
 				ban = BanTransactions().get(ban_id, override=True)
 				if ban is None :
 					logging.warning(
 						f"[rebuild ban] Ban ID {ban_id} not found in database, deleting message {message.id} in guild {g.name}")
 					queue().add(message.delete(), 0)
-					return
+					continue
 				logging.info(f"[rebuild ban] Adding ban message {message.id} for ban ID {ban_id} in guild {g.name}")
 				BanMessageTransactions().add_ban_message(ban_id, g.id, message.id)
 				count += 1
