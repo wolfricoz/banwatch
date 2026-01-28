@@ -58,7 +58,7 @@ class AccessControl(metaclass=Singleton) :
 			match role.lower() :
 				case "owner" :
 					return self.access_owner(interaction.user.id)
-				case "DevTools" :
+				case "dev" :
 					return self.access_dev(interaction.user.id)
 				case _ :
 					return self.access_all(interaction.user.id)
