@@ -366,6 +366,9 @@ class DevTools(commands.GroupCog, name="dev") :
 			return
 		count = 0
 		async for message in modchannel.history(limit=None, oldest_first=True) :
+			if count % 5 == 0:
+				await asyncio.sleep(0)
+
 			try:
 				# We search for ANY embed with a ban ID in the footer, and then add it to the BanMessages if it's missing
 				if len(message.embeds) < 1 :
