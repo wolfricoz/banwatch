@@ -1,15 +1,15 @@
 import asyncio
+import logging
+import os
+import re
 from datetime import datetime
 from typing import Coroutine
 
 import discord
-import os
-import re
 from discord import app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
-import logging
-
+from discord.utils import get
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
@@ -20,14 +20,11 @@ from classes.evidence import EvidenceController
 from classes.queue import queue
 from classes.tasks import pending_bans
 from database.transactions.BanMessageTransactions import BanMessageTransactions
-from database.transactions.FlaggedTermsTransactions import FlaggedTermsTransactions
-
-from database.transactions.StaffTransactions import StaffTransactions
 from database.transactions.BanTransactions import BanTransactions
+from database.transactions.FlaggedTermsTransactions import FlaggedTermsTransactions
 from database.transactions.ServerTransactions import ServerTransactions
-from database.transactions.BanReasonTransactions import DatabaseTransactions
+from database.transactions.StaffTransactions import StaffTransactions
 from view.modals.inputmodal import send_modal
-from discord.utils import get
 
 OWNER = int(os.getenv("OWNER"))
 GUILD = int(os.getenv("GUILD"))
@@ -60,7 +57,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		queue().add(self.bot.tree.sync(), priority=2)
 		for cog in self.bot.cogs :
 			try :
-				self.bot.remove_cog(cog.qualified_name)
+				await self.bot.remove_cog(cog.qualified_name)
 			except Exception as e :
 				logging.warning(f"Failed to unload cog {cog.qualified_name}: {e}")
 		await send_response(interaction,"Command sync queue, high priority queue.")
@@ -350,16 +347,26 @@ class DevTools(commands.GroupCog, name="dev") :
 		- `Developer`
 		"""
 		if channel is None :
-			channel = self.bot.get_channel(int(os.getenv("BANWATCH_LOG")))
+			channel = self.bot.get_channel(int(os.getenv("BANS")))
 		await send_response(interaction, f"Rebuilding bans channel", ephemeral=True)
 		if only_messages is False :
 			await self.find_ban_id(channel)
 		logging.info("Rebuilding ban messages from all guilds")
-		async def inspect_guild_messages():
-			modchannel = await ConfigData().get_channel(guild, "modchannel")
-			if modchannel is None :
-				return
-			async for message in modchannel.history(limit=None, oldest_first=True) :
+
+		for guild in self.bot.guilds:
+			queue().add(self.inspect_guild_messages(guild), 0)
+
+		await interaction.followup.send(f"Rebuilding bans channel complete", ephemeral=True)
+
+	async def inspect_guild_messages(self, g: discord.Guild) :
+		logging.info(f"Rebuilding ban messages from guild: {g.name}")
+		modchannel = await ConfigData().get_channel(g, "modchannel")
+		if modchannel is None :
+			logging.info(f"[rebuild ban] No mod channel set for guild {g.name}, skipping")
+			return
+		count = 0
+		async for message in modchannel.history(limit=None, oldest_first=True) :
+			try:
 				# We search for ANY embed with a ban ID in the footer, and then add it to the BanMessages if it's missing
 				if len(message.embeds) < 1 :
 					return
@@ -374,22 +381,15 @@ class DevTools(commands.GroupCog, name="dev") :
 				ban = BanTransactions().get(ban_id, override=True)
 				if ban is None :
 					logging.warning(
-						f"[rebuild ban] Ban ID {ban_id} not found in database, deleting message {message.id} in guild {guild.name}")
+						f"[rebuild ban] Ban ID {ban_id} not found in database, deleting message {message.id} in guild {g.name}")
 					queue().add(message.delete(), 0)
 					return
-				logging.info(f"[rebuild ban] Adding ban message {message.id} for ban ID {ban_id} in guild {guild.name}")
-				BanMessageTransactions().add_ban_message(ban_id, guild.id, message.id)
-
-		for guild in self.bot.guilds:
-			queue().add(inspect_guild_messages(), 0)
-
-
-
-
-
-		await interaction.followup.send(f"Rebuilding bans channel complete", ephemeral=True)
-
-
+				logging.info(f"[rebuild ban] Adding ban message {message.id} for ban ID {ban_id} in guild {g.name}")
+				BanMessageTransactions().add_ban_message(ban_id, g.id, message.id)
+				count += 1
+			except Exception as e:
+				logging.warning(f"Error processing message {message.id} in guild {g.name}: {e}", exc_info=True)
+		await send_message(modchannel, f"Rebuilt {count} ban messages for guild {g.name}")
 
 	@app_commands.command(name="testban", description="[DEV] Unbans and re-bans the test account in the current server.")
 	@AccessControl().check_access("dev")
