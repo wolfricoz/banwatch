@@ -372,6 +372,9 @@ class DevTools(commands.GroupCog, name="dev") :
 			try:
 				if message.author.id != self.bot.user.id :
 					continue
+				if message.content.startswith("Rebuilt"):
+					queue().add(message.delete())
+
 
 				# We search for ANY embed with a ban ID in the footer, and then add it to the BanMessages if it's missing
 				if len(message.embeds) < 1 :
@@ -395,7 +398,7 @@ class DevTools(commands.GroupCog, name="dev") :
 				count += 1
 			except Exception as e:
 				logging.warning(f"Error processing message {message.id} in guild {g.name}: {e}", exc_info=True)
-		await send_message(modchannel, f"Rebuilt {count} ban messages for guild {g.name}")
+		logging.info(f"Rebuilt {count} ban messages for guild {g.name}")
 
 	@app_commands.command(name="testban", description="[DEV] Unbans and re-bans the test account in the current server.")
 	@AccessControl().check_access("dev")
