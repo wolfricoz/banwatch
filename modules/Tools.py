@@ -16,12 +16,12 @@ from view.modals.inputmodal import send_modal
 from view.multiselect.selectreason import SelectReason
 
 
-class Tools(commands.Cog) :
+class Tools(commands.Cog, description="Moderation tools for managing bans, kicks, and server members."):
 
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
 
-	@app_commands.command(name="ban", description="Bans a user from the server, by default informs the user.")
+	@app_commands.command(name="ban", description="Ban a user with an optional reason and notification.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	@app_commands.choices(ban_type=[
 		Choice(name="Normal", value=""),
@@ -30,7 +30,12 @@ class Tools(commands.Cog) :
 	])
 	async def ban(self, interaction: discord.Interaction, user: discord.User, ban_type: Choice[str] = "",
 	              inform: bool = True, clean: bool = False) :
-		"""Bans a user from the server"""
+		"""
+		Bans a specified user from the server. This command offers options for silent bans, message cleaning, and whether to notify the user. A reason for the ban will be requested.
+
+		**Permissions:**
+		- Requires `Ban Members` permission.
+		"""
 		# await interaction.response.defer(ephemeral=True)
 		view = SelectReason()
 		await send_message(interaction.channel, "Select your reason.", view=view)
@@ -42,7 +47,7 @@ class Tools(commands.Cog) :
 			reason= await send_modal(view.interaction, "What is the reason for the ban?", "Ban Reason")
 		await ban_user(interaction, user, ban_type, reason, inform=inform, clean=clean, ban_class=Bans())
 
-	@app_commands.command(name="mass_ban", description="bans multiple users, separated by a space")
+	@app_commands.command(name="mass_ban", description="Ban multiple users with an optional reason.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	@app_commands.choices(ban_type=[
 		Choice(name="Normal", value=""),
@@ -51,7 +56,12 @@ class Tools(commands.Cog) :
 	])
 	async def mass_ban(self, interaction: discord.Interaction, users: str, ban_type: Choice[str] = "",
 	                   inform: bool = True, clean: bool = False) :
-		"""Bans a user from the server"""
+		"""
+		Bans multiple users from the server simultaneously. This is an efficient tool for handling raids or removing multiple disruptive users at once. A single reason will apply to all.
+
+		**Permissions:**
+		- Requires `Ban Members` permission.
+		"""
 		view = SelectReason()
 		await send_message(interaction.channel, "Select your reason.", view=view)
 		await view.wait()
@@ -69,7 +79,7 @@ class Tools(commands.Cog) :
 			try :
 				user = await self.bot.fetch_user(int(user_id))
 			except discord.errors.NotFound :
-				await interaction.channel.send(f"MemberLookup with id {user_id} not found")
+				await interaction.channel.send(f"User with id {user_id} not found")
 				continue
 			except :
 				await interaction.channel.send(
@@ -77,30 +87,40 @@ class Tools(commands.Cog) :
 				continue
 			await ban_user(interaction, user, ban_type, reason, inform=inform, clean=clean, ban_class=Bans())
 
-	@app_commands.command(name="unban", description="Unbans a user from the server")
+	@app_commands.command(name="unban", description="Unban a user from the server.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	async def unban(self, interaction: discord.Interaction, user: discord.User) :
-		"""Unbans a user from the server"""
+		"""
+		Revokes a ban for a specified user, allowing them to rejoin the server. This is essential for correcting banning mistakes or allowing users to return after an appeal.
+
+		**Permissions:**
+		- Requires `Ban Members` permission.
+		"""
 
 		try :
 			await interaction.guild.unban(user)
 		except discord.NotFound :
-			return await send_message(interaction.channel, "MemberLookup is not banned/cannot be found")
+			return await send_message(interaction.channel, "User is not banned/cannot be found")
 		embed = discord.Embed(title=f"{user.name} unbanned", color=discord.Color.green())
 		await interaction.channel.send(embed=embed)
 
-	@app_commands.command(name="mass_unban", description="Unbans multiple users, separated by a space")
+	@app_commands.command(name="mass_unban", description="Unban multiple users from the server.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	async def mass_unban(self, interaction: discord.Interaction, users: str) :
-		"""Unbans a user from the server"""
-		await interaction.response.send_channel(f"Unbanning {users}", ephemeral=True)
+		"""
+		Revokes bans for multiple users simultaneously. This is useful for processing multiple successful appeals at once or reversing a mass ban action.
+
+		**Permissions:**
+		- Requires `Ban Members` permission.
+		"""
+		await interaction.response.send_message(f"Unbanning {users}", ephemeral=True)
 		user_list = users.split(" ")
 		for user_id in user_list :
 			await asyncio.sleep(1)
 			try :
 				user = await self.bot.fetch_user(int(user_id))
 			except discord.errors.NotFound :
-				await interaction.channel.send(f"MemberLookup with id {user_id} not found")
+				await interaction.channel.send(f"User with id {user_id} not found")
 				continue
 			except Exception :
 				await interaction.channel.send(
@@ -114,8 +134,7 @@ class Tools(commands.Cog) :
 			embed = discord.Embed(title=f"{user.name} unbanned", color=discord.Color.green())
 			await interaction.channel.send(embed=embed)
 
-	@app_commands.command(name="reban",
-	                      description="unbans and rebans a user to update the reason. This does not inform the user.")
+	@app_commands.command(name="reban", description="Unban and reban a user to update the reason.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	@app_commands.choices(ban_type=[
 		Choice(name="Normal", value=""),
@@ -124,10 +143,15 @@ class Tools(commands.Cog) :
 	])
 	async def reban(self, interaction: discord.Interaction, user: discord.User, ban_type: Choice[str] = "",
 	                reason: str = "Ban being updated using /reban") :
-		"""Bans a user from the server"""
+		"""
+		Updates a user's ban reason by unbanning and immediately re-banning them with a new reason. This is useful for correcting or updating ban records without requiring the user to be present.
+
+		**Permissions:**
+		- Requires `Ban Members` permission.
+		"""
 		if isinstance(ban_type, Choice) :
 			ban_type = ban_type.value
-		reason_modal = await send_modal(interaction, "⏳ Processing Reban!", "Ban Reason")
+		reason_modal = await send_modal(interaction, "What is the new reason for the ban?", "Ban Reason")
 		try :
 			await interaction.guild.unban(user, reason=reason)
 		except discord.errors.NotFound :
@@ -138,14 +162,18 @@ class Tools(commands.Cog) :
 		except discord.Forbidden :
 			await send_response(interaction, "I don't have permission to ban this user")
 
-	@app_commands.command(name="kick",
-	                      description="Kicks a user from the server and informs them with a DM. you can also choose to reinvite them.")
+	@app_commands.command(name="kick", description="Kick a user with an optional reinvite link.")
 	@app_commands.checks.has_permissions(kick_members=True)
 	async def kick(self, interaction: discord.Interaction, user: discord.User, reinvite: bool = False) :
-		"""Kicks a user from the server"""
+		"""
+		Removes a user from the server. Unlike a ban, a kicked user can rejoin immediately if they have a valid invite. This is a less severe moderation action.
+
+		**Permissions:**
+		- Requires `Kick Members` permission.
+		"""
 		await interaction.guild.kick(user)
 
-		reason_modal = send_modal(interaction, "What is the reason for the kick?", "Kick Reason")
+		reason_modal = await send_modal(interaction, "What is the reason for the kick?", "Kick Reason")
 		reason = reason_modal
 		if reinvite :
 			invite = await Bans().create_invite(interaction.guild)
@@ -155,10 +183,15 @@ class Tools(commands.Cog) :
 		embed = discord.Embed(title=f"{user.name} kicked", description=reason, color=discord.Color.green())
 		await interaction.channel.send(embed=embed)
 
-	@app_commands.command(name="export_bans",
-	                      description="Exports all guild bans to a text file and sends it to the channel.")
+	@app_commands.command(name="export_bans", description="Export all guild bans to a text file.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	async def export_bans(self, interaction: discord.Interaction) :
+		"""
+		Fetches the entire ban list for the server and compiles it into a text file. This is extremely useful for auditing, backup, or migrating bans to another server or bot.
+
+		**Permissions:**
+		- Requires `Ban Members` permission.
+		"""
 		await interaction.response.defer(ephemeral=True)
 
 		# Fetch all bans
@@ -169,15 +202,20 @@ class Tools(commands.Cog) :
 			async for ban_entry in bans :
 				user = ban_entry.user
 				reason = ban_entry.reason if ban_entry.reason else "No reason provided"
-				file.write(f"MemberLookup: {user} (ID: {user.id}) - Reason: {reason}\n")
+				file.write(f"User: {user} (ID: {user.id}) - Reason: {reason}\n")
 
 		# Send the file to the channel
 		await interaction.followup.send("Here are all your bans!", file=discord.File("bans.txt"))
 
-	@app_commands.command(name="search_bans",
-	                      description="Search bans for specific words, useful to find and remove bad bans")
+	@app_commands.command(name="search_bans", description="Search bans for specific words.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	async def search_bans(self, interaction: discord.Interaction, word: str, hide: bool = False) :
+		"""
+		Searches the server's ban database for entries containing a specific word or phrase in the reason. This helps moderators find patterns or locate specific cases quickly.
+
+		**Permissions:**
+		- Requires `Ban Members` permission.
+		"""
 		await send_response(interaction, f"Checking bans for the word `{word}`")
 		bans = ServerTransactions().get_bans(interaction.guild.id)
 		with open("bans.txt", "w", encoding='utf-16') as file :
@@ -189,11 +227,17 @@ class Tools(commands.Cog) :
 		# Send the file to the channel
 		await interaction.followup.send(f"Here are all your bans with `{word}`!", file=discord.File("bans.txt"))
 
-	@app_commands.command(name="copy_bans",
-	                      description="Copy all bans from a server you own to another server you own!")
+	@app_commands.command(name="copy_bans", description="Copy bans from one server to another.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	@app_commands.autocomplete(guild=autocomplete_guild)
-	async def search_bans(self, interaction: discord.Interaction, guild: str) :
+	async def copy_bans(self, interaction: discord.Interaction, guild: str) :
+		"""
+		Copies all bans from a specified source server to the current server. This is designed for server owners to synchronize ban lists between servers they manage.
+
+		**Permissions:**
+		- Requires `Ban Members` permission.
+		- User must be the owner of both servers.
+		"""
 		guild = interaction.client.get_guild(int(guild))
 		if interaction.guild.owner_id != guild.owner_id :
 			return await send_response(interaction, "You can only copy bans between servers you own.")
@@ -207,7 +251,7 @@ class Tools(commands.Cog) :
 				user = await interaction.client.fetch_user(ban.user.id)
 
 			queue().add(ban_user(interaction, user, ban_type="",
-			                   reason_modal=f"[Migrated from {guild.name}]{ban.reason}", inform=False, clean=False,
+			                   reason=f"[Migrated from {guild.name}]{ban.reason}", inform=False, clean=False,
 			                   ban_class=Bans()))
 
 async def setup(bot: commands.Bot) :

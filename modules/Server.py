@@ -10,7 +10,7 @@ from view.buttons.communicationbuttons import CommunicationButtons
 from view.modals.inputmodal import send_modal
 
 
-class Server(commands.GroupCog, name="server") :
+class Server(commands.GroupCog, name="server", description="Commands for server staff to communicate regarding bans and server management.") :
 	"""
 	These commands are for server staff to communicate regarding bans, and anything related to server management and communication.
 	Access to these commands is restricted to users with appropriate permissions.

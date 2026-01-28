@@ -19,7 +19,11 @@ from database.transactions.ServerTransactions import ServerTransactions
 GUILD = int(os.getenv("GUILD"))
 
 
-class Staff(commands.GroupCog, name="staff") :
+class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch staff members.") :
+	"""
+	Commands for BanWatch staff members. These commands provide tools for managing and overseeing the bot's operations across servers.
+	Access to these commands is restricted to authorized staff only.
+	"""
 
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
@@ -28,6 +32,12 @@ class Staff(commands.GroupCog, name="staff") :
 	@app_commands.guilds(GUILD)
 	@AccessControl().check_access()
 	async def servers(self, interaction: discord.Interaction) :
+		"""
+		Fetches and lists all servers the bot is currently in. This command is for internal staff use to get an overview of the bot's reach.
+
+		**Permissions:**
+		- Requires BanWatch Staff access.
+		"""
 		await send_response(interaction, "Fetching servers, please be patient", ephemeral=True)
 		servers = []
 		for server in self.bot.guilds :
@@ -46,6 +56,12 @@ class Staff(commands.GroupCog, name="staff") :
 	@app_commands.autocomplete(server=autocomplete_guild)
 	@AccessControl().check_access()
 	async def serverinfo(self, interaction: discord.Interaction, server: str) :
+		"""
+		Retrieves and displays detailed information about a specific server the bot is in. This includes owner, member counts, and bot-specific data.
+
+		**Permissions:**
+		- Requires BanWatch Staff access.
+		"""
 		await send_response(interaction, "Retrieving server data")
 		guild = self.bot.get_guild(int(server))
 		if guild is None :
@@ -76,6 +92,12 @@ class Staff(commands.GroupCog, name="staff") :
 	@AccessControl().check_access()
 	@app_commands.guilds(GUILD)
 	async def userinfo(self, interaction: discord.Interaction, user: discord.User) :
+		"""
+		Displays detailed information about a specific user across all servers the bot shares with them. Includes ban history and server presence.
+
+		**Permissions:**
+		- Requires BanWatch Staff access.
+		"""
 		embed = discord.Embed(title=f"{user.name}({user.id})'s info")
 		ban_info = BanTransactions().get_all_user(user.id)
 
@@ -101,6 +123,12 @@ class Staff(commands.GroupCog, name="staff") :
 	@AccessControl().check_access()
 	@app_commands.guilds(GUILD)
 	async def verifyban(self, interaction: discord.Interaction, ban_id: str, status: bool, provide_proof: bool) :
+		"""
+		Changes the verification status of a ban. Verified bans are considered confirmed and may be treated with higher priority. Proof is required to verify.
+
+		**Permissions:**
+		- Requires BanWatch Staff access.
+		"""
 		ban = BanTransactions().get(int(ban_id), override=True)
 		if not ban :
 			return await send_response(interaction, f"Ban not found.")
@@ -121,6 +149,12 @@ class Staff(commands.GroupCog, name="staff") :
 	@AccessControl().check_access()
 	@app_commands.guilds(GUILD)
 	async def banvisibility(self, interaction: discord.Interaction, ban_id: str, hide: bool) :
+		"""
+		Changes the visibility of a specific ban. Hidden bans will not appear in public logs or commands, making them visible only to staff.
+
+		**Permissions:**
+		- Requires BanWatch Staff access.
+		"""
 		ban = BanTransactions().get(int(ban_id), override=True)
 		if not ban :
 			return await send_response(interaction, f"Ban not found.")
@@ -131,6 +165,12 @@ class Staff(commands.GroupCog, name="staff") :
 	                      description="[DEV] Searches the rp security threads for a specific entry")
 	@AccessControl().check_access()
 	async def rpseclookup(self, interaction: discord.Interaction, user: discord.User) :
+		"""
+		Looks up a user's record in the Roleplay Security Bot's database threads. This is a developer tool for cross-referencing security information.
+
+		**Permissions:**
+		- Requires BanWatch Staff access.
+		"""
 		await send_response(interaction, f"Checking threads", ephemeral=True)
 		dev_guild: discord.Guild = self.bot.get_guild(self.bot.SUPPORTGUILD)
 		record = dev_guild.get_thread(RpSec.get_user(user.id))
@@ -141,12 +181,24 @@ class Staff(commands.GroupCog, name="staff") :
 	@app_commands.command(name="revokeban", description="[DEV] Revokes a ban message. This does not unban the user.")
 	@AccessControl().check_access()
 	async def revokeban(self, interaction: discord.Interaction, banid: str, reason: str) :
+		"""
+		Revokes a ban's log message from all servers. This action does not unban the user but removes the public announcement of the ban.
+
+		**Permissions:**
+		- Requires BanWatch Staff access.
+		"""
 		await interaction.response.send_message("Queueing the search for the embed")
 		await Bans().revoke_bans(self.bot, banid, reason, staff=True)
 		queue().add(pending_bans(self.bot, True))
 
 	@app_commands.command(name="amistaff", description="[DEV] check if you're a banwatch staff member.")
 	async def amistaff(self, interaction: discord.Interaction) :
+		"""
+		Checks if you are recognized as a BanWatch staff member. This is a simple way to verify your access level within the bot's permission system.
+
+		**Permissions:**
+		- None required for the user.
+		"""
 		return await send_response(interaction, "You are a staff member" if AccessControl().access_all(
 			interaction.user.id) else "You are not a staff member")
 
@@ -154,12 +206,24 @@ class Staff(commands.GroupCog, name="staff") :
 	@AccessControl().check_access()
 	@app_commands.autocomplete(guild=autocomplete_guild)
 	async def calc_banid(self, interaction: discord.Interaction, user: discord.User, guild: str) :
+		"""
+		Calculates the unique ban ID that would be generated for a specific user in a specific guild. This is a utility for debugging and manual lookups.
+
+		**Permissions:**
+		- Requires BanWatch Staff access.
+		"""
 		await send_response(interaction, f"The ban_id would be: {user.id + int(guild)}")
 
 	@app_commands.command(name="visibility", description="[Staff command] Set the visibility of a server")
 	@app_commands.autocomplete(server=autocomplete_guild)
 	@app_commands.checks.has_permissions(manage_guild=True)
 	async def staff_visibility(self, interaction: discord.Interaction, server: str, hide: bool) :
+		"""
+		Sets the visibility of a server's bans within the BanWatch network. Hiding a server prevents its bans from being shared or viewed by other servers.
+
+		**Permissions:**
+		- Requires BanWatch Staff access.
+		"""
 		ServerTransactions().update(int(server), hidden=hide)
 		await send_response(interaction,
 		                    f"{server}'s visibility has ben set to: {'hidden' if hide is True else 'Visible'}\n\n"

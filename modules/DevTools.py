@@ -49,7 +49,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await modchannel.send(embed=banembed)
 
 	@app_commands.command(name="updatecommands", description="[DEV] Syncs all application commands globally.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def update_commands(self, interaction: discord.Interaction) :
 		"""
 		[DEV] Unloads and syncs all application commands globally.
@@ -91,7 +91,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await send_response(interaction, "Here are the stats!", embed=embed, ephemeral=True)
 
 	@app_commands.command(name="loadflaggedterms", description="[DEV] Loads the old watchlist config into the new flagged terms table.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def update_flagged_terms(self, interaction: discord.Interaction) :
 		"""
 		[DEV] Migrates flagged terms from the old config to the new database table.
@@ -110,7 +110,7 @@ class DevTools(commands.GroupCog, name="dev") :
 
 
 	@app_commands.command(name="announce", description="[DEV] Sends an announcement to the mod channel of all servers.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def announce(self, interaction: discord.Interaction) :
 		"""
 		[DEV] Sends an announcement to the designated mod channel of every server the bot is in.
@@ -144,7 +144,7 @@ class DevTools(commands.GroupCog, name="dev") :
 					await interaction.channel.send(f"Error sending to {guild}({guild.owner}): {e}")
 
 	@app_commands.command(name="leave_server", description="[DEV] Forces the bot to leave a specified server.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def leave_server(self, interaction: discord.Interaction, guildid: int) :
 		"""
 		[DEV] Makes the bot leave a server specified by its ID.
@@ -159,7 +159,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await send_response(interaction,f"Left {guild}")
 
 	@app_commands.command(name="blacklist_server", description="[DEV] Adds a server to the blacklist and leaves it.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def blacklist_server(self, interaction: discord.Interaction, guildid: str) :
 		"""
 		[DEV] Adds a server to the blacklist, preventing future joins, and leaves it.
@@ -174,7 +174,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await send_response(interaction,f"Blacklisted {guild}")
 
 	@app_commands.command(name="unblacklist_server", description="[DEV] Removes a server from the blacklist.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def unblacklist_server(self, interaction: discord.Interaction, guildid: str) :
 		"""
 		[DEV] Removes a server from the blacklist.
@@ -188,7 +188,7 @@ class DevTools(commands.GroupCog, name="dev") :
 
 	# blacklist user goes here
 	@app_commands.command(name="blacklist_user", description="[DEV] Adds a user to the blacklist, blocking bot interaction.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def blacklist_user(self, interaction: discord.Interaction, userid: str) :
 		"""
 		[DEV] Adds a user to the global blacklist, blocking all interactions with the bot.
@@ -201,7 +201,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await send_response(interaction, f"Blacklisted {userid}")
 
 	@app_commands.command(name="unblacklist_user", description="[DEV] Removes a user from the blacklist.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def unblacklist_user(self, interaction: discord.Interaction, userid: str) :
 		"""
 		[DEV] Removes a user from the global blacklist.
@@ -220,7 +220,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		Choice(name="remove", value="remove"),
 		Choice(name="list", value="list")
 	])
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def checklist(self, interaction: discord.Interaction, operation: Choice[str], word: str = None) :
 		"""
 		[DEV] Manages the list of flagged terms for controversial content.
@@ -260,7 +260,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		return None
 
 	@app_commands.command(name="backup", description="[DEV] Backs up ban and evidence channels to the backup server.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def copy(self, interaction: discord.Interaction, evidence_only: bool = False) :
 		"""
 		[DEV] Backs up ban and evidence channels to a private backup server.
@@ -310,7 +310,7 @@ class DevTools(commands.GroupCog, name="dev") :
 					                embeds=message.embeds), 0)
 
 	@app_commands.command(name="rebuild_evidence", description="[DEV] Rebuilds the evidence database from a channel's history.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def rebuild_evidence(self, interaction: discord.Interaction, channel: discord.TextChannel, log: bool = False) :
 		"""
 		[DEV] Rebuilds the evidence database by scanning messages in a given channel.
@@ -341,7 +341,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		queue().add(send_message(interaction.channel, "Rebuilding evidence complete"), priority=0)
 
 	@app_commands.command(name="rebuild_bans", description="[DEV] Rebuilds ban database entries from channel history.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def rebuild_bans(self, interaction: discord.Interaction, channel: discord.TextChannel = None, only_messages: bool = False) :
 		"""
 		[DEV] Rebuilds the bans database by scanning messages in a channel or all server audit logs.
@@ -392,7 +392,7 @@ class DevTools(commands.GroupCog, name="dev") :
 
 
 	@app_commands.command(name="testban", description="[DEV] Unbans and re-bans the test account in the current server.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def testban(self, interaction: discord.Interaction, checklist: bool = True) :
 		"""
 		[DEV] Unbans and re-bans the test account for testing purposes.
@@ -416,7 +416,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await send_response(interaction,"Test ban complete", ephemeral=True)
 
 	@app_commands.command(name="pendingbans", description="[DEV] Manually triggers a check for all pending bans.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def pendingbans(self, interaction: discord.Interaction) :
 		"""
 		[DEV] Manually triggers the background task to check for pending bans.
@@ -428,7 +428,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await send_response(interaction, "Checking for pending bans", ephemeral=True)
 
 	@app_commands.command(name="refreshbans", description="[DEV] Manually triggers a refresh of all bans from all servers.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def refreshbans(self, interaction: discord.Interaction) :
 		"""
 		[DEV] Manually triggers a refresh of all bans from all connected servers.
@@ -469,7 +469,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		quit(0)
 
 	@app_commands.command(name="remove_staff", description="[DEV] Removes a staff member from the Banwatch team.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def remove_staff(self, interaction: discord.Interaction, user: discord.User) :
 		"""
 		[DEV] Removes a user from the Banwatch staff.
@@ -482,7 +482,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		AccessControl().reload()
 
 	@app_commands.command(name="test_config", description="[DEV] Tests if the configuration and channel retrieval are working.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def test_config(self, interaction: discord.Interaction):
 		"""
 		[DEV] Tests the server configuration and channel retrieval.
@@ -502,7 +502,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await send_message(interaction.channel, "successfully tested Config, no errors found")
 
 	@app_commands.command(name="test_channel", description="[DEV] Queues 1000 channel fetches to stress-test retrieval.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def test_channel(self, interaction: discord.Interaction):
 		"""
 		[DEV] Queues 1000 channel fetches to stress-test the API and bot's handling.
@@ -525,7 +525,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await send_response(interaction, "Queued 1000 channel fetches.", ephemeral=True)
 
 	@app_commands.command(name="reload_access", description="[DEV] Reloads the access control lists from the database.")
-	@AccessControl().check_access("DevTools")
+	@AccessControl().check_access("dev")
 	async def reload_access(self, interaction: discord.Interaction):
 		"""
 		[DEV] Reloads the access control lists (staff, blacklists) from the database.

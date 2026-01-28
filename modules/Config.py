@@ -9,6 +9,7 @@ from discord_py_utilities.permissions import check_missing_channel_permissions, 
 
 from classes.configdata import ConfigData
 from database.transactions.ServerTransactions import ServerTransactions
+from view.v2.HelpLayout import HelpLayout
 
 
 class Config(commands.GroupCog, name="config") :
@@ -18,6 +19,14 @@ class Config(commands.GroupCog, name="config") :
 
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
+
+	@app_commands.command(name="help", description="Are you stuck? This command will help you.")
+	async def help(self, interaction: discord.Interaction) :
+		"""
+				If you're feeling stuck or need assistance with configuring the bot, this command will provide you with helpful information and guidance.
+
+		"""
+		await send_response(interaction, " ", view=HelpLayout())
 
 	@app_commands.command(name="change", description="Set the channel for bot announcements and moderation logs.")
 	@app_commands.choices(option=[
@@ -68,7 +77,7 @@ class Config(commands.GroupCog, name="config") :
 		                    f"Your server's visibility has ben set to: {'hidden' if hide is True else 'Visible'}\n\n"
 		                    f"Your bans may temporarily still be available in the checkall cache, which is reloaded every 10 minutes")
 
-	@app_commands.command(name="permission_check",
+	@app_commands.command(name="permissioncheck",
 	                      description="Checks if the bot has all necessary permissions to function correctly.")
 	@app_commands.guild_only()
 	async def permissioncheck(self, interaction: discord.Interaction) :
