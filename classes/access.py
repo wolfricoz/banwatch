@@ -48,10 +48,10 @@ class AccessControl(metaclass=Singleton) :
 		return True if user_id == int(os.getenv('OWNER')) else False
 
 	def access_all(self, user_id: int) -> bool :
-		return True if user_id in self.staff.get('DevTools', []) or user_id in self.staff.get('rep', []) else False
+		return True if user_id in self.staff.get('dev', []) or user_id in self.staff.get('rep', []) else False
 
 	def access_dev(self, user_id: int) -> bool :
-		return True if user_id in self.staff.get('DevTools', []) else False
+		return True if user_id in self.staff.get('dev', []) else False
 
 	def check_access(self, role="") :
 		def pred(interaction: discord.Interaction) -> bool:

@@ -408,11 +408,11 @@ class DevTools(commands.GroupCog, name="dev") :
 			pass
 		try :
 			await interaction.guild.ban(user,
-			                            reason=f"{'Test Ban that is longer than four words' if checklist else 'DevTools ban that is longer than four words'}")
+			                            reason=f"{'Test Ban that is longer than four words' if checklist else 'dev ban that is longer than four words'}")
 		except AttributeError :
 			user = await self.bot.fetch_user(474365489670389771)
 			await interaction.guild.ban(user,
-			                            reason=f"{'Test Ban that is longer than four words' if checklist else 'DevTools ban that is longer than four words'}")
+			                            reason=f"{'Test Ban that is longer than four words' if checklist else 'dev ban that is longer than four words'}")
 		await send_response(interaction,"Test ban complete", ephemeral=True)
 
 	@app_commands.command(name="pendingbans", description="[DEV] Manually triggers a check for all pending bans.")
