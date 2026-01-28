@@ -370,9 +370,11 @@ class DevTools(commands.GroupCog, name="dev") :
 				await asyncio.sleep(0)
 
 			try:
+				if message.author.id != self.bot.user.id :
+					continue
+
 				# We search for ANY embed with a ban ID in the footer, and then add it to the BanMessages if it's missing
 				if len(message.embeds) < 1 :
-					logging.info("No embeds found")
 					continue
 				embed = message.embeds[0]
 				try :
