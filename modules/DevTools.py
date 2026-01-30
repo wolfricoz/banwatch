@@ -359,7 +359,6 @@ class DevTools(commands.GroupCog, name="dev") :
 		await interaction.followup.send(f"Rebuilding bans channel complete", ephemeral=True)
 
 	async def inspect_guild_messages(self, g: discord.Guild) :
-		await asyncio.sleep(10)
 		logging.info(f"Rebuilding ban messages from guild: {g.name}")
 		modchannel = await ConfigData().get_channel(g, "modchannel")
 		if modchannel is None :
@@ -367,7 +366,7 @@ class DevTools(commands.GroupCog, name="dev") :
 			return
 		count = 0
 		async for message in modchannel.history(limit=None, oldest_first=True) :
-			if count % 5 == 0:
+			if count % 50 == 0:
 				await asyncio.sleep(0)
 
 			try:
