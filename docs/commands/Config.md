@@ -12,6 +12,14 @@ nav_order: 2
 Configure Banwatch for your server. Set channels, toggle features, and check permissions.
 
 
+### `help`
+
+**Usage:** `/config help`
+
+> If you're feeling stuck or need assistance with configuring the bot, this command will provide you with helpful information and guidance.
+
+---
+
 ### `change`
 
 **Usage:** `/config change <option> <channel>`

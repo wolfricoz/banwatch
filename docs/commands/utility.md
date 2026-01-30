@@ -19,6 +19,14 @@ When inheriting from this class, the options shown in :class:`CogMeta`
 are equally valid here.
 
 
+### `help`
+
+**Usage:** `/utility help`
+
+> Provides information about the bot's commands and features.
+
+---
+
 ### `support`
 
 **Usage:** `/utility support`

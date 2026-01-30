@@ -96,26 +96,3 @@ are equally valid here.
 
 ---
 
-### `search_bans`
-
-**Usage:** `/tools search_bans <word> <hide>`
-
-> Searches the server's ban database for entries containing a specific word or phrase in the reason. This helps moderators find patterns or locate specific cases quickly.
-
-**Permissions:**
-- Requires `Ban Members` permission.
-
----
-
-### `copy_bans`
-
-**Usage:** `/tools copy_bans <guild>`
-
-> Copies all bans from a specified source server to the current server. This is designed for server owners to synchronize ban lists between servers they manage.
-
-**Permissions:**
-- Requires `Ban Members` permission.
-- User must be the owner of both servers.
-
----
-

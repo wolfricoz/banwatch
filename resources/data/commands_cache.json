@@ -1,6 +1,7 @@
 {
     "create": "Allows a user to appeal a ban from a server they are banned from.\nThe user must not be on the bot's global blacklist.\n\n**Permissions:**\n- None required for the user.",
     "report": "Reports a ban to the Banwatch staff for review.\nThis is for bans that may be unjust or harmful.\nThe user must not be on the bot's global blacklist.\n\n**Permissions:**\n- None required for the user.",
+    "help": "Provides information about the bot's commands and features.",
     "change": "Changes server-specific settings for Banwatch.\n\n**Permissions:**\n- `Manage Server`",
     "appeals": "Enables or disables the ban appeal system for this server.\n\n**Permissions:**\n- `Manage Server`",
     "visibility": "Toggles whether this server's bans are visible in public lookups.\n\n**Permissions:**\n- `Manage Server`",
@@ -15,6 +16,8 @@
     "traprole": "[PREMIUM] Designates a 'trap role'. Any user assigned this role will be instantly banned. This is useful for catching bots that assign themselves roles through onboarding or other automated processes; simply assign the trap role to the bot and it will be banned when the task runs (every hour!).\n\nThis feature is currently a test; if you have feedback on how to improve its efficacy, please reach out to the support server.\n\n**Permissions:**\n- `Manage Server`\n- `Premium Server`",
     "toggle_feature": "Toggles various premium features on or off for the server. Choose the feature you want to enable or disable from the list.\n\n**Permissions:**\n- `Manage Server`\n- `Premium Server`",
     "ban_presets": "Manages preset ban reasons for quick moderation. They will appear on the top of the ban reason list when banning a user with the ban command.\nAllows adding, removing, and listing presets.\n\n**Permissions:**\n- `Manage Server`\n- `Premium Server`",
+    "search_bans": "Searches the server's ban database for entries containing a specific word or phrase in the reason. This helps moderators find patterns or locate specific cases quickly.\n\n**Permissions:**\n- Requires `Ban Members` permission.",
+    "copy_bans": "Copies all bans from a specified source server to the current server. This is designed for server owners to synchronize ban lists between servers they manage.\n\n**Permissions:**\n- Requires `Ban Members` permission.\n- User must be the owner of both servers.\n- Premium feature.",
     "send": "Sends a message to the server who owns the ban for more information. This way you can communicate directly with the server staff regarding the ban without having to join the server.",
     "servers": "Fetches and lists all servers the bot is currently in. This command is for internal staff use to get an overview of the bot's reach.\n\n**Permissions:**\n- Requires BanWatch Staff access.",
     "serverinfo": "Retrieves and displays detailed information about a specific server the bot is in. This includes owner, member counts, and bot-specific data.\n\n**Permissions:**\n- Requires BanWatch Staff access.",
@@ -33,8 +36,6 @@
     "reban": "Updates a user's ban reason by unbanning and immediately re-banning them with a new reason. This is useful for correcting or updating ban records without requiring the user to be present.\n\n**Permissions:**\n- Requires `Ban Members` permission.",
     "kick": "Removes a user from the server. Unlike a ban, a kicked user can rejoin immediately if they have a valid invite. This is a less severe moderation action.\n\n**Permissions:**\n- Requires `Kick Members` permission.",
     "export_bans": "Fetches the entire ban list for the server and compiles it into a text file. This is extremely useful for auditing, backup, or migrating bans to another server or bot.\n\n**Permissions:**\n- Requires `Ban Members` permission.",
-    "search_bans": "Searches the server's ban database for entries containing a specific word or phrase in the reason. This helps moderators find patterns or locate specific cases quickly.\n\n**Permissions:**\n- Requires `Ban Members` permission.",
-    "copy_bans": "Copies all bans from a specified source server to the current server. This is designed for server owners to synchronize ban lists between servers they manage.\n\n**Permissions:**\n- Requires `Ban Members` permission.\n- User must be the owner of both servers.",
     "support": "Provides a link to the official documentation and support server. Use this if you need help with the bot or want to report an issue.\n\n**Permissions:**\n- None required for the user.",
     "donate": "Provides a link to financially support the development and hosting of BanWatch. Donations help keep the bot running and support future updates.\n\n**Permissions:**\n- None required for the user."
 }
