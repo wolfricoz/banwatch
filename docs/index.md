@@ -5,7 +5,7 @@ nav_order: 1
 ---
 
 <h1 align="center">Banwatch</h1>
-Build: 3.0<br>
+Build: 3.2<br>
 Devs: ricostryker
 
 Banwatch is a ban management tool that informs you about troublesome users in the community. Banwatch comes with the following features:
@@ -19,7 +19,7 @@ Banwatch is a ban management tool that informs you about troublesome users in th
 
 The goal of banwatch is to inform servers about troublesome users, this means that  **Banwatch will never automatically ban users!** By using banwatch you can avoid troublesome and even dangerous users from harming your community, 
 
-Banwatch boasts 15,000+ unique bans and 150 other servers contributing to keeping the community safe.
+Banwatch boasts 45,000+ unique bans and 450 other servers contributing to keeping the community safe.
 
 Invite Banwatch:
 https://discord.com/oauth2/authorize?client_id=1047697525349564436
@@ -65,31 +65,16 @@ is ready to use and will work in the background to keep your server safe.
 
 ## Commands
 
-Setting up the bot is straightforward and requires manage server permissions:
-
-- `/config change option:Mod channel input:`: This command sets up the channel where the bot will post user-related
-  information.
-
-To monitor bans, you need ban member privileges:
-
-- `/user lookup member:<user>`: Use this command to check if a specific user has any bans.
-
-- `/user checkall`: This command checks all users in the server for any bans. The bot requires the ability to post
-  files in the channel to use this command.
-- `/support`: This command gives you a link to the documentation.
-
-- `/appeal guild:<guildid>`: To appeal a ban, you can use this command. A modal will pop up where you can give your
-  reason to be unbanned and the bot will send it to the server the user was banned from. You are only allowed to appeal
-  once per server.
+Check out the full list of commands by clicking [here](commands.md).
 
 ## Support
 
 If you run into any issues or have any questions, you can join the support server by
-clicking [here](https://discord.gg/VXrByYt74M). The support server is the best place to get help with the bot and to
+using the /support command. The support server is the best place to get help with the bot and to
 report any issues you may encounter.
 
 ## Donations
 
 This bot is free to use, but if you want to support the development of the bot, you can donate to the developer. This
 will help keep the bot running and allow for more features to be added. You can donate by
-clicking [here](https://donate.stripe.com/dR6eV63rQfr5g2kcMM).
+clicking [here](https://buy.stripe.com/7sYbJ17fYeGY45bgygao803).

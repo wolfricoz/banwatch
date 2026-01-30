@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import re
@@ -7,13 +8,18 @@ import discord
 from discord import Interaction, app_commands
 from discord.app_commands import Choice
 from discord.ext.commands import Bot, GroupCog
+from discord_py_utilities.bans import ban_user
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
+from classes.autocorrect import autocomplete_guild
+from classes.bans import Bans
 from classes.queue import queue
 from data.config.mappings import premium_toggles
 from database.transactions.BanReasonTransactions import BanReasonsTransactions
+from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ConfigTransactions import ConfigTransactions
+from database.transactions.ServerTransactions import ServerTransactions
 from view.buttons.bottrap import bottrap
 from view.modals.banreasonmodal import send_banreason_modal
 
@@ -196,6 +202,58 @@ class Premium(GroupCog, name="premium") :
 				return await send_response(interaction, f"Ban preset `{name}` does not exist.", ephemeral=True)
 			ConfigTransactions().config_unique_remove(interaction.guild.id, "BAN_PRESET", name)
 			await send_response(interaction, f"Removed ban preset `{name}`.", ephemeral=True)
+
+	@app_commands.command(name="search_bans", description="Search bans for specific words.")
+	@app_commands.checks.has_permissions(ban_members=True)
+	@AccessControl().check_premium()
+	async def search_bans(self, interaction: discord.Interaction, word: str, hide: bool = False) :
+		"""
+		Searches the server's ban database for entries containing a specific word or phrase in the reason. This helps moderators find patterns or locate specific cases quickly.
+
+		**Permissions:**
+		- Requires `Ban Members` permission.
+		"""
+		await send_response(interaction, f"Checking bans for the word `{word}`")
+		bans = ServerTransactions().get_bans(interaction.guild.id)
+		with open("bans.txt", "w", encoding='utf-16') as file :
+			for ban_entry in bans :
+				if word in ban_entry.reason :
+					file.write(f"ban id: {ban_entry.uid} - Reason: {ban_entry.reason}\n")
+					if hide :
+						BanTransactions().update(ban_entry, hidden=True)
+		# Send the file to the channel
+		await interaction.followup.send(f"Here are all your bans with `{word}`!", file=discord.File("bans.txt"))
+
+	@app_commands.command(name="copy_bans", description="Copy bans from one server to another.")
+	@app_commands.checks.has_permissions(ban_members=True)
+	@app_commands.autocomplete(guild=autocomplete_guild)
+	@AccessControl().check_premium()
+	async def copy_bans(self, interaction: discord.Interaction, guild: str) :
+		"""
+		Copies all bans from a specified source server to the current server. This is designed for server owners to synchronize ban lists between servers they manage.
+
+		**Permissions:**
+		- Requires `Ban Members` permission.
+		- User must be the owner of both servers.
+		- Premium feature.
+		"""
+
+		guild = interaction.client.get_guild(int(guild))
+		if interaction.guild.owner_id != guild.owner_id :
+			return await send_response(interaction, "You can only copy bans between servers you own.")
+		current_bans = [ban.user.id async for ban in interaction.guild.bans(limit=None)]
+		bans = [ban async for ban in guild.bans(limit=None) if ban.user.id not in current_bans]
+		await send_response(interaction,
+		                    f"Copying {len(bans)} bans, this may take a while! Expected time: {len(bans) * 1} seconds")
+		for ban in bans :
+			user = interaction.client.get_user(ban.user.id)
+			if user is None :
+				await asyncio.sleep(1)
+				user = await interaction.client.fetch_user(ban.user.id)
+
+			queue().add(ban_user(interaction, user, ban_type="",
+			                     reason_modal=f"[Migrated from {guild.name}]{ban.reason}", inform=False, clean=False,
+			                     ban_class=Bans()))
 
 
 async def setup(bot: Bot) :

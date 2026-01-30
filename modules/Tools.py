@@ -7,6 +7,7 @@ from discord.ext import commands
 from discord_py_utilities.bans import ban_user, dm_user
 from discord_py_utilities.messages import send_message, send_response
 
+from classes.access import AccessControl
 from classes.autocorrect import autocomplete_guild
 from classes.bans import Bans
 from classes.queue import queue
@@ -206,53 +207,6 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 
 		# Send the file to the channel
 		await interaction.followup.send("Here are all your bans!", file=discord.File("bans.txt"))
-
-	@app_commands.command(name="search_bans", description="Search bans for specific words.")
-	@app_commands.checks.has_permissions(ban_members=True)
-	async def search_bans(self, interaction: discord.Interaction, word: str, hide: bool = False) :
-		"""
-		Searches the server's ban database for entries containing a specific word or phrase in the reason. This helps moderators find patterns or locate specific cases quickly.
-
-		**Permissions:**
-		- Requires `Ban Members` permission.
-		"""
-		await send_response(interaction, f"Checking bans for the word `{word}`")
-		bans = ServerTransactions().get_bans(interaction.guild.id)
-		with open("bans.txt", "w", encoding='utf-16') as file :
-			for ban_entry in bans :
-				if word in ban_entry.reason :
-					file.write(f"ban id: {ban_entry.uid} - Reason: {ban_entry.reason}\n")
-					if hide :
-						BanTransactions().update(ban_entry, hidden=True)
-		# Send the file to the channel
-		await interaction.followup.send(f"Here are all your bans with `{word}`!", file=discord.File("bans.txt"))
-
-	@app_commands.command(name="copy_bans", description="Copy bans from one server to another.")
-	@app_commands.checks.has_permissions(ban_members=True)
-	@app_commands.autocomplete(guild=autocomplete_guild)
-	async def copy_bans(self, interaction: discord.Interaction, guild: str) :
-		"""
-		Copies all bans from a specified source server to the current server. This is designed for server owners to synchronize ban lists between servers they manage.
-
-		**Permissions:**
-		- Requires `Ban Members` permission.
-		- User must be the owner of both servers.
-		"""
-		guild = interaction.client.get_guild(int(guild))
-		if interaction.guild.owner_id != guild.owner_id :
-			return await send_response(interaction, "You can only copy bans between servers you own.")
-		current_bans = [ban.user.id async for ban in interaction.guild.bans(limit=None)]
-		bans = [ban async for ban in guild.bans(limit=None) if ban.user.id not in current_bans]
-		await send_response(interaction, f"Copying {len(bans)} bans, this may take a while! Expected time: {len(bans) * 1} seconds")
-		for ban in bans :
-			user = interaction.client.get_user(ban.user.id)
-			if user is None :
-				await asyncio.sleep(1)
-				user = await interaction.client.fetch_user(ban.user.id)
-
-			queue().add(ban_user(interaction, user, ban_type="",
-			                   reason=f"[Migrated from {guild.name}]{ban.reason}", inform=False, clean=False,
-			                   ban_class=Bans()))
 
 async def setup(bot: commands.Bot) :
 	await bot.add_cog(Tools(bot))

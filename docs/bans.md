@@ -21,24 +21,4 @@ However now in version 3.0 when you do not add these, you will get an embed with
 Once you've made your choice, Banwatch will fetch the ban and add it to the database with the staff member who added the ban; if the staff member is a bot it will default to the server owner. After this is done Banwatch will check for sensitive words (this list will not be public as we wish to avoid people from trying to bypass them). 
 
 If a sensitive word is found then the ban must be approved by a Banwatch Staff member, this is to prevent harmful rumors to circulate without adequate proof. You may be requested to submit additional proof.
-
-## Commands 
-
-### `/ban user:(ping user or userid) ban_type:(optional), inform(optional, default: true), clean:(optional, default true)`
-### `/mass-ban user_ids:(user id's divided by space) ban_type:(optional), inform(optional, default: true), clean:(optional, default true)`
-These two commands are used to ban users. The ban_type option allows you to decide if its a silent or hidden ban, inform if the user will be dmed, and clean if you want the command to remove messages.
-
-### `/unban user:(ping user or userid)`
-### `/mass-unban user_ids:(user id's divided by space)`
-These commands unban users, either a singular user or multiple users at a time.
-### `/reban user:(ping user or userid) ban_type(optional) reason:(optional)`
-This will unban the user and ban them again to update their ban reason, you will be prompted with a modal to fill in the ban reason. the reason option in the command is what will be shown when the ban is revoked.
-
-### `/kick user:(ping user or userid)`
-This command is used to kick users from your server.
-
-### `/export_bans`
-This will give you a text file with all the bans in your server, you can use this to quickly find bans.
-
-### `/copy_bans`
-This will copy the bans from one server you own to another server that you own! This is useful when making a new server and you want to have the same bans.
+ 

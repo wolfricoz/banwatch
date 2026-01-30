@@ -7,6 +7,8 @@ nav_order: 5
   <h1>Appeals</h1>
   <h6>This page will explain how appeals work!</h6>
 </div>
+Version: 3.2
+
 
 ## How do appeals work?
 Users get one appeal to a server by doing the command `/appeal create`, after they have filled out the modal which pops up, the server will receive a message with two buttons where they can decide to unban the user, or keep him banned.
