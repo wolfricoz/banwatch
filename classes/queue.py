@@ -24,6 +24,12 @@ class queue(metaclass=Singleton) :
 	def status(self) :
 		return f"Remaining queue: High: {len(self.high_priority_queue)} Normal: {len(self.normal_priority_queue)} Low: {len(self.low_priority_queue)}"
 
+	def clear(self):
+		self.high_priority_queue = []
+		self.normal_priority_queue = []
+		self.low_priority_queue = []
+		self.task_finished = True
+
 	def empty(self) :
 		return len(self.high_priority_queue) == 0 and len(self.normal_priority_queue) == 0 and len(
 			self.low_priority_queue) == 0
