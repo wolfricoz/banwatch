@@ -11,12 +11,14 @@ from discord.app_commands import Choice
 from discord.ext import commands
 from discord.utils import get
 from discord_py_utilities.messages import send_message, send_response
+from discord_py_utilities.permissions import find_first_accessible_text_channel
 
 from classes.access import AccessControl
 from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.configer import Configer
 from classes.evidence import EvidenceController
+from classes.onboarding import Onboarding
 from classes.queue import queue
 from classes.tasks import pending_bans
 from database.transactions.BanMessageTransactions import BanMessageTransactions
@@ -544,6 +546,26 @@ class DevTools(commands.GroupCog, name="dev") :
 		"""
 		AccessControl().reload()
 		await send_response(interaction, "Access control reloaded.", ephemeral=True)
+
+	@app_commands.command(name="start_onboard", description="[DEV] Starts the onboarding process for a specified server.")
+	@AccessControl().check_access("dev")
+	async def start_onboard(self, interaction: discord.Interaction, guild: str = None):
+		"""
+		[DEV] Initiates the onboarding process for a specified server.
+
+		**Permissions:**
+		- `Developer`
+		"""
+		if guild is None:
+			guild = interaction.guild
+		else:
+			guild = self.bot.get_guild(int(guild))
+		if guild is None:
+			return await send_response(interaction, "Guild not found.", ephemeral=True)
+
+		channel = find_first_accessible_text_channel(guild)
+		await Onboarding().join_message(channel)
+		await send_response(interaction, f"Onboarding process started for {guild.name}.", ephemeral=True)
 
 
 

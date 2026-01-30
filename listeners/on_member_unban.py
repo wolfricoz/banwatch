@@ -22,9 +22,9 @@ class UnBanEvents(commands.Cog):
                     reason = entry.reason
                     break
             else:
-                reason = "MemberLookup was unbanned by the server with no reason provided"
+                reason = "Member was unbanned by the server with no reason provided"
         except discord.Forbidden:
-            reason = "MemberLookup was unbanned by the server with no reason provided"
+            reason = "Member was unbanned by the server with no reason provided"
             await guild.owner.send(f"Please give me the permission to view audit logs to get the reason for the unban of {user}")
         await Bans().revoke_bans(self.bot, unique_id, reason)
         await Bans().delete_ban(user.id, guild.id)

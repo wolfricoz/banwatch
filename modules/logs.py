@@ -81,7 +81,7 @@ class Logging(commands.Cog) :
 		elif isinstance(error, commands.CheckFailure) :
 			await ctx.send("You do not have permission")
 		elif isinstance(error, commands.MemberNotFound) :
-			await ctx.send("MemberLookup not found")
+			await ctx.send("Member not found")
 		else :
 			logger.warning(f"\n{ctx.guild.name} {ctx.guild.id} {ctx.command.name}: {error}")
 			channel = self.bot.get_channel(self.bot.DEV)
@@ -135,7 +135,7 @@ class Logging(commands.Cog) :
 			return await self.on_fail_message(interaction,
 			                                  "Failed to transform given input to member, please select the user from the list, or use the user's ID.")
 		if isinstance(error, commands.MemberNotFound) :
-			return await self.on_fail_message(interaction, "MemberLookup not found.")
+			return await self.on_fail_message(interaction, "Member not found.")
 		if isinstance(error, discord.app_commands.errors.TransformerError) :
 			return await self.on_fail_message(interaction,
 			                                  "Failed to transform given input to member, please select the user from the list, or use the user's ID.")

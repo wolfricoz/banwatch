@@ -59,4 +59,4 @@ class bottrap(discord.ui.View) :
 		if modchannel is None:
 			return
 		await send_message(modchannel, f"Bottrap triggered by {interaction.user.name} ({interaction.user.id})")
-		await interaction.guild.ban(interaction.user, reason="MemberLookup pressed the bot trap buttons.")
+		await interaction.guild.ban(interaction.user, reason="Member pressed the bot trap buttons.")

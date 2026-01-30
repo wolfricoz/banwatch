@@ -3,9 +3,9 @@ import os
 import discord
 from discord_py_utilities.messages import send_response
 
-from classes.configsetup import ConfigSetup
-from databases.transactions.ServerTransactions import ServerTransactions
-from resources.data.config_variables import available_toggles, channelchoices, messagechoices, rolechoices
+from classes.ConfigSetup import ConfigSetup
+from database.transactions.ServerTransactions import ServerTransactions
+
 
 
 class OnboardingLayout(discord.ui.LayoutView) :
@@ -14,12 +14,7 @@ class OnboardingLayout(discord.ui.LayoutView) :
 	def __init__(self):
 		super().__init__(timeout=None, )
 	custom_id = "onboarding_layout"
-	rolechoices = rolechoices
-	channelchoices = channelchoices
-	messagechoices = messagechoices
-	available_toggles = available_toggles
-
-	support_server = ServerTransactions().get(int(os.getenv("SUPPORTGUILD")))
+	support_server = ServerTransactions().get(int(os.getenv("GUILD")))
 
 
 
@@ -28,14 +23,14 @@ class OnboardingLayout(discord.ui.LayoutView) :
 		discord.ui.TextDisplay(
 
 
-			content="""## Thank you for inviting ageverifier! Let's get you started.
+			content="""## Thank you for inviting Banwatch! Let's get you started.
 			
-To get started with ageverifier there are a few ways to setup the bot:
-1. Automatic Setup, this will setup the bot with the default settings, and create the required channels and roles for you. (Recommended for most servers)
-2. Manual Setup (on discord), this will allow you to configure the bot manually using the `/config`
-3. Dashboard Setup, this will allow you to configure the bot using the web dashboard. (recommended for easier manual setup)
+To get started with Banwatch, you need to configure it. There are a few ways to do this:
+1. **Automatic Setup**: This will create the necessary channels and roles with default settings. This is recommended for most servers to get up and running quickly.
+2. **Manual Setup**: This allows you to configure the bot manually on Discord using the `/config` command for more granular control.
+3. **Dashboard Setup**: Configure the bot through our web dashboard for an easy-to-use interface.
 
-Below you'll see a button for each setup method, they will start the respective setup process for you.
+Please select one of the setup methods below to begin.
 """
 		),
 		discord.ui.Separator(visible=True),
@@ -51,13 +46,7 @@ Below you'll see a button for each setup method, they will start the respective 
 		if not interaction.user.guild_permissions.manage_guild:
 			await send_response(interaction, "You need to be an manage_guild to use automatic setup.", ephemeral=True)
 			return
-		status = await ConfigSetup().auto(interaction, self.channelchoices, self.rolechoices, self.messagechoices)
-		if not status :
-			await send_response(interaction,
-				"Automatic setup failed, please try manual setup or use the dashboard to setup the bot.", ephemeral=True)
-			return
-		await ConfigSetup().check_channel_permissions(interaction.guild)
-		await send_response(interaction, "Automatic setup completed successfully!", ephemeral=True)
+		await ConfigSetup().automated_setup(interaction)
 
 	@actions.button(label="Manual Setup", style=discord.ButtonStyle.primary, custom_id="onboarding_manual_setup")
 	async def onboarding_manual_setup(self, interaction: discord.Interaction, button: discord.ui.Button) :
@@ -65,11 +54,12 @@ Below you'll see a button for each setup method, they will start the respective 
 			await send_response(interaction, "You need to be an manage_guild to use manual setup.", ephemeral=True)
 			return
 
-		await ConfigSetup().manual(interaction.client, interaction, self.channelchoices, self.rolechoices, self.messagechoices)
-		await ConfigSetup().check_channel_permissions(interaction.guild)
-		await send_response(interaction, "Manual setup completed successfully!", ephemeral=True)
+		await ConfigSetup().manual_setup(interaction)
+
 	links = discord.ui.ActionRow()
 	links.add_item(discord.ui.Button(label="Dashboard Setup", style=discord.ButtonStyle.link, url=os.getenv("DASHBOARD_URL")))
-	links.add_item(discord.ui.Button(label="Documentation", style=discord.ButtonStyle.link, url="https://wolfricoz.github.io/ageverifier/"))
+	links.add_item(discord.ui.Button(label="Documentation", style=discord.ButtonStyle.link, url="https://wolfricoz.github.io/banwatch/"))
 	if support_server is not None:
 		links.add_item(discord.ui.Button(label="Support Server", style=discord.ButtonStyle.link, url=support_server.invite))
+
+

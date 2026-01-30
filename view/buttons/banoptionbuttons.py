@@ -123,7 +123,7 @@ class BanOptionButtons(SecureView) :
 
 
 		if user.bot and not checkListCheckType :
-			checkListResult = "MemberLookup is a bot"
+			checkListResult = "Member is a bot"
 			checkListCheckType = 'review'
 		word_count = len(ban.reason.split(" ")) < 4
 		if word_count and ("spam" not in ban.reason.lower() or "bot" not in ban.reason.lower()) and not checkListCheckType :

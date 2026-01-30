@@ -9,6 +9,7 @@ import discord
 import sentry_sdk
 from discord.ext import commands
 from discord_py_utilities.messages import send_message
+from discord_py_utilities.permissions import find_first_accessible_text_channel
 # IMPORT LOAD_DOTENV FUNCTION FROM DOTENV MODULE.
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -19,6 +20,7 @@ from classes.bans import Bans
 from classes.blacklist import blacklist_check
 from classes.configdata import ConfigData
 from classes.configer import Configer
+from classes.onboarding import Onboarding
 from classes.queue import queue
 from classes.tasks import pending_bans
 from database.current import create_bot_database
@@ -28,6 +30,7 @@ from view.buttons.baninform import BanInform
 from view.buttons.communicationbuttons import CommunicationButtons
 from view.buttons.lookup import LookUp
 from view.buttons.serverinfo import ServerInfo
+from view.v2.OnboardingLayout import OnboardingLayout
 
 # LOADS THE .ENV FILE THAT RESIDES ON THE SAME LEVEL AS THE SCRIPT.
 load_dotenv('main.env')
@@ -122,6 +125,7 @@ async def on_ready() :
 	bot.add_view(AppealButtons())
 	bot.add_view(CommunicationButtons())
 	bot.add_view(BanInform(Bans()))
+	bot.add_view(OnboardingLayout())
 	# Syncing commands
 	queue().add(bot.tree.sync())
 	logging.info(f"Commands synced, start up done! Connected to {guild_count} guilds and {bot.shard_count} shards.")
@@ -151,10 +155,8 @@ async def on_guild_join(guild: discord.Guild) -> None :
 	#                    f"\n**__Leaving due to low user count__**")
 	#     await guild.leave()
 	#     return
-
-	logging.info("sending DM now")
-	await guild.owner.send(
-		"Thank you for inviting **ban watch**, please read https://wolfricoz.github.io/banwatch/ to set up the bot")
+	fc = find_first_accessible_text_channel(guild)
+	await Onboarding().join_message(fc)
 	await log.send(f"Ban watch is now in {len(bot.guilds)}! It just joined:"
 	               f"\nGuild: {guild}({guild.id})"
 	               f"\nOwner: {guild.owner}({guild.owner.id})"
@@ -167,7 +169,7 @@ async def on_guild_join(guild: discord.Guild) -> None :
 	await Bans().check_guild_invites(bot, guild)
 	queue().add(Bans().update(bot), priority=0)
 	approval_channel = bot.get_guild(int(os.getenv("GUILD"))).get_channel(int(os.getenv("BANS")))
-	queue().add(ServerInfo().send(approval_channel, guild), priority=2)
+	queue().add(ServerInfo().send(approval_channel, guild, new=True), priority=2)
 
 
 @bot.event

@@ -53,7 +53,7 @@ class on_reaction_add(Cog) :
 			if modchannel :
 				await send_message(modchannel, f"Bottrap triggered by {user.name} ({user.id})")
 
-		await guild.ban(user, reason="MemberLookup pressed the bot trap buttons.")
+		await guild.ban(user, reason="Member pressed the bot trap buttons.")
 
 
 async def setup(bot: Bot) :
