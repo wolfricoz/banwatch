@@ -20,7 +20,7 @@ class QueueTask(commands.Cog) :
 
 	@app_commands.command(name="restart_queue", description="[dev command] Restart the bot queue")
 	@AccessControl().check_access('dev')
-	async def restart_queue(self, interaction: discord.Interaction, empty=False) :
+	async def restart_queue(self, interaction: discord.Interaction, empty: bool=False) :
 		if empty :
 			queue().clear()
 		queue().task_finished = True

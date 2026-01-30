@@ -41,34 +41,57 @@ class BanOptionButtons(SecureView) :
 		self.wait_id = self.guild.id + self.user.id
 		return self.guild, self.user, self.ban
 
-	@button(label="Share", custom_id="share", style=discord.ButtonStyle.success)
+	@button(label="Broadcast", custom_id="share", style=discord.ButtonStyle.success)
 	async def share(self, interaction: discord.Interaction, button: button) :
+		await self.disable_buttons(interaction)
+		await send_response(interaction, f"Your ban has been queued for broadcasting, please wait...", ephemeral=True)
 		await self.process(interaction)
 
-	@button(label="Share with proof", custom_id="share_with_proof", style=discord.ButtonStyle.success)
+	@button(label="Broadcast with proof", custom_id="share_with_proof", style=discord.ButtonStyle.success)
 	async def share_with_proof(self, interaction: discord.Interaction, button: button) :
 		guild, user, ban = await self.get_data(interaction)
 
 		evidence = await await_message(interaction, evidence_message_template.format(user=user.name, ban_id=self.wait_id))
 		if evidence is False :
 			return
+		await self.disable_buttons(interaction)
+		await send_response(interaction, f"Your ban has been queued for broadcasting, please wait...", ephemeral=True)
 		queue().add(self.process(interaction, evidence), priority=2)
 
-	@button(label="Silent", custom_id="silent", style=discord.ButtonStyle.primary)
+	@button(label="Log only", custom_id="silent", style=discord.ButtonStyle.primary)
 	async def silent(self, interaction: discord.Interaction, button: button) :
+		await self.disable_buttons(interaction)
+		await send_response(interaction, f"Your ban has been silently stored, servers will still see this ban when the user joins or if they look up the user.", ephemeral=True)
 		await self.process(interaction, silent=True)
 
-	@button(label="Silent with proof", custom_id="silent_with_proof", style=discord.ButtonStyle.primary)
+	@button(label="Log with Proof", custom_id="silent_with_proof", style=discord.ButtonStyle.primary)
 	async def silent_with_proof(self, interaction: discord.Interaction, button: button) :
 		guild, user, ban = await self.get_data(interaction)
 		evidence = await await_message(interaction, evidence_message_template.format(user=user.name, ban_id=self.wait_id))
 		if evidence is False :
 			return
+		await self.disable_buttons(interaction)
+		await send_response(interaction, f"Your ban has been silently stored, servers will still see this ban when the user joins or if they look up the user.", ephemeral=True)
 		queue().add(self.process(interaction, evidence, silent=True), priority=2)
 
-	@button(label="Hide", custom_id="hide", style=discord.ButtonStyle.danger)
+	@button(label="Hide Ban", custom_id="hide", style=discord.ButtonStyle.danger)
 	async def hidden(self, interaction: discord.Interaction, button: button) :
+		await self.disable_buttons(interaction)
+		await send_response(interaction, f"Your ban has been hidden, other servers can't view the ban.", ephemeral=True)
 		await self.process(interaction, hidden=True)
+
+	@button(label="reactivate buttons", custom_id="reactivate_buttons", style=discord.ButtonStyle.secondary)
+	async def reactivate_buttons(self, interaction: discord.Interaction, button: button) :
+		for child in self.children :
+			child.disabled = False
+		await interaction.message.edit(view=self)
+
+	async def disable_buttons(self, interaction: discord.Interaction) :
+		for child in self.children :
+			if child.custom_id == "reactivate_buttons" :
+				continue
+			child.disabled = True
+		await interaction.message.edit(view=self)
 
 	async def process(self, interaction, evidence=None, hidden=False, silent=False) :
 		guild, user, ban = await self.get_data(interaction)
