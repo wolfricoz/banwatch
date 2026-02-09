@@ -44,7 +44,7 @@ class AppealButtons(SecureView) :
 			await self.disable_buttons(interaction)
 			return
 		target = "guild" if self.dmChannel else "user"
-		message = await send_modal(interaction, f"Your response has been delivered to the {target}", "What's your message?", 2000)
+		message = await send_modal(interaction, f"Your response has been delivered to the {target}", "What's your message?", 2000, ephemeral=False)
 
 		await self.send_embed(interaction, message)
 		await self.create_record(interaction, message, appeal)
@@ -106,8 +106,8 @@ class AppealButtons(SecureView) :
 
 	async def create_record(self, interaction, message, appeal):
 		if self.dmChannel:
-			return AppealMsgTransactions.add(message, self.user.id, self.ban.gid, appeal.id)
-		return AppealMsgTransactions.add(message, self.ban.gid, self.user.id,  appeal.id)
+			return AppealMsgTransactions().add(message, self.user.id, self.ban.gid, appeal.id)
+		return AppealMsgTransactions().add(message, self.ban.gid, self.user.id,  appeal.id)
 
 
 	async def load_data(self, interaction: discord.Interaction) :

@@ -36,6 +36,10 @@ class BanInform(SecureView) :
 
 	@discord.ui.button(label="Ban with Reason", style=discord.ButtonStyle.success, custom_id="ban_user")
 	async def ban_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
+		if not interaction.user.guild_permissions.ban_members:
+			await send_response(interaction, "You do not have permission to use this button.", ephemeral=True)
+			return
+
 		ban_id = await self.get_ban_id(interaction)
 		if ban_id is None :
 			logging.error(f"Could not find ban id in {interaction.guild.name}.")
@@ -53,6 +57,10 @@ class BanInform(SecureView) :
 
 	@discord.ui.button(label="Cross-Ban", style=discord.ButtonStyle.success, custom_id="cross_ban_user")
 	async def cross_ban_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
+		if not interaction.user.guild_permissions.ban_members:
+			await send_response(interaction, "You do not have permission to use this button.", ephemeral=True)
+			return
+
 		ban_id = await self.get_ban_id(interaction)
 		if ban_id is None :
 			logging.error(f"Could not find ban id in {interaction.guild.name}.")
@@ -89,6 +97,8 @@ class BanInform(SecureView) :
 		return attachments
 
 	async def send_proof(self, interaction: discord.Interaction, entries: list, ban_id: int) :
+
+
 		if not entries :
 			await send_response(interaction, f"No proof available for ban id: {ban_id}! Please reach out to the server where the user is banned. ")
 			return

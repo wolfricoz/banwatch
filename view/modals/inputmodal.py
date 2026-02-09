@@ -7,9 +7,10 @@ import discord
 class InputModal(discord.ui.Modal):
     custom_id = "InputModal"
 
-    def __init__(self, confirmation, title):
+    def __init__(self, confirmation, title, ephemeral = True):
         super().__init__(timeout=None, title=title)  # Set a timeout for the modal
         self.confirmation = confirmation
+        self.ephemeral = ephemeral
     reason = discord.ui.TextInput(label='What is the reason?', style=discord.TextStyle.long, placeholder='Type your reason here...', max_length=500)
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
@@ -25,16 +26,16 @@ class InputModal(discord.ui.Modal):
     async def send_message(self, interaction: discord.Interaction, message: str) -> None:
         """sends the message to the channel."""
         try:
-            await interaction.response.send_message(message, ephemeral=True)
+            await interaction.response.send_message(message, ephemeral=self.ephemeral)
         except discord.errors.HTTPException:
             pass
         except Exception as e:
             logging.error(e)
 
 
-async def send_modal(interaction: discord.Interaction, confirmation, title = 'Input Modal', max_length=500):
+async def send_modal(interaction: discord.Interaction, confirmation, title = 'Input Modal', max_length=500, ephemeral = True):
     """Sends the modal to the channel."""
-    view = InputModal(confirmation, title)
+    view = InputModal(confirmation, title, ephemeral)
     view.reason.max_length = max_length
     await interaction.response.send_modal(view)
 
