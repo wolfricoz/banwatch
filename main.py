@@ -158,8 +158,8 @@ async def on_guild_join(guild: discord.Guild) -> None :
 	fc = find_first_accessible_text_channel(guild)
 	await Onboarding().join_message(fc)
 	await log.send(f"Ban watch is now in {len(bot.guilds)}! It just joined:"
-	               f"\nGuild: {guild}({guild.id})"
-	               f"\nOwner: {guild.owner}({guild.owner.id})"
+	               f"\nGuild: `{guild}({guild.id})`"
+	               f"\nOwner: `{guild.owner}({guild.owner.id})`"
 	               f"\nMember count: {membercount}"
 	               f"\n\nWelcome to the Banwatch collective!")
 	# Updates ban list
