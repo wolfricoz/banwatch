@@ -17,14 +17,14 @@ class Servers:
 	def __init__(self):
 		self.path = "/api/server/create"
 		self.url = f"{self.ip_address}{self.path}"
-		self.encoded = base64.b64encode(f"{self.key}:{self.secret}".encode('ascii')).decode()
+		self.encoded = base64.b64encode(f"{self.key}:{self.secret}".encode('ascii')).decode() # Legacy, not used anymore but keeping in case we need it for something else later
 
 
 
 	async def update_servers(self, guilds: list[dbServers]):
 
 		headers = {
-			"Authorization": f"Basic {self.encoded}",
+			"Authorization": f"Bearer {self.key}",
 			"Content-Type": "application/json"
 		}
 		logging.info(f"headers: {headers}")
