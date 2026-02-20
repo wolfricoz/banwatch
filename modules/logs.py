@@ -182,11 +182,6 @@ class Logging(commands.Cog) :
 		except AttributeError :
 			logging.debug(f'\n{server.name}({server.id}): {user}({user.id}) issued a command with no data or name.')
 
-	@app_commands.command(name="getlog")
-	async def getlog(self, interaction: Interaction) :
-		"""gets the log file"""
-		with open(logfile, 'rb') as file :
-			await interaction.response.send_message("Here's the log file.", file=discord.File(file.name, "log.txt"))
 
 
 async def setup(bot) :
