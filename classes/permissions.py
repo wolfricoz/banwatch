@@ -24,16 +24,16 @@ class PermissionsCheck():
         missing = check_missing_channel_permissions(channel,
                                                     ['view_channel', 'send_messages', 'embed_links', 'attach_files'])
         permission_status = {
-            "Ban_members": "✅" if "ban_members" in permissions else "❌",
-            "Kick_members": "✅" if "kick_members" in permissions else "❌",
-            "Manage_guild": "✅" if "manage_guild" in permissions else "❌",
-            "Create_instant_invite": "✅" if "create_instant_invite" in permissions else "❌",
-            "Use_embedded_activities": "✅" if "use_embedded_activities" in permissions else "❌",
-            "View_audit_log": "✅" if "view_audit_log" in permissions else "❌",
-            "Manage_messages": "✅" if "manage_messages" in permissions else "❌",
-            "Send_messages": "✅" if "send_messages" in permissions else "❌",
-            "Attach_files": "✅" if "attach_files" in permissions else "❌",
-            "Can message in modchannel": "✅" if len(missing) <= 1 else "❌",
+            "Ban Members"               : "✅" if permissions.get("Ban Members", None) else "❌",
+            "Kick Members"              : "✅" if permissions.get("Kick Members", None) else "❌",
+            "Manage Guild"              : "✅" if permissions.get("Manage Guild", None) else "❌",
+            "Create Invite"             : "✅" if permissions.get("Create Invite", None) else "❌",
+            "Embedded Activities"       : "✅" if permissions.get("Embedded Activities", None) else "❌",
+            "View Audit Log"            : "✅" if permissions.get("View Audit Log", None) else "❌",
+            "Manage Messages"           : "✅" if permissions.get("Manage Messages", None) else "❌",
+            "Send Messages"             : "✅" if permissions.get("Send Messages", None) else "❌",
+            "Attach Files"              : "✅" if permissions.get("Attach Files", None) else "❌",
+            "Can message in modchannel" : "✅" if len(missing) <= 1 else "❌",
         }
         embed = discord.Embed(title="Permissions Check", color=0x00ff00)
         embed.description = f"I have the following permissions in {interaction.guild.name}::"
