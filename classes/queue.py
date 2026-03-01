@@ -1,5 +1,6 @@
 import inspect
 import logging
+import math
 
 from discord import Forbidden, channel
 
@@ -22,7 +23,7 @@ class queue(metaclass=Singleton) :
 	task_finished = True
 
 	def status(self) :
-		return f"Remaining queue: High: {len(self.high_priority_queue)} Normal: {len(self.normal_priority_queue)} Low: {len(self.low_priority_queue)}"
+		return f"Remaining queue: High: {len(self.high_priority_queue)} Normal: {len(self.normal_priority_queue)} Low: {len(self.low_priority_queue)} Estimated time: {round(math.ceil(self.get_queue_time()) / 60, 2)} minutes"
 
 	def clear(self):
 		self.high_priority_queue = []
@@ -64,40 +65,41 @@ class queue(metaclass=Singleton) :
 			return self.low_priority_queue.pop(0)
 
 	async def start(self) :
-		if self.task_finished and not self.empty() :
-			self.task_finished = False
-			task = self.process()
-			try :
+		if not self.task_finished or self.empty() :
+			return
+		self.task_finished = False
+		task = self.process()
+		try :
 
-				if not task :
-					self.low_priority_queue = [i for i in self.low_priority_queue if i is not None]
-					self.normal_priority_queue = [i for i in self.normal_priority_queue if i is not None]
-					self.high_priority_queue = [i for i in self.high_priority_queue if i is not None]
-					print(self.status())
-					self.task_finished = True
-					return
-				if not inspect.iscoroutine(task) :
-					task()
-					self.task_finished = True
-					logging.info(f"Processing task: {task.__name__}")
-
-					print(self.status())
-					return
+			if not task :
+				self.low_priority_queue = [i for i in self.low_priority_queue if i is not None]
+				self.normal_priority_queue = [i for i in self.normal_priority_queue if i is not None]
+				self.high_priority_queue = [i for i in self.high_priority_queue if i is not None]
+				print(self.status())
+				self.task_finished = True
+				return
+			if not inspect.iscoroutine(task) :
+				task()
+				self.task_finished = True
 				logging.info(f"Processing task: {task.__name__}")
-				await task
 
-			except Forbidden as e:
+				print(self.status())
+				return
+			logging.info(f"Processing task: {task.__name__}")
+			await task
 
-				if hasattr(task, 'channel') and isinstance(task.channel, channel.TextChannel) :
-					await task.channel.send(f"{task.channel.name} has been removed from queue.")
-				logging.info(f"No permission for {task.__name__}: {e}")
-			except KeyNotFound:
-				logging.warning(f"Key not found in queue: {task.__name__} for guild {task.guild.id if hasattr(task, 'guild') else 'unknown'}")
-			except Exception as e :
-				logging.error(f"Error in queue: {e}", exc_info=True)
-			self.task_finished = True
-			print(
-				f"Remaining queue: High: {len(self.high_priority_queue)} Normal: {len(self.normal_priority_queue)} Low: {len(self.low_priority_queue)}")
+		except Forbidden as e:
+
+			if hasattr(task, 'channel') and isinstance(task.channel, channel.TextChannel) :
+				await task.channel.send(f"{task.channel.name} has been removed from queue.")
+			logging.info(f"No permission for {task.__name__}: {e}")
+		except KeyNotFound:
+			logging.warning(f"Key not found in queue: {task.__name__} for guild {task.guild.id if hasattr(task, 'guild') else 'unknown'}")
+		except Exception as e :
+			logging.error(f"Error in queue: {e}", exc_info=True)
+		self.task_finished = True
+		logging.info(self.status())
+
 
 	def get_queue_time(self) -> float :
-		return len(self.high_priority_queue) + len(self.normal_priority_queue) * 0.3
+		return (len(self.high_priority_queue) + len(self.normal_priority_queue) + len(self.low_priority_queue)) * 0.3
