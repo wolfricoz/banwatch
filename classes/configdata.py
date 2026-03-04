@@ -119,7 +119,7 @@ class ConfigData(metaclass=Singleton) :
 
 		"""Gets channel from the Config."""
 
-	async def get_channel(self, guild: discord.Guild, channel_type: str = "modchannel") -> None | VoiceChannel | StageChannel | ForumChannel | TextChannel | CategoryChannel | Thread :
+	async def get_channel(self, guild: discord.Guild, channel_type: str = "modchannel", optional: bool = False) -> None | VoiceChannel | StageChannel | ForumChannel | TextChannel | CategoryChannel | Thread :
 		"""Gets the channel from the Config"""
 		channel_id = self.get_key_or_none(guild.id, channel_type)
 		if not isinstance(channel_id, int) :
@@ -133,6 +133,8 @@ class ConfigData(metaclass=Singleton) :
 			channel = find_first_accessible_text_channel(guild)
 			if channel is None:
 				channel = guild.owner
+			if optional:
+				return None
 			await send_message(channel,
 			                   f"No `{channel_type}` channel set for {guild.name}, please set it up using the /Config command")
 			return None
@@ -147,10 +149,11 @@ class ConfigData(metaclass=Singleton) :
 				except discord.HTTPException:
 					return None
 		if channel is None :
+			if optional:
+				return None
 			channel = find_first_accessible_text_channel(guild)
 			if channel is None:
 				channel = guild.owner
-
 			await send_message(channel,
 			                   f"Banwatch could not fetch the `{channel_type}` channel with id {channel_id} in {guild.name}, please verify it exists and is accessible by the bot. If it does then discord may be having issues.")
 			return None

@@ -6,8 +6,8 @@ import re
 
 import discord
 from discord.ext import commands
+from discord_py_utilities.invites import check_guild_invites
 from discord_py_utilities.messages import send_message
-from discord_py_utilities.permissions import find_first_accessible_text_channel
 
 from classes.appeal import inform_user
 from classes.configdata import ConfigData
@@ -15,13 +15,13 @@ from classes.queue import queue
 from classes.rpsec import RpSec
 from classes.server import Server
 from classes.singleton import Singleton
-from database.current import Proof, BanMessages
+from data.config.mappings import Channels
+from database.current import BanMessages, Proof
 from database.transactions.BanMessageTransactions import BanMessageTransactions
 from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ProofTransactions import ProofTransactions
 from database.transactions.ServerTransactions import ServerTransactions
 from view.buttons.baninform import BanInform
-from discord_py_utilities.invites import check_guild_invites
 
 
 class Bans(metaclass=Singleton) :
@@ -123,13 +123,23 @@ class Bans(metaclass=Singleton) :
 				bans.append(message)
 		return bans
 
-	async def create_invite(self, bot: commands.AutoShardedBot | commands.Bot, guild: discord.Guild) -> str:
+	async def create_invite(self, bot: commands.AutoShardedBot | commands.Bot, guild: discord.Guild,
+	                        force_new: bool = False) -> str :
 		invite = None
-		server = ServerTransactions().get(guild.id)
-		if server:
-			invite = server.invite
-		return await check_guild_invites(bot, guild, invite)
+		logging.info("a")
+		if not force_new :
+			logging.info("b")
 
+			server = ServerTransactions().get(guild.id)
+			if server:
+				invite = server.invite
+		logging.info("c")
+
+		channel = await ConfigData().get_channel(guild, Channels.INVITE, optional=True)
+		logging.info("d")
+		inv = await check_guild_invites(bot, guild, invite, channel=channel)
+		logging.info("end")
+		return inv
 
 	def get_ban_id(self, embed: discord.Embed) :
 		match = re.search(r'ban ID: (\w+)', embed.footer.text)
@@ -204,18 +214,15 @@ class Bans(metaclass=Singleton) :
 				logging.info("No modchannel found, skipping")
 				continue
 
-
 			queue().add(self.delete_message(channel, ban_message.message_id, reason=reason), priority=0)
 			BanMessageTransactions().delete_bm(int(ban_message.message_id))
-			if staff:
+			if staff :
 				BanTransactions().update(int(ban_id), approved=False)
-
-
 
 	async def delete_message(self, channel: discord.TextChannel, message_id, reason=None) :
 		try :
 			message = await channel.fetch_message(message_id)
-			if reason:
+			if reason :
 				await message.reply(f"Ban `{message.embeds[0].title}` revoked. Reason:\n{reason}")
 
 			await message.delete()
@@ -227,21 +234,21 @@ class Bans(metaclass=Singleton) :
 		except Exception as e :
 			logging.error(f"Error deleting ban message {message_id} in {channel.guild.name}: {e}")
 
-		# for guild in bot.guilds :
-		# 	channel = ConfigData().get_channel(guild.id, "modchannel")
-		# 	if channel is None :
-		# 		continue
-		# 	queue().add(self.search_messages(bot, channel, ban_id, reason), 0)
-		# if staff :
-		# 	BanTransactions().update(int(ban_id), approved=False)
-		# channel = bot.get_channel(bot.APPROVALCHANNEL)
-		# queue().add(self.search_messages(bot, channel, ban_id, reason), 0)
+	# for guild in bot.guilds :
+	# 	channel = ConfigData().get_channel(guild.id, "modchannel")
+	# 	if channel is None :
+	# 		continue
+	# 	queue().add(self.search_messages(bot, channel, ban_id, reason), 0)
+	# if staff :
+	# 	BanTransactions().update(int(ban_id), approved=False)
+	# channel = bot.get_channel(bot.APPROVALCHANNEL)
+	# queue().add(self.search_messages(bot, channel, ban_id, reason), 0)
 
 	async def check_guild_bans(self, guild: discord.Guild) :
 		count = 0
 		server = Server(guild.id)
 
-		if not guild:
+		if not guild :
 			logging.error(f"Guild {guild.id} not found")
 			return
 

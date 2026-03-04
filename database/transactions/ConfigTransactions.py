@@ -44,6 +44,7 @@ class ConfigTransactions(DatabaseTransactions) :
 				session.add(item)
 				DatabaseTransactions().commit(session)
 				logging.info(f"Overwriting unique key with data: {guildid}, {key}, {value}, and overwrite {overwrite}")
+
 				return True
 
 			# A single commit is more efficient

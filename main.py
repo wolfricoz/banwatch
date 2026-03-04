@@ -223,3 +223,4 @@ async def run() :
 		await bot.start(DISCORD_TOKEN)
 	except KeyboardInterrupt :
 		quit(0)
+# bot.run(DISCORD_TOKEN)
