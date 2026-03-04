@@ -200,7 +200,7 @@ class BanOptionButtons(SecureView) :
 		modchannel_id = ConfigData().get_key(guild.id, "modchannel")
 		modchannel = bot.get_channel(int(modchannel_id))
 		supportguild = bot.get_guild(bot.SUPPORTGUILD)
-		support_invite = await Bans().create_invite(supportguild)
+		support_invite = await Bans().create_invite(bot, supportguild)
 		if word in ["Short ban reason", "Banwatch Staff Member"]:
 			if message :
 				await message.edit(content=f"This ban has been submitted to be reviewed, we review short bans to ensure the quality of the shared bans. You don't have to do anything else!", view=None)

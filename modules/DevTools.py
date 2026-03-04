@@ -10,6 +10,7 @@ from discord import app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
 from discord.utils import get
+from discord_py_utilities.invites import check_guild_invites
 from discord_py_utilities.messages import send_message, send_response
 from discord_py_utilities.permissions import find_first_accessible_text_channel
 
@@ -123,7 +124,7 @@ class DevTools(commands.GroupCog, name="dev") :
 			return
 		bot = self.bot
 		supportguild = bot.get_guild(bot.SUPPORTGUILD)
-		support_invite = await Bans().create_invite(supportguild)
+		support_invite = await Bans().create_invite(bot, supportguild)
 		announcement = (f"## BAN WATCH ANNOUNCEMENT"
 		                f"\n{message}"
 		                f"\n-# You can join our support server by [clicking here to join]({support_invite}). If you have any questions, errors or concerns, please open a ticket in the support server.")
@@ -553,6 +554,26 @@ class DevTools(commands.GroupCog, name="dev") :
 		"""
 		AccessControl().reload()
 		await send_response(interaction, "Access control reloaded.", ephemeral=True)
+
+
+	@app_commands.command(name="test_invites", description="[DEV] Reloads the access control lists from the database.")
+	@AccessControl().check_access("dev")
+	async def test_invites(self, interaction: discord.Interaction) :
+		"""
+		[DEV] Reloads the access control lists (staff, blacklists) from the database.
+
+		**Permissions:**
+		- `Developer`
+		"""
+		result = []
+		guilds = ServerTransactions().get_all(id_only=False)
+		for guild in guilds:
+			g = self.bot.get_guild(guild.id)
+			result.append(await Bans().create_invite(self.bot, g))
+		await send_response(interaction, f"Result:\n{'\n'.join(result)}", ephemeral=True)
+
+
+
 
 	@app_commands.command(name="start_onboard", description="[DEV] Starts the onboarding process for a specified server.")
 	@AccessControl().check_access("dev")

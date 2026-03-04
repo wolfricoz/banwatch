@@ -177,7 +177,7 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 		reason_modal = await send_modal(interaction, "What is the reason for the kick?", "Kick Reason")
 		reason = reason_modal
 		if reinvite :
-			invite = await Bans().create_invite(interaction.guild)
+			invite = await Bans().create_invite(interaction.client, interaction.guild)
 			reason = f"{reason}\n\nReinvite link: {invite}"
 
 		await dm_user(interaction, reason, user)

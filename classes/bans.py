@@ -21,6 +21,7 @@ from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ProofTransactions import ProofTransactions
 from database.transactions.ServerTransactions import ServerTransactions
 from view.buttons.baninform import BanInform
+from discord_py_utilities.invites import check_guild_invites
 
 
 class Bans(metaclass=Singleton) :
@@ -122,17 +123,12 @@ class Bans(metaclass=Singleton) :
 				bans.append(message)
 		return bans
 
-	async def create_invite(self, guild: discord.Guild) :
-		try :
-			config = ConfigData().get_key(guild.id, "modchannel")
-			invite = await guild.get_channel(config).create_invite(max_age=604800)
-		except discord.Forbidden :
-			invite = 'No permission'
-		except Exception as e :
-			invite = f'No permission/Error'
-			logging.error(f"Error creating invite: {e}")
-
-		return invite
+	async def create_invite(self, bot: commands.AutoShardedBot | commands.Bot, guild: discord.Guild) -> str:
+		invite = None
+		server = ServerTransactions().get(guild.id)
+		if server:
+			invite = server.invite
+		return await check_guild_invites(bot, guild, invite)
 
 
 	def get_ban_id(self, embed: discord.Embed) :
