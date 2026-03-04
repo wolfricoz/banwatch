@@ -25,6 +25,7 @@ from classes.queue import queue
 from classes.tasks import pending_bans
 from database.current import create_bot_database
 from database.transactions.ServerTransactions import ServerTransactions
+from project.data import VERSION
 from view.buttons.appealbuttons import AppealButtons
 from view.buttons.baninform import BanInform
 from view.buttons.communicationbuttons import CommunicationButtons
@@ -118,7 +119,7 @@ async def on_ready() :
 
 	formguilds = "\n".join(guilds)
 	logging.info(f"Bot is in {guild_count} guilds:\n{formguilds}")
-	queue().add(send_message(devroom, f"Banwatch is in {guild_count} guilds. Version 3.1.7: Now with more reasons and improved ban checking!"), priority=2)
+	queue().add(send_message(devroom, f"Banwatch is in {guild_count} guilds. Version {VERSION}"), priority=2)
 	# Adding views
 	bot.add_view(ServerInfo())
 	bot.add_view(LookUp())
