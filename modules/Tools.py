@@ -8,11 +8,13 @@ from discord_py_utilities.bans import ban_user, dm_user
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.bans import Bans
+from database.transactions.BanTransactions import BanTransactions
 from view.modals.inputmodal import send_modal
 from view.multiselect.selectreason import SelectReason
+from view.v2.BanInfo import BanInfo
 
 
-class Tools(commands.Cog, description="Moderation tools for managing bans, kicks, and server members."):
+class Tools(commands.Cog, description="Moderation tools for managing bans, kicks, and server members.") :
 
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
@@ -39,8 +41,8 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 		reason = view.get_reason()
 		if isinstance(ban_type, Choice) :
 			ban_type = ban_type.value
-		if reason == "custom":
-			reason= await send_modal(view.interaction, "What is the reason for the ban?", "Ban Reason")
+		if reason == "custom" :
+			reason = await send_modal(view.interaction, "What is the reason for the ban?", "Ban Reason")
 		await ban_user(interaction, user, ban_type, reason, inform=inform, clean=clean, ban_class=Bans())
 
 	@app_commands.command(name="mass_ban", description="Ban multiple users with an optional reason.")
@@ -66,9 +68,8 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 		if isinstance(ban_type, Choice) :
 			ban_type = ban_type.value
 
-
-		if reason == "custom":
-			reason= await send_modal(interaction, "What is the reason for the ban?", "Ban Reason")
+		if reason == "custom" :
+			reason = await send_modal(interaction, "What is the reason for the ban?", "Ban Reason")
 		user_list = users.split(" ")
 		for user_id in user_list :
 			await asyncio.sleep(1)
@@ -129,6 +130,23 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 				continue
 			embed = discord.Embed(title=f"{user.name} unbanned", color=discord.Color.green())
 			await interaction.channel.send(embed=embed)
+
+	@app_commands.command(name="ban_status", description="View the status of a user's ban and manage it.")
+	@app_commands.checks.has_permissions(ban_members=True)
+	async def ban_status(self, interaction: discord.Interaction, user: discord.User) :
+		"""
+		Check the ban status of a user and manage it. You can update the ban reason, unban them and hide their ban.
+
+		We recommend using user ID's to search, this is more reliable!
+		**Permissions:**
+			- Requires `Ban Members` permission.
+		"""
+		ban_id = interaction.guild.id + user.id
+
+		ban = BanTransactions().get(ban_id, override=True)
+		view = BanInfo(user, ban)
+		await send_response(interaction, " ", view=view, ephemeral=True)
+
 
 	@app_commands.command(name="reban", description="Unban and reban a user to update the reason.")
 	@app_commands.checks.has_permissions(ban_members=True)
@@ -202,6 +220,7 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 
 		# Send the file to the channel
 		await interaction.followup.send("Here are all your bans!", file=discord.File("bans.txt"))
+
 
 async def setup(bot: commands.Bot) :
 	await bot.add_cog(Tools(bot))
