@@ -7,12 +7,7 @@ from discord.ext import commands
 from discord_py_utilities.bans import ban_user, dm_user
 from discord_py_utilities.messages import send_message, send_response
 
-from classes.access import AccessControl
-from classes.autocorrect import autocomplete_guild
 from classes.bans import Bans
-from classes.queue import queue
-from database.transactions.BanTransactions import BanTransactions
-from database.transactions.ServerTransactions import ServerTransactions
 from view.modals.inputmodal import send_modal
 from view.multiselect.selectreason import SelectReason
 

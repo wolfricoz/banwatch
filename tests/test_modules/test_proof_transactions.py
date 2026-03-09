@@ -1,10 +1,10 @@
 import unittest
 
-from database.transactions.BanTransactions import BanTransactions
-from database.transactions.ProofTransactions import ProofTransactions
-from database.current import create_bot_database, drop_bot_database, Proof
+from database.current import Proof, create_bot_database, drop_bot_database
 from database.factories.ban import BanFactory
 from database.factories.evidence import EvidenceFactory
+from database.transactions.BanTransactions import BanTransactions
+from database.transactions.ProofTransactions import ProofTransactions
 
 
 class TestProofDatabaseOperations(unittest.TestCase) :

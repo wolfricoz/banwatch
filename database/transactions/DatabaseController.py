@@ -2,7 +2,7 @@ import logging
 
 import pymysql.err
 from sqlalchemy import text
-from sqlalchemy.exc import PendingRollbackError, InvalidRequestError, SQLAlchemyError
+from sqlalchemy.exc import InvalidRequestError, PendingRollbackError, SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 
 from classes.singleton import Singleton

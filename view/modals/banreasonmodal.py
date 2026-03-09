@@ -1,6 +1,8 @@
 # python
 import logging
+
 import discord
+
 
 class BanReasonCreateModal(discord.ui.Modal):
     custom_id = "BanReasonCreateModal"

@@ -1,6 +1,6 @@
 import discord
 from discord import app_commands
-from discord.ext.commands import GroupCog, Bot
+from discord.ext.commands import Bot, GroupCog
 from discord_py_utilities.messages import send_response
 
 from classes.bans import Bans

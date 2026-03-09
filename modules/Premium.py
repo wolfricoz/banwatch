@@ -16,12 +16,10 @@ from classes.autocorrect import autocomplete_guild
 from classes.bans import Bans
 from classes.queue import queue
 from data.config.mappings import premium_toggles
-from database.transactions.BanReasonTransactions import BanReasonsTransactions
 from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ConfigTransactions import ConfigTransactions
 from database.transactions.ServerTransactions import ServerTransactions
 from view.buttons.bottrap import bottrap
-from view.modals.banreasonmodal import send_banreason_modal
 
 
 class Premium(GroupCog, name="premium") :

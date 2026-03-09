@@ -8,8 +8,8 @@ from discord_py_utilities.bans import ban_member, ban_user
 from discord_py_utilities.messages import send_message, send_response
 
 from database.current import Proof
-from database.transactions.ProofTransactions import ProofTransactions
 from database.transactions.BanTransactions import BanTransactions
+from database.transactions.ProofTransactions import ProofTransactions
 from view.base.secureview import SecureView
 from view.buttons.confirm import Confirm
 from view.modals.inputmodal import send_modal

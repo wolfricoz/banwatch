@@ -6,8 +6,8 @@ from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.evidence import EvidenceController
 from classes.queue import queue
-from database.transactions.ProofTransactions import ProofTransactions
 from database.transactions.BanTransactions import BanTransactions
+from database.transactions.ProofTransactions import ProofTransactions
 from view.base.secureview import SecureView
 from view.modals.inputmodal import send_modal
 

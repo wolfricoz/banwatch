@@ -10,7 +10,6 @@ from discord import app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
 from discord.utils import get
-from discord_py_utilities.invites import check_guild_invites
 from discord_py_utilities.messages import send_message, send_response
 from discord_py_utilities.permissions import find_first_accessible_text_channel
 

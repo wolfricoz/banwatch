@@ -1,7 +1,7 @@
 import random
 
-from database.transactions.BanTransactions import BanTransactions
 from database.factories.serverfactory import ServerFactory
+from database.transactions.BanTransactions import BanTransactions
 
 
 class BanFactory :

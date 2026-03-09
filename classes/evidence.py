@@ -9,8 +9,8 @@ from discord_py_utilities.messages import send_message, send_response
 from classes.bans import Bans
 from classes.queue import queue
 from database.current import Proof
-from database.transactions.ProofTransactions import ProofTransactions
 from database.transactions.BanTransactions import BanTransactions
+from database.transactions.ProofTransactions import ProofTransactions
 
 
 class EvidenceController() :

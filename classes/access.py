@@ -4,11 +4,10 @@ import os
 import discord
 from discord import app_commands
 
-
 from classes.configer import Configer
 from classes.singleton import Singleton
-from database.transactions.StaffTransactions import StaffTransactions
 from database.transactions.ServerTransactions import ServerTransactions
+from database.transactions.StaffTransactions import StaffTransactions
 
 
 class AccessControl(metaclass=Singleton) :

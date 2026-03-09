@@ -2,8 +2,8 @@ import unittest
 
 from classes.configdata import ConfigData
 from database.current import create_bot_database, drop_bot_database
-from database.transactions.ConfigTransactions import ConfigTransactions
 from database.factories.serverfactory import ServerFactory
+from database.transactions.ConfigTransactions import ConfigTransactions
 
 
 class TestConfigData(unittest.TestCase) :

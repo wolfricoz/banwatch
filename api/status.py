@@ -1,6 +1,7 @@
 # my_discord_bot/routes/example_routes.py
 
 from fastapi import APIRouter
+
 from classes.queue import queue
 from database.transactions.BanReasonTransactions import DatabaseTransactions
 

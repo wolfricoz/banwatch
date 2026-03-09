@@ -1,11 +1,10 @@
 import unittest
 
+import database.databaseController
 import database.transactions.BanTransactions
 import database.transactions.ProofTransactions
 import database.transactions.ServerTransactions
-import database.databaseController
 from database.current import create_bot_database, drop_bot_database
-
 
 
 class TestDatabaseOperations(unittest.TestCase) :

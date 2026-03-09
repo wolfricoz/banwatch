@@ -1,5 +1,5 @@
-from database.transactions.ProofTransactions import ProofTransactions
 from database.factories.ban import BanFactory
+from database.transactions.ProofTransactions import ProofTransactions
 
 
 class EvidenceFactory :

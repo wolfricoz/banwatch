@@ -4,7 +4,6 @@ import discord
 from discord_py_utilities.messages import send_message
 
 from classes.queue import queue
-
 from database.current import Bans
 from database.transactions.BanTransactions import BanTransactions
 from view.buttons.banapproval import BanApproval

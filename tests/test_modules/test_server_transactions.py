@@ -1,8 +1,8 @@
 import unittest
 
+from database.current import Servers, create_bot_database, drop_bot_database
 from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ServerTransactions import ServerTransactions
-from database.current import create_bot_database, drop_bot_database, Servers
 
 
 class TestServerDatabaseOperations(unittest.TestCase) :

@@ -1,5 +1,5 @@
 import discord
-from discord_py_utilities.messages import send_response, send_message
+from discord_py_utilities.messages import send_message, send_response
 from discord_py_utilities.permissions import check_missing_channel_permissions
 
 

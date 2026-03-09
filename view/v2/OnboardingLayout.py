@@ -7,7 +7,6 @@ from classes.ConfigSetup import ConfigSetup
 from database.transactions.ServerTransactions import ServerTransactions
 
 
-
 class OnboardingLayout(discord.ui.LayoutView) :
 	"""This is the 2.0 embed layout for onboarding messages."""
 

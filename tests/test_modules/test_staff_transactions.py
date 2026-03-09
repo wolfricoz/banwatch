@@ -1,6 +1,6 @@
 import unittest
 
-from database.current import create_bot_database, drop_bot_database, Staff
+from database.current import Staff, create_bot_database, drop_bot_database
 from database.transactions.StaffTransactions import StaffTransactions
 
 
