@@ -120,7 +120,7 @@ class Premium(GroupCog, name="premium") :
 		"""
 		view = bottrap()
 		await send_response(interaction, "Creating bot trap button...", ephemeral=True)
-		embed = discord.Embed(title="Bot Trap", description="This button is a trap for bots. Do not click it.",
+		embed = discord.Embed(title="Bot Trap", description="The buttons and checkmark below are a trap for bots. **Do not click them**, because they *will* ban you automatically. Yes, really.",
 		                      color=0xff0000)
 		embed.set_footer(text="Bot Trap Button")
 		msg = await send_message(interaction.channel, "-# gain access, for bots!",embed=embed, view=view)
