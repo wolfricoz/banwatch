@@ -9,6 +9,8 @@ from discord.ext import commands
 
 from classes.TermsChecker import TermsChecker
 from classes.access import AccessControl
+from classes.configdata import ConfigData
+from view.v2.EvidenceSubmission import EvidenceUI
 
 
 class BanCheckerStatus(StrEnum) :
@@ -17,9 +19,8 @@ class BanCheckerStatus(StrEnum) :
 	PROMPT = "prompt"  # this is the default end status
 	APPROVE = "approve"
 	REVIEW = "review"
-	REVIEW_EVIDENCE = "review_evidence"
 	PENDING = "pending"
-	CANCEL = "cancel"  # if the configuration is incorrect, we don't process the ban.
+	SHORT = "short"
 
 
 class BanChecker() :
@@ -118,7 +119,7 @@ class BanChecker() :
 		word_count = len(self.ban.reason.split(" ")) < 4
 		if word_count and ("spam" not in self.ban.reason.lower() or "bot" not in self.ban.reason.lower()) :
 			self.reason = "Short ban reason"
-			self.status = BanCheckerStatus.REVIEW
+			self.status = BanCheckerStatus.SHORT
 
 	async def check_flagged_terms(self, target) :
 		checks = {
@@ -153,5 +154,33 @@ class BanChecker() :
 		return self.reason
 
 
-	async def evaluate_ban(self) :
+	async def evaluate_ban(self, guild, server_only = False) :
 		"""this function decides the verdict"""
+		from classes.bans import Bans
+		match self.status:
+			case BanCheckerStatus.HIDE :
+				logging.info("Ban has been hidden, adding to database with hidden tag.")
+				self.reason = "Ban hidden: " + self.reason
+				await Bans().add_ban(self.ban.user.id, guild.id, self.reason, "Banwatch System", hidden=True)
+				return
+
+			case BanCheckerStatus.REVIEW :
+				logging.info("Ban has been marked for review, adding to database with review tag.")
+				self.reason = "Ban marked for review: " + self.reason
+				if server_only and len(self.ban.reason.split(" ")) < 4:
+					ui = EvidenceUI(self.ban.user, guild, self.ban.user.id + guild.id, self.reason)
+					await ui.send_embed(await ConfigData().get_channel(guild))
+
+				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, "Banwatch System", approved=False)
+				return
+
+			case BanCheckerStatus.APPROVE :
+				logging.info("Ban has been approved without prompting, adding to database.")
+				self.reason = "Ban approved without prompting: " + self.reason
+				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, "Banwatch System", approved=True)
+				return
+
+			case _ :
+				logging.info("Ban is pending review, adding to database with pending tag.")
+				self.reason = "Ban pending review: " + self.reason
+				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, "Banwatch System", approved=False)

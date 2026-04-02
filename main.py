@@ -31,6 +31,7 @@ from view.buttons.baninform import BanInform
 from view.buttons.communicationbuttons import CommunicationButtons
 from view.buttons.lookup import LookUp
 from view.buttons.serverinfo import ServerInfo
+from view.v2.EvidenceSubmission import EvidenceUI
 from view.v2.OnboardingLayout import OnboardingLayout
 
 # LOADS THE .ENV FILE THAT RESIDES ON THE SAME LEVEL AS THE SCRIPT.
@@ -127,6 +128,7 @@ async def on_ready() :
 	bot.add_view(CommunicationButtons())
 	bot.add_view(BanInform(Bans()))
 	bot.add_view(OnboardingLayout())
+	bot.add_view(EvidenceUI(None, None))
 	# Syncing commands
 	queue().add(bot.tree.sync())
 	logging.info(f"Commands synced, start up done! Connected to {guild_count} guilds and {bot.shard_count} shards.")

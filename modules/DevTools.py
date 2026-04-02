@@ -27,6 +27,7 @@ from database.transactions.FlaggedTermsTransactions import FlaggedTermsTransacti
 from database.transactions.ServerTransactions import ServerTransactions
 from database.transactions.StaffTransactions import StaffTransactions
 from view.modals.inputmodal import send_modal
+from view.v2.EvidenceSubmission import EvidenceUI
 
 OWNER = int(os.getenv("OWNER"))
 GUILD = int(os.getenv("GUILD"))
@@ -417,6 +418,12 @@ class DevTools(commands.GroupCog, name="dev") :
 		- `Developer`
 		"""
 		user = self.bot.get_user(474365489670389771)
+		if not user:
+			try:
+				user = await self.bot.fetch_user(474365489670389771)
+			except Exception as e:
+				await send_message(interaction.channel, f"Failed to fetch test account with reason: {e}")
+				return
 		try :
 			await interaction.guild.unban(user)
 		except Exception as e :
@@ -429,6 +436,10 @@ class DevTools(commands.GroupCog, name="dev") :
 			user = await self.bot.fetch_user(474365489670389771)
 			await interaction.guild.ban(user,
 			                            reason=f"{'Test Ban that is longer than four words' if checklist else 'dev ban that is longer than four words'}")
+		if checklist:
+			ui = EvidenceUI(user, interaction.guild, interaction.guild.id + user.id, reason="Test Ban that is longer than four words")
+			await ui.send_embed(interaction.channel)
+
 		await send_response(interaction, "Test ban complete", ephemeral=True)
 
 	@app_commands.command(name="pendingbans", description="[DEV] Manually triggers a check for all pending bans.")
