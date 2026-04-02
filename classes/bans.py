@@ -33,7 +33,12 @@ class Bans(metaclass=Singleton) :
 		"""Updates the ban list"""
 		guild: discord.Guild
 		known_guilds = ServerTransactions().get_all()
+		count = 0
 		for guild in bot.guilds :
+			if count % 10 == 0 :
+				logging.info(f"Updating guilds... {count}/{len(bot.guilds)}")
+				await asyncio.sleep(0)
+			count+=1
 			if guild.id in known_guilds :
 				known_guilds.remove(guild.id)
 			try :
@@ -41,11 +46,21 @@ class Bans(metaclass=Singleton) :
 				                         len(guild.members), None)
 			except Exception as e :
 				logging.error(f"Error adding guild {guild.id}: {e}")
-			queue().add(Bans().check_guild_bans(guild), priority=0)
-			queue().add(Bans().check_guild_invites(bot, guild), priority=0)
+			await Bans().check_guild_bans(guild)
+			await Bans().check_guild_invites(bot, guild)
+		logging.info(f"Finished updating {count}/{len(bot.guilds)} guilds. {len(known_guilds)} guilds no longer known, removing...")
+
+		count = 0
+		g_count = len(known_guilds)
 		for k in known_guilds :
+			if count % 10 == 0 :
+				logging.info(f"cleaning up guilds... {count}/{g_count}")
+				await asyncio.sleep(0)
+			count+=1
+
 			ServerTransactions().delete_soft(k)
-		queue().add(BanTransactions().populate_cache(), priority=0)
+		await BanTransactions().populate_cache()
+		logging.info('Finished updating bans.')
 
 	def create_ban_id(self, user_id, guild_id) :
 		return user_id + guild_id

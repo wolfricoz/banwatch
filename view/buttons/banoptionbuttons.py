@@ -10,6 +10,7 @@ from classes.TermsChecker import TermsChecker
 from classes.access import AccessControl
 from classes.appeal import inform_user
 from classes.bans import Bans
+from classes.ban.BanChecker import BanChecker
 from classes.configdata import ConfigData
 from classes.configer import Configer
 from classes.evidence import EvidenceController
@@ -107,33 +108,45 @@ class BanOptionButtons(SecureView) :
 			await interaction.message.delete()
 			return
 		# check if the ban has a checklisted word, and takes action based on action type
+		wait_id = Bans().create_ban_id(user.id, guild.id)
 		checkListCheckType: str|None = None
 		checkListResult: str|None = None
-		checkListCheckType, checkListResult = await self.checkFlaggedTerms(ban.reason.lower())
+		# checkListCheckType, checkListResult = await self.checkFlaggedTerms(ban.reason.lower())
 
-		if isinstance(checkListCheckType, list):
-			# Turn the array of words into a string
-			checkListResult = ", ".join(checkListResult)
+		# if isinstance(checkListCheckType, list):
+		# 	# Turn the array of words into a string
+		# 	checkListResult = ", ".join(checkListResult)
+		#
+		#
+
+		#
+		#
+		# if user.bot and not checkListCheckType :
+		# 	checkListResult = "Member is a bot"
+		# 	checkListCheckType = 'review'
+		# word_count = len(ban.reason.split(" ")) < 4
+		# if word_count and ("spam" not in ban.reason.lower() or "bot" not in ban.reason.lower()) and not checkListCheckType :
+		# 	checkListResult = "Short ban reason"
+		# 	checkListCheckType = 'review'
+		#
+		# if AccessControl().access_all(user.id) and not checkListCheckType :
+		# 	checkListResult = "Banwatch Staff Member"
+		# 	checkListCheckType = 'review'
+
+		ban_checker = BanChecker(
+			interaction.client,
+			ban,
+			evaluate=False
+		)
+		await ban_checker.run()
+		checkListCheckType = ban_checker.get_status()
+		checkListResult = ban_checker.get_reason()
 
 
-		if checkListCheckType and checkListCheckType.lower() == "block":
+		if checkListCheckType and checkListCheckType.lower() == "hide":
 			await self.sendDeniedEmbed(interaction, ban, checkListResult)
 			queue().add(Bans().add_ban(user.id, guild.id, ban.reason + " (HIDDEN DUE TO BLOCKLIST)", staff_member.name, approved=False, hidden=True), priority=2)
 			return
-
-
-		if user.bot and not checkListCheckType :
-			checkListResult = "Member is a bot"
-			checkListCheckType = 'review'
-		word_count = len(ban.reason.split(" ")) < 4
-		if word_count and ("spam" not in ban.reason.lower() or "bot" not in ban.reason.lower()) and not checkListCheckType :
-			checkListResult = "Short ban reason"
-			checkListCheckType = 'review'
-
-		wait_id = Bans().create_ban_id(user.id, guild.id)
-		if AccessControl().access_all(user.id) and not checkListCheckType :
-			checkListResult = "Banwatch Staff Member"
-			checkListCheckType = 'review'
 
 
 		if checkListCheckType in ['review'] :
