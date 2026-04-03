@@ -10,6 +10,7 @@ from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ProofTransactions import ProofTransactions
 from view.base.secureview import SecureView
 from view.modals.inputmodal import send_modal
+from view.v2.EvidenceSubmission import EvidenceUI
 
 
 class BanApproval(SecureView) :
@@ -93,7 +94,8 @@ class BanApproval(SecureView) :
 		content = f"The banwatch team requests that you add more evidence to user {user}({user.id}), you can do this by joining our support guild or by using `/evidence add user:{user.id}`."
 		embed = discord.Embed(title=f"Evidence request for ban {ban_entry.ban_id}", description=content)
 		embed.add_field(name=f"Request reason", value=reason)
-		await send_message(modchannel, embed=embed)
+		ui = EvidenceUI(user, guild, ban_entry.ban_id, ban_entry.reason, staff_reason=reason)
+		await ui.send_embed(modchannel)
 		await send_response(interaction, f"{guild.name} has been notified with reason:\n{reason}")
 		return None
 
