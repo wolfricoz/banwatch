@@ -10,7 +10,7 @@ from database.transactions.BanTransactions import BanTransactions
 
 
 class EvidenceUI(discord.ui.LayoutView) :
-	def __init__(self, user: discord.User | discord.Member, guild: discord.Guild, ban_id: str, reason: str, staff_reason: str = None) :
+	def __init__(self, user: discord.User | discord.Member, guild: discord.Guild, ban_id: str, reason: str | None, staff_reason: str | None= None) :
 		super().__init__(timeout=None)
 		self.guild = guild
 		self.user = user
