@@ -31,6 +31,10 @@ class Events(commands.Cog):
             await send_message(channel, f"No mod channel set for {member.guild.name}, unable to send banwatch notifications in this server. Please resolve this with `/config change`.",
 															 error_mode="ignore")
             return
+        if len(channel.members) > 50:
+            await send_message(channel, f"{member.mention} has a ban record, but this channel is considered public; to avoid witch hunts or shaming users we only allow staff channels with less than 50 users.", error_mode="ignore")
+            return
+
         view: LookUp = LookUp(user_id=member.id)
         await view.send_message(bot, channel, sr, member)
 

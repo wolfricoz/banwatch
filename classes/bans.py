@@ -10,6 +10,7 @@ from discord_py_utilities.invites import check_guild_invites
 from discord_py_utilities.messages import send_message
 
 from classes.appeal import inform_user
+from classes.ban.BanChecker import BanChecker
 from classes.configdata import ConfigData
 from classes.queue import queue
 from classes.rpsec import RpSec
@@ -46,7 +47,7 @@ class Bans(metaclass=Singleton) :
 				                         len(guild.members), None)
 			except Exception as e :
 				logging.error(f"Error adding guild {guild.id}: {e}")
-			await Bans().check_guild_bans(guild)
+			await Bans().check_guild_bans(bot, guild)
 			await Bans().check_guild_invites(bot, guild)
 		logging.info(f"Finished updating {count}/{len(bot.guilds)} guilds. {len(known_guilds)} guilds no longer known, removing...")
 
@@ -259,7 +260,7 @@ class Bans(metaclass=Singleton) :
 	# channel = bot.get_channel(bot.APPROVALCHANNEL)
 	# queue().add(self.search_messages(bot, channel, ban_id, reason), 0)
 
-	async def check_guild_bans(self, guild: discord.Guild) :
+	async def check_guild_bans(self, bot: commands.AutoShardedBot, guild: discord.Guild) :
 		count = 0
 		server = Server(guild.id)
 
@@ -272,7 +273,9 @@ class Bans(metaclass=Singleton) :
 				continue
 			if server.check_ban(banentry.user.id) :
 				continue
-			await self.add_ban(banentry.user.id, guild.id, banentry.reason, guild.owner.name, approved=True)
+			ban_checker = BanChecker(bot, banentry)
+			await ban_checker.run()
+			await ban_checker.evaluate_ban(guild, bot, server_only=True)
 			count += 1
 			if count % 25 == 0 :
 				logging.info(f"Found {count} new bans so far in {guild.name}({guild.id})")

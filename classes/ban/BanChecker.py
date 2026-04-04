@@ -10,6 +10,9 @@ from discord.ext import commands
 from classes.TermsChecker import TermsChecker
 from classes.access import AccessControl
 from classes.configdata import ConfigData
+from classes.queue import queue
+from database.transactions.ServerTransactions import ServerTransactions
+from view.buttons.banoptionbuttons import BanOptionButtons
 from view.v2.EvidenceSubmission import EvidenceUI
 
 
@@ -24,31 +27,27 @@ class BanCheckerStatus(StrEnum) :
 
 
 class BanChecker() :
-	def __init__(self, bot: commands.AutoShardedBot, ban: discord.BanEntry, evaluate: bool = True) :
+	def __init__(self, bot: commands.AutoShardedBot, ban: discord.BanEntry) :
 		self.bot = bot
 		self.ban = ban
 		self.status: str = BanCheckerStatus.PROMPT
 		self.reason = ""
-		self.evaluate = evaluate
 
 	async def run(self) :
 		"""Checks if the ban follows the guidelines of banwatch, and if the ban has damaging claims."""
 		await self.auto_hide()
-		logging.info("Hide check: " + self.status)
+		logging.debug("Hide check: " + self.status)
 		await self.perform_action(self.migrated_ban())
 		# await self.perform_action(self.check_claims())
-		logging.info("Check: " + self.status)
+		logging.debug("Check: " + self.status)
 		await self.perform_action(self.check_bot())
-		logging.info("bot Check: " + self.status)
+		logging.debug("bot Check: " + self.status)
 		await self.perform_action(self.check_staff())
-		logging.info("Staff Check: " + self.status)
+		logging.debug("Staff Check: " + self.status)
 		await self.perform_action(self.check_word_count())
-		logging.info("count check: " + self.status)
+		logging.debug("count check: " + self.status)
 		await self.perform_action(self.check_flagged_terms(self.ban.reason))
-		logging.info("Final check: " + self.status)
-		if not self.evaluate:
-			return self
-		await self.evaluate_ban()
+		logging.debug("Final check: " + self.status)
 		return self
 
 
@@ -154,33 +153,60 @@ class BanChecker() :
 		return self.reason
 
 
-	async def evaluate_ban(self, guild, server_only = False) :
+	async def evaluate_ban(self, guild, bot, server_only = False) :
 		"""this function decides the verdict"""
 		from classes.bans import Bans
 		match self.status:
 			case BanCheckerStatus.HIDE :
 				logging.info("Ban has been hidden, adding to database with hidden tag.")
 				self.reason = "Ban hidden: " + self.reason
-				await Bans().add_ban(self.ban.user.id, guild.id, self.reason, "Banwatch System", hidden=True)
+				await Bans().add_ban(self.ban.user.id, guild.id, self.reason, guild.owner.name, hidden=True)
 				return
 
 			case BanCheckerStatus.REVIEW :
 				logging.info("Ban has been marked for review, adding to database with review tag.")
 				self.reason = "Ban marked for review: " + self.reason
 				if server_only and len(self.ban.reason.split(" ")) < 4:
-					ui = EvidenceUI(self.ban.user, guild, self.ban.user.id + guild.id, self.reason)
-					await ui.send_embed(await ConfigData().get_channel(guild))
+					self.reason = "Ban marked for review and has been hidden until evidence has been provided: " + self.reason
+					ui = EvidenceUI(self.ban.user, guild, self.ban.user.id + guild.id, reason=self.ban.reason, staff_reason=self.reason)
+					queue().add(ui.send_embed(await ConfigData().get_channel(guild)), priority=2)
+					# To prevent spamming the approval channel, we hide them instead because this is called during large operations like mass reviewing bans.
+					await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=False, hidden=True)
 
-				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, "Banwatch System", approved=False)
+					return 
+
+				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=False)
 				return
 
 			case BanCheckerStatus.APPROVE :
 				logging.info("Ban has been approved without prompting, adding to database.")
 				self.reason = "Ban approved without prompting: " + self.reason
-				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, "Banwatch System", approved=True)
+				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=True)
+				embed = discord.Embed(title=f"{self.ban.user} ({self.ban.user.id}) was banned in {guild}({guild.owner})",
+				                      description=f"{self.ban.reason}")
+				guild_db = ServerTransactions().get(guild.id)
+
+				embed.set_footer(text=f"Server Invite: {guild_db.invite} Staff member: {guild_db.owner} ban ID: {guild.id + self.ban.user.id}. ")
+				queue().add(Bans().check_guilds(None, bot, guild, self.ban.user, embed, guild.id + self.ban.user.id), priority=2)
+				return
+
+
+			case BanCheckerStatus.PROMPT:
+				if server_only:
+					await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=True)
+					return
+				view = BanOptionButtons()
+				mod_channel = await ConfigData().get_channel(guild)
+				if mod_channel is None:
+					logging.warning(f"{guild.name}({guild.id}) doesn't have modchannel set, cannot prompt for review.")
+				user = self.ban.user
+				embed = discord.Embed(title=f"Do you want to share {user}'s ({user.id}) ban with other servers?",
+				                      description=f"{self.ban.reason}")
+				embed.set_footer(text=f"{guild.id}-{self.ban.user.id}")
+				queue().add(mod_channel.send(embed=embed, view=view), priority=2)
 				return
 
 			case _ :
 				logging.info("Ban is pending review, adding to database with pending tag.")
 				self.reason = "Ban pending review: " + self.reason
-				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, "Banwatch System", approved=False)
+				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=False)

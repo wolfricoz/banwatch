@@ -170,7 +170,7 @@ async def on_guild_join(guild: discord.Guild) -> None :
 	ServerTransactions().add(guild.id, guild.owner.name, guild.name, len(guild.members), "")
 	ServerTransactions().update(guild.id, active=True)
 	await Bans().check_guild_invites(bot, guild)
-	await Bans().check_guild_bans(guild)
+	await Bans().check_guild_bans(bot, guild)
 	approval_channel = bot.get_guild(int(os.getenv("GUILD"))).get_channel(int(os.getenv("BANS")))
 	queue().add(ServerInfo().send(approval_channel, guild, new=True), priority=2)
 
