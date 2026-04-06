@@ -184,9 +184,11 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 	           approved: bool = None,
 	           verified: bool = None,
 	           hidden: bool = None,
-	           created_at: datetime = None,
 	           deleted_at: bool = None,
-	           message: int = None
+	           message: int = None,
+	           reason: str = None,
+	           edited: datetime = None,
+	           edited_by: str = None
 	           ) -> bool | Bans | type[Bans] :
 		with self.createsession() as session :
 
@@ -199,10 +201,12 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 				'approved'   : approved,
 				'verified'   : verified,
 				'hidden'     : hidden,
-				'created_at' : created_at,
 				'updated_at' : datetime.now(),
 				'deleted_at' : datetime.now() if deleted_at else None if deleted_at is False else ban.deleted_at,
-				'message'    : message
+				'message'    : message,
+				'reason'     : reason,
+				'edited'     : edited,
+				'edited_by'  : edited_by
 			}
 
 			for field, value in updates.items() :

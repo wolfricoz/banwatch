@@ -1,3 +1,5 @@
+import logging
+
 import discord
 from discord_py_utilities.messages import send_message, send_response
 
@@ -10,6 +12,8 @@ from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ProofTransactions import ProofTransactions
 from view.base.secureview import SecureView
 from view.modals.inputmodal import send_modal
+from view.multiselect.selectban import SelectBan
+from view.multiselect.selectreason import SelectReason
 from view.v2.EvidenceSubmission import EvidenceUI
 
 
@@ -47,11 +51,14 @@ class BanApproval(SecureView) :
 			f"Approved `{interaction.message.embeds[0].title}`   with proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}",
 			ephemeral=False)
 		await self.update_embed(interaction)
+		queue().add(self.send_feedback(interaction), priority=0)
+
 		if self.silent :
 			queue().add(inform_user(guild, user), 0)
 
 			return
 		await Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, self.create_thread, verified=True)
+
 
 	@discord.ui.button(label="Approve without Proof", style=discord.ButtonStyle.success, custom_id="approve_ban")
 	async def approve_no_proof(self, interaction: discord.Interaction, button: discord.ui.Button) :
@@ -72,11 +79,14 @@ class BanApproval(SecureView) :
 			f"Approved `{interaction.message.embeds[0].title}`   without proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}",
 			ephemeral=False)
 		await self.update_embed(interaction, "approve")
+		queue().add(self.send_feedback(interaction), priority=0)
+
 		if self.silent :
 			queue().add(inform_user(guild, user), 0)
 
 			return
 		await Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, False)
+
 
 	@discord.ui.button(label="Inform Server", style=discord.ButtonStyle.primary, custom_id="request_evidence")
 	async def request_evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
@@ -98,6 +108,30 @@ class BanApproval(SecureView) :
 		await ui.send_embed(modchannel)
 		await send_response(interaction, f"{guild.name} has been notified with reason:\n{reason}")
 		return None
+
+	@discord.ui.button(label="Alter Ban Reason", style=discord.ButtonStyle.primary, custom_id="change_reason")
+	async def change_reason(self, interaction: discord.Interaction, button: discord.ui.Button) :
+		if self.bot is None or self.wait_id is None :
+			await send_response(interaction, "Error: The bot has restarted, the data of this button was lost", ephemeral=True)
+			return
+
+
+		view = SelectReason()
+		await send_message(interaction.channel, "Select your reason.", view=view)
+		await view.wait()
+		reason = view.get_reason()
+		if reason == "custom" :
+			reason = await send_modal(interaction, "What is the new reason for the ban?", "New Ban Reason")
+		await Bans().change_ban_reason(self.wait_id, reason, interaction.user.global_name)
+		await send_response(interaction, f"You have changed the reason for `{interaction.message.embeds[0].description}` to `{reason}`", ephemeral=True)
+		# update the embed of the message
+		embed = interaction.message.embeds[0]
+		embed.description = reason
+		embed.add_field(name="Reason edited", value=f"Reason was edited by {interaction.user.mention}", inline=False)
+		await interaction.message.edit(embed=embed, view=self)
+
+
+
 
 	@discord.ui.button(label="view evidence", style=discord.ButtonStyle.primary, custom_id="view_evidence")
 	async def view_evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
@@ -168,6 +202,27 @@ class BanApproval(SecureView) :
 
 	async def get_ban_data(self, ban_entry) :
 		return self.bot.get_guild(ban_entry.gid), await self.bot.fetch_user(ban_entry.uid), ban_entry.reason
+	async def send_feedback(self, interaction: discord.Interaction) :
+		ban = BanTransactions().get(self.wait_id, override=True)
+		if ban is None :
+			await send_response(interaction, "Ban not found", ephemeral=True)
+			return
+		guild = self.bot.get_guild(ban.gid)
+		if guild is None :
+			try:
+				guild = await self.bot.fetch_guild(ban.gid)
+			except Exception:
+				logging.error(f"Failed to fetch guild with id {ban.gid}")
+				return
+
+		channel = await ConfigData().get_channel(guild, )
+		if channel is None:
+			logging.info(f"Guild {guild} has no channel")
+			return
+		notice = f"Your ban {self.wait_id} has been {'edited' if ban.edited else 'approved'}  by the banwatch team{' and broadcast with ban reason' if not self.silent else '.'}"
+		await send_message(channel, notice)
+
+
 
 	def update_buttons(self, selected) :
 		self.hide.disabled = True

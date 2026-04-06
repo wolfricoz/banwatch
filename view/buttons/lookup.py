@@ -70,12 +70,13 @@ class LookUp(SecureView) :
 			count += 1
 			guild = bot.get_guild(ban.gid)
 			staff_data = f"approved: {ban.approved}, hidden: {ban.hidden}"
+			edited = f"edited: {ban.edited.strftime('%m/%d/%Y')}" if ban.edited else None
 			created_at = ban.created_at.strftime(
 				'%m/%d/%Y') if ban.message else 'pre-banwatch, please check with server owner.'
 			embed.add_field(
 				name=f"{guild.name} ({ban.guild.invite}) (ban_id: {ban.ban_id})",
 				value=f"{ban.reason}\n"
-				      f"verified: {'Yes' if ban.verified else 'No'}, date: {created_at}{f', {staff_data}' if override else ''}",
+				      f"verified: {'Yes' if ban.verified else 'No'}, date: {created_at}{f', {staff_data}' if override else ''}, {edited}",
 				inline=False
 			)
 

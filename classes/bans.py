@@ -3,6 +3,7 @@ import asyncio
 import logging
 import os
 import re
+from datetime import datetime, timezone
 
 import discord
 from discord.ext import commands
@@ -338,3 +339,9 @@ class Bans(metaclass=Singleton) :
 
 	async def get_user_bans(self, user_id) :
 		return BanTransactions().get_all_user(user_id)
+
+	async def change_ban_reason(self, ban_id: int, reason: str, staff: str | None = "unknown") :
+		"""
+		Alters the ban reason for a ban, this is done to ensure that the ban follows the banwatch guidelines; only by banwatch staff!
+		"""
+		BanTransactions().update(ban_id, reason=reason, edited=datetime.now(tz=timezone.utc), edited_by=staff)

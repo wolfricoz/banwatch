@@ -136,7 +136,6 @@ class BanOptionButtons(SecureView) :
 		ban_checker = BanChecker(
 			interaction.client,
 			ban,
-			evaluate=False
 		)
 		await ban_checker.run()
 		checkListCheckType = ban_checker.get_status()

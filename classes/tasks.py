@@ -52,7 +52,9 @@ async def pending_bans(bot, revoked=False) :
 		try :
 			embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
 			                      description=f"{reason}")
-			embed.add_field(name="Staff Member", value=ban.staff)
+			embed.add_field(name="Staff Member", value=ban.staff, inline=False)
+			if ban.edited:
+				embed.add_field(name=f"Edited by {ban.edited_by}", value=ban.edited.strftime('%m/%d/%Y'), inline=False)
 			embed.set_footer(text=f"/approve_ban {wait_id}")
 			queue().add(channel.send(f"", embed=embed, view=BanApproval(bot, wait_id, True)),
 			            priority=2)
