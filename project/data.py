@@ -1,2 +1,2 @@
-VERSION = "3.2.2: Now remembering invites! Wait was I invited?"
+VERSION = "3.3: New staff toys acquired!"
 CACHE = f"resources/data/commands_cache.json"
