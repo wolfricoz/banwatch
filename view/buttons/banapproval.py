@@ -66,7 +66,7 @@ class BanApproval(SecureView) :
 		if self.bot is None or self.wait_id is None :
 			await send_response(interaction, "Error: The bot has restarted, the data of this button was lost", ephemeral=True)
 			return
-		ban_entry = BanTransactions().get(self.wait_id)
+		ban_entry = BanTransactions().get(self.wait_id, override=True)
 		if ban_entry is None :
 			await send_response(interaction, "Ban not found", ephemeral=True)
 			return

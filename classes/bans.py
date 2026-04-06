@@ -334,8 +334,8 @@ class Bans(metaclass=Singleton) :
 			BanTransactions().delete_permanent(user_id + guild_id)
 		BanTransactions().delete_soft(user_id + guild_id)
 
-	async def change_ban_approval_status(self, ban_id: int, status: bool, verified=False) :
-		BanTransactions().update(ban_id, approved=status, verified=verified)
+	async def change_ban_approval_status(self, ban_id: int, status: bool, verified=False, hidden=False) :
+		BanTransactions().update(ban_id, approved=status, verified=verified, hidden=hidden)
 
 	async def get_user_bans(self, user_id) :
 		return BanTransactions().get_all_user(user_id)

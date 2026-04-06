@@ -39,10 +39,13 @@ class EvidenceController() :
 			embed.add_field(name="status", value=f"Approved: {'yes' if ban.approved else 'no'}, hidden: {'yes' if ban.hidden else 'no'}, verified: {'yes' if ban.verified else 'no'}", inline=False)
 			embed.set_footer(text=f"Ban ID: {ban_id}")
 			# could potentially add buttons to this?
+			from view.buttons.banapproval import BanApproval
+
+			view = BanApproval(interaction.client, ban_id)
 			queue().add(send_message(channel,
 			                         f"Ban ID {ban_id} has been updated with new evidence:\n"
 			                         f"{result.proof}\n\n"
-			                         f"{'**This ban is currently hidden, use /staff banvisibility ban_id: hide: if you wish to edit visibility status**' if ban.hidden else ''}", files=attachments, embed=embed))
+			                         f"{'**This ban is currently hidden, use /staff banvisibility ban_id: hide: if you wish to edit visibility status**' if ban.hidden else ''}", files=attachments, embed=embed, view=view))
 			return
 		if ban_entry is None :
 			logging.info(f"pre-banwatch ban {ban_id} added evidence: {result.id}")
@@ -76,10 +79,14 @@ class EvidenceController() :
 			embed.add_field(name="status", value=f"Approved: {'yes' if ban.approved else 'no'}, hidden: {'yes' if ban.hidden else 'no'}, verified: {'yes' if ban.verified else 'no'}", inline=False)
 			embed.set_footer(text=f"Ban ID: {ban_id}")
 			# could potentially add buttons to this?
+			from view.buttons.banapproval import BanApproval
+
+			view = BanApproval(interaction.client, ban_id)
+
 			queue().add(send_message(channel,
 			                         f"Ban ID {ban_id} has been updated with new evidence:\n"
 			                         f"{result.proof}\n\n"
-			                         f"{'**This ban is currently hidden, use /staff banvisibility ban_id: hide: if you wish to edit visibility status**' if ban.hidden else ''}", files=attachments, embed=embed))
+			                         f"{'**This ban is currently hidden, use /staff banvisibility ban_id: hide: if you wish to edit visibility status**' if ban.hidden else ''}", files=attachments, embed=embed, view=view))
 			return
 		if ban_entry is None :
 			logging.info(f"pre-banwatch ban {ban_id} added evidence: {result.id}")
