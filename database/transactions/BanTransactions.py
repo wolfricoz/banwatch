@@ -56,7 +56,9 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			if ServerTransactions().exists(gid) is False :
 				return False
 			if self.exists(uid + gid, remove_deleted=remove_deleted) :
-				return False
+				self.update(uid + gid, approved=approved, verified=verified, hidden=hidden)
+				return self.get(uid + gid)
+
 			ban = Bans(ban_id=uid + gid, uid=uid, gid=gid, reason=reason, approved=approved, verified=verified, hidden=hidden,
 			           staff=staff, deleted_at=None)
 			session.add(ban)
@@ -106,6 +108,25 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			return session.scalars(
 				Select(Bans).join(Servers).options(joinedload(Bans.guild)).where(
 					and_(Bans.deleted_at.is_(None), Bans.hidden.is_(False), Bans.approved.is_(True), Servers.deleted_at.is_(None),
+					     Servers.hidden.is_(False)))).all()
+
+	def get_audit(self, override=False) :
+		with self.createsession() as session :
+			if override:
+				return session.scalars(
+					Select(Bans).join(Servers).options(joinedload(Bans.guild)).where(
+						and_(Bans.deleted_at.is_(None),
+						     Bans.hidden.is_(False),
+						     Servers.deleted_at.is_(None),
+						     Servers.hidden.is_(False)))).all()
+			return session.scalars(
+				Select(Bans).join(Servers).options(joinedload(Bans.guild)).where(
+					and_(Bans.deleted_at.is_(None),
+					     Bans.verified.is_(False) ,
+					     Bans.hidden.is_(False),
+					     Bans.approved.is_(True),
+					     Bans.message.isnot(None),
+					     Servers.deleted_at.is_(None),
 					     Servers.hidden.is_(False)))).all()
 
 	def get_all_pending(self) :

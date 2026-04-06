@@ -1,6 +1,5 @@
 import logging
 import re
-
 from collections.abc import Coroutine
 from enum import StrEnum
 
@@ -12,7 +11,6 @@ from classes.access import AccessControl
 from classes.configdata import ConfigData
 from classes.queue import queue
 from database.transactions.ServerTransactions import ServerTransactions
-from view.buttons.banoptionbuttons import BanOptionButtons
 from view.v2.EvidenceSubmission import EvidenceUI
 
 
@@ -27,7 +25,7 @@ class BanCheckerStatus(StrEnum) :
 
 
 class BanChecker() :
-	def __init__(self, bot: commands.AutoShardedBot, ban: discord.BanEntry) :
+	def __init__(self, bot: commands.AutoShardedBot | commands.Bot, ban: discord.BanEntry) :
 		self.bot = bot
 		self.ban = ban
 		self.status: str = BanCheckerStatus.PROMPT
@@ -50,8 +48,6 @@ class BanChecker() :
 		logging.debug("Final check: " + self.status)
 		return self
 
-
-
 	async def perform_action(self, action: Coroutine) :
 		"""Performs actions, if the status is incorrect it'll skip the action to prevent overriding the current action."""
 		if self.status != BanCheckerStatus.PROMPT :
@@ -59,14 +55,10 @@ class BanChecker() :
 			return
 		await action
 
-
-
 	async def auto_hide(self) :
 		"""Automatically hides the ban if it meets the criteria for hiding."""
 		await self.check_cross_ban()
 		await self.perform_action(self.assess_value())
-
-
 
 	async def migrated_ban(self) :
 		"""Checks if the ban is a migrated ban, and if it is, approves it without prompting."""
@@ -75,23 +67,17 @@ class BanChecker() :
 			self.status = BanCheckerStatus.APPROVE
 			return
 
-
-
 	async def check_cross_ban(self) :
 		"""Checks if the ban is a cross-ban, and if it is, hides it and adds it to the database."""
 		if self.ban.reason is None :
 			self.status = BanCheckerStatus.HIDE
 			return
 
-
-
 		match = re.match(r"Cross-ban from (?P<guild_name>.+?) with ban id: (?P<ban_id>\d+)", str(self.ban.reason))
 		if match or str(self.ban.reason).lower() in ['crossban', 'cross-ban'] :
 			logging.info("Cross-ban with no additional info, this ban has been hidden")
 			self.status = BanCheckerStatus.HIDE
 			return
-
-
 
 	async def assess_value(self) :
 		"""Checks if the ban is worth broadcasting, if the ban has no reason or a reason that doesn't provide valuable information, it'll be hidden."""
@@ -103,18 +89,17 @@ class BanChecker() :
 			self.status = BanCheckerStatus.HIDE
 			return
 
-
-	async def check_staff(self):
+	async def check_staff(self) :
 		if AccessControl().access_all(self.ban.user.id) :
 			self.reason = "Banwatch Staff Member"
 			self.status = BanCheckerStatus.REVIEW
 
-	async def check_bot(self):
-		if self.ban.user.bot:
+	async def check_bot(self) :
+		if self.ban.user.bot :
 			self.reason = "Member is a bot"
 			self.status = BanCheckerStatus.REVIEW
 
-	async def check_word_count(self):
+	async def check_word_count(self) :
 		word_count = len(self.ban.reason.split(" ")) < 4
 		if word_count and ("spam" not in self.ban.reason.lower() or "bot" not in self.ban.reason.lower()) :
 			self.reason = "Short ban reason"
@@ -132,7 +117,7 @@ class BanChecker() :
 			if val.getReviewStatus() == "" :
 				continue
 			result, reason = val.getResults()
-			match result:
+			match result :
 				case "review" :
 					self.reason = reason
 					self.status = BanCheckerStatus.REVIEW
@@ -144,6 +129,18 @@ class BanChecker() :
 			return None, None
 		return None, None
 
+	async def check_pii(self):
+		"""This function does its best to detect personally identifiable information such as date of births, phone numbers, addresses, and emails."""
+		# This is a very basic check, and can be easily bypassed, but it's better than nothing.
+		email_regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
+		phone_regex = r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b"
+		dob_regex = r"\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b"
+
+		if re.search(email_regex, self.ban.reason) or re.search(phone_regex, self.ban.reason) or re.search(
+				dob_regex, self.ban.reason) :
+			self.reason = "Ban reason may contain personally identifiable information."
+			self.status = BanCheckerStatus.REVIEW
+
 	def get_status(self) -> str :
 		"""Returns the status of the ban check."""
 		return self.status
@@ -152,11 +149,13 @@ class BanChecker() :
 		"""Returns the reason for the ban check."""
 		return self.reason
 
-
-	async def evaluate_ban(self, guild, bot, server_only = False) :
+	async def evaluate_ban(self, guild, server_only=False) :
 		"""this function decides the verdict"""
+		logging.info(
+			f"Evaluating ban for {self.ban.user} in {guild.name} with reason: {self.ban.reason}, current status: {self.status}")
+		bot = self.bot
 		from classes.bans import Bans
-		match self.status:
+		match self.status :
 			case BanCheckerStatus.HIDE :
 				logging.info("Ban has been hidden, adding to database with hidden tag.")
 				self.reason = "Ban hidden: " + self.reason
@@ -165,15 +164,21 @@ class BanChecker() :
 
 			case BanCheckerStatus.REVIEW :
 				logging.info("Ban has been marked for review, adding to database with review tag.")
+				if isinstance(self.reason, list) :
+					self.reason = ", ".join(self.reason)
+
 				self.reason = "Ban marked for review: " + self.reason
-				if server_only and len(self.ban.reason.split(" ")) < 4:
+				if server_only and len(self.ban.reason.split(" ")) > 4 :
+					logging.info("ban marked for review")
 					self.reason = "Ban marked for review and has been hidden until evidence has been provided: " + self.reason
-					ui = EvidenceUI(self.ban.user, guild, self.ban.user.id + guild.id, reason=self.ban.reason, staff_reason=self.reason)
+					ui = EvidenceUI(self.ban.user, guild, self.ban.user.id + guild.id, reason=self.ban.reason,
+					                staff_reason=self.reason)
 					queue().add(ui.send_embed(await ConfigData().get_channel(guild)), priority=2)
 					# To prevent spamming the approval channel, we hide them instead because this is called during large operations like mass reviewing bans.
-					await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=False, hidden=True)
+					await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=False,
+					                     hidden=True)
 
-					return 
+					return
 
 				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=False)
 				return
@@ -186,18 +191,31 @@ class BanChecker() :
 				                      description=f"{self.ban.reason}")
 				guild_db = ServerTransactions().get(guild.id)
 
-				embed.set_footer(text=f"Server Invite: {guild_db.invite} Staff member: {guild_db.owner} ban ID: {guild.id + self.ban.user.id}. ")
-				queue().add(Bans().check_guilds(None, bot, guild, self.ban.user, embed, guild.id + self.ban.user.id), priority=2)
+				embed.set_footer(
+					text=f"Server Invite: {guild_db.invite} Staff member: {guild_db.owner} ban ID: {guild.id + self.ban.user.id}. ")
+				queue().add(
+					Bans().check_guilds(None, bot, guild, self.ban.user, embed, guild.id + self.ban.user.id, silent=True),
+					priority=2)
 				return
 
-
-			case BanCheckerStatus.PROMPT:
-				if server_only:
+			case BanCheckerStatus.PROMPT :
+				if server_only :
 					await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=True)
+					embed = discord.Embed(title=f"{self.ban.user} ({self.ban.user.id}) was banned in {guild}({guild.owner})",
+					                      description=f"{self.ban.reason}")
+					guild_db = ServerTransactions().get(guild.id)
+
+					embed.set_footer(
+						text=f"Server Invite: {guild_db.invite} Staff member: {guild_db.owner} ban ID: {guild.id + self.ban.user.id}. ")
+					queue().add(
+
+						Bans().check_guilds(None, bot, guild, self.ban.user, embed, guild.id + self.ban.user.id, silent=True),
+						priority=2)
 					return
+				from view.buttons.banoptionbuttons import BanOptionButtons
 				view = BanOptionButtons()
 				mod_channel = await ConfigData().get_channel(guild)
-				if mod_channel is None:
+				if mod_channel is None :
 					logging.warning(f"{guild.name}({guild.id}) doesn't have modchannel set, cannot prompt for review.")
 				user = self.ban.user
 				embed = discord.Embed(title=f"Do you want to share {user}'s ({user.id}) ban with other servers?",
@@ -205,6 +223,9 @@ class BanChecker() :
 				embed.set_footer(text=f"{guild.id}-{self.ban.user.id}")
 				queue().add(mod_channel.send(embed=embed, view=view), priority=2)
 				return
+
+			case BanCheckerStatus.SHORT :
+				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=False)
 
 			case _ :
 				logging.info("Ban is pending review, adding to database with pending tag.")

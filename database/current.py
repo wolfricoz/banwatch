@@ -50,6 +50,7 @@ class Bans(Base) :
 	hidden: Mapped[bool] = mapped_column(Boolean, default=False)
 	created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 	staff: Mapped[str] = mapped_column(String(1024, ))
+	edited: Mapped[bool] = mapped_column(Boolean, default=False)
 	proof: Mapped[List["Proof"]] = relationship("Proof", back_populates="ban",
 	                                            cascade="all, save-update, merge, delete, delete-orphan")
 	appeals: Mapped[List["Appeals"]] = relationship("Appeals", back_populates="ban",

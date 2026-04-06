@@ -17,7 +17,9 @@ class EvidenceUI(discord.ui.LayoutView) :
 		self.ban = None
 		self.ban_id = ban_id
 		self.reason = reason
-
+		if not user or not guild  or not ban_id or not reason:
+			# When we add the view to the bot for existing messages, we might not have all the data available, so we will load it when the user interacts with the view instead of now. The load_data function will load the data instead.
+			return
 
 		container = discord.ui.Container(
 			discord.ui.TextDisplay(

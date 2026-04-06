@@ -1,3 +1,5 @@
+import asyncio
+import logging
 import os
 
 import discord
@@ -7,6 +9,7 @@ from discord_py_utilities.messages import await_message, send_message, send_resp
 
 from classes.access import AccessControl
 from classes.autocorrect import autocomplete_guild
+from classes.ban.BanChecker import BanChecker
 from classes.bans import Bans
 from classes.evidence import EvidenceController
 from classes.queue import queue
@@ -15,6 +18,7 @@ from classes.tasks import pending_bans
 from data.variables.messages import evidence_message_template
 from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ServerTransactions import ServerTransactions
+from database.current import Bans as BanTable
 
 GUILD = int(os.getenv("GUILD"))
 
@@ -230,5 +234,55 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 		                    f"Your bans may temporarily still be available in the checkall cache, which is reloaded every 10 minutes")
 
 
+	@app_commands.command(name="audit_bans", description="[Staff command] Audits all or unsent bans to ensure they follow our guidelines")
+	@AccessControl().check_access()
+	async def audit_bans(self, interaction: discord.Interaction, all_bans: bool = False) :
+		"""
+		Audits all bans or just unsent bans to ensure they meet BanWatch's guidelines and standards. This is a maintenance command for staff to keep the ban database clean and accurate.
+
+		**Permissions:**
+		- Requires BanWatch Staff access.
+		"""
+		await send_response(interaction, f"Queueing the audit task, this may take a while", ephemeral=True)
+		bans = BanTransactions().get_audit()
+		count = 0
+		for ban in bans :
+			if ban.message and not all_bans:
+				continue
+			if count % 50 == 0 :
+				await asyncio.sleep(0)
+				logging.info(f"Auditing bans, current count: {count}/{len(bans)}")
+			queue().add(audit_ban(self.bot, ban), priority=0)
+			count += 1
+		await send_message(interaction.channel, f"Queued {count} bans for audit.")
+
+
+
+
 async def setup(bot: commands.Bot) :
 	await bot.add_cog(Staff(bot))
+
+
+async def audit_ban(bot: commands.AutoShardedBot | commands.Bot, ban: BanTable):
+	guild = bot.get_guild(ban.gid)
+	if not guild :
+		try :
+			guild = await bot.fetch_guild(ban.gid)
+		except discord.NotFound :
+			return
+	if not isinstance(guild, discord.Guild) :
+		return
+	user = bot.get_user(ban.uid)
+	if not user :
+		try :
+			user = await bot.fetch_user(ban.uid)
+		except discord.NotFound :
+			return
+	if not isinstance(user, discord.User) :
+		return
+	ban_entry = await guild.fetch_ban(user)
+	if not ban_entry :
+		return
+	ban_checker = BanChecker(bot, ban_entry)
+	await ban_checker.run()
+	await ban_checker.evaluate_ban(guild, server_only=True)

@@ -10,7 +10,6 @@ from discord_py_utilities.invites import check_guild_invites
 from discord_py_utilities.messages import send_message
 
 from classes.appeal import inform_user
-from classes.ban.BanChecker import BanChecker
 from classes.configdata import ConfigData
 from classes.queue import queue
 from classes.rpsec import RpSec
@@ -72,19 +71,20 @@ class Bans(metaclass=Singleton) :
 		message = await send_message(modchannel, embed=banembed, view=options)
 		BanMessageTransactions().add_ban_message(ban_id, guild.id, message.id)
 
-	async def check_guilds(self, interaction, bot, guild, user, banembed, wait_id, open_thread=False, verified=False) :
+	async def check_guilds(self, interaction, bot, guild, user, banembed, wait_id, open_thread=False, verified=False, silent=False) :
 		approved_channel = bot.get_channel(bot.APPROVALCHANNEL)
 		for guilds in bot.guilds :
 			if guilds.id == guild.id :
 				continue
 			if ConfigData().get_key(guilds.id, "receive_all", False) is True :
-				queue().add(self.inform_server(bot, guilds, banembed, wait_id), priority=0)
+				queue().add(self.inform_server(bot, guilds, banembed, wait_id,), priority=0)
 			if user in guilds.members :
 				queue().add(self.inform_server(bot, guilds, banembed, wait_id), priority=0)
 		await Bans().change_ban_approval_status(wait_id, True, verified=verified)
 		if interaction is not None :
 			await interaction.message.delete()
-		queue().add(inform_user(guild, user), 0)
+		if not silent:
+			queue().add(inform_user(guild, user), 0)
 
 		queue().add(self.send_to_ban_channel(approved_channel, banembed, guild, user, bot, wait_id))
 
@@ -273,9 +273,10 @@ class Bans(metaclass=Singleton) :
 				continue
 			if server.check_ban(banentry.user.id) :
 				continue
+			from classes.ban.BanChecker import BanChecker
 			ban_checker = BanChecker(bot, banentry)
 			await ban_checker.run()
-			await ban_checker.evaluate_ban(guild, bot, server_only=True)
+			await ban_checker.evaluate_ban(guild, server_only=True)
 			count += 1
 			if count % 25 == 0 :
 				logging.info(f"Found {count} new bans so far in {guild.name}({guild.id})")

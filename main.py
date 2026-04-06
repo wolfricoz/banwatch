@@ -128,7 +128,7 @@ async def on_ready() :
 	bot.add_view(CommunicationButtons())
 	bot.add_view(BanInform(Bans()))
 	bot.add_view(OnboardingLayout())
-	bot.add_view(EvidenceUI(None, None))
+	bot.add_view(EvidenceUI(None, None, None, None))
 	# Syncing commands
 	queue().add(bot.tree.sync())
 	logging.info(f"Commands synced, start up done! Connected to {guild_count} guilds and {bot.shard_count} shards.")
