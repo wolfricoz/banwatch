@@ -125,7 +125,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 					     Bans.verified.is_(False) ,
 					     Bans.hidden.is_(False),
 					     Bans.approved.is_(True),
-					     Bans.message.isnot(None),
+					     Bans.message.is_(None),
 					     Servers.deleted_at.is_(None),
 					     Servers.hidden.is_(False)))).all()
 
