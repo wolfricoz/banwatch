@@ -81,6 +81,10 @@ class DevTools(commands.GroupCog, name="dev") :
 			"deleted_bans"  : BanTransactions().count(result_type="deleted"),
 			"hidden_bans"   : BanTransactions().count(result_type="hidden"),
 			"available"     : BanTransactions().count(result_type="available"),
+			"pre-banwatch"  : BanTransactions().count(result_type="prebanwatch"),
+			"staff_total"   : len(StaffTransactions().get_all()),
+			"bot status"    : self.bot.status,
+			"latency"       : self.bot.latency,
 			"queue-status"  : queue().status()
 		}
 		embed = discord.Embed(title="Banwatch's stats")
@@ -416,10 +420,10 @@ class DevTools(commands.GroupCog, name="dev") :
 		- `Developer`
 		"""
 		user = self.bot.get_user(474365489670389771)
-		if not user:
-			try:
+		if not user :
+			try :
 				user = await self.bot.fetch_user(474365489670389771)
-			except Exception as e:
+			except Exception as e :
 				await send_message(interaction.channel, f"Failed to fetch test account with reason: {e}")
 				return
 		try :
@@ -434,8 +438,9 @@ class DevTools(commands.GroupCog, name="dev") :
 			user = await self.bot.fetch_user(474365489670389771)
 			await interaction.guild.ban(user,
 			                            reason=f"{'Test Ban that is longer than four words' if checklist else 'dev ban that is longer than four words'}")
-		if checklist:
-			ui = EvidenceUI(user, interaction.guild, interaction.guild.id + user.id, reason="Test Ban that is longer than four words")
+		if checklist :
+			ui = EvidenceUI(user, interaction.guild, interaction.guild.id + user.id,
+			                reason="Test Ban that is longer than four words")
 			await ui.send_embed(interaction.channel)
 
 		await send_response(interaction, "Test ban complete", ephemeral=True)
@@ -563,7 +568,6 @@ class DevTools(commands.GroupCog, name="dev") :
 		AccessControl().reload()
 		await send_response(interaction, "Access control reloaded.", ephemeral=True)
 
-
 	@app_commands.command(name="test_invites", description="[DEV] Reloads the access control lists from the database.")
 	@AccessControl().check_access("dev")
 	async def test_invites(self, interaction: discord.Interaction) :
@@ -575,13 +579,10 @@ class DevTools(commands.GroupCog, name="dev") :
 		"""
 		result = []
 		guilds = ServerTransactions().get_all(id_only=False)
-		for guild in guilds:
+		for guild in guilds :
 			g = self.bot.get_guild(guild.id)
 			result.append(await Bans().create_invite(self.bot, g))
 		await send_response(interaction, f"Result:\n{'\n'.join(result)}", ephemeral=True)
-
-
-
 
 	@app_commands.command(name="start_onboard", description="[DEV] Starts the onboarding process for a specified server.")
 	@AccessControl().check_access("dev")

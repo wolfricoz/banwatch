@@ -154,6 +154,8 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 					return session.execute(text("SELECT count(*) FROM bans WHERE hidden = true")).scalar()
 				case "deleted" :
 					return session.execute(text("SELECT count(*) FROM bans WHERE deleted_at IS NOT NULL")).scalar()
+				case "prebanwatch":
+					return session.execute(text("SELECT count(*) FROM bans WHERE message IS NULL and hidden = false")).scalar()
 				case _ :
 					return session.execute(text("SELECT count(*) FROM bans")).scalar()
 
