@@ -195,7 +195,6 @@ class BanChecker() :
 				return
 
 			case BanCheckerStatus.APPROVE :
-				logging.info("Ban has been approved without prompting, adding to database.")
 				self.reason = "Ban approved without prompting: " + self.reason
 				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=True)
 				embed = discord.Embed(title=f"{self.ban.user} ({self.ban.user.id}) was banned in {guild}({guild.owner})",

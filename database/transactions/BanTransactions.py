@@ -131,6 +131,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 					     Bans.approved.is_(True),
 					     Bans.message.is_(None),
 					     Servers.deleted_at.is_(None),
+					     Servers.active.is_(True),
 					     Servers.hidden.is_(False)))).all()
 
 	def get_all_pending(self) :
