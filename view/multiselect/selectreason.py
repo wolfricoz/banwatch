@@ -56,7 +56,7 @@ class SelectReason(SecureView) :
 			{
 				"reason"      : "Plagiarism",
 				"description" : "Copying or stealing others' content without permission",
-				"ban_reason"  : "Member posted content copied from others without proper credit, authorization, or attribution, violating community rules and intellectual property standards.",
+				"ban_reason"  : "Member posted content copied from others without proper credit, authorization, or attribution, violating community rules and/or intellectual property standards.",
 				"emote"       : "📋"
 			},
 			{
@@ -72,22 +72,10 @@ class SelectReason(SecureView) :
 				"emote"       : "👤"
 			},
 			{
-				"reason"      : "Disrespecting Staff",
-				"description" : "Member repeatedly ignored or disrespected server staff instructions or authority",
-				"ban_reason"  : "Member displayed hostility, dismissiveness, or noncompliance toward server staff, repeatedly ignoring instructions or attempting to undermine authority.",
+				"reason"      : "Intentional Disruption",
+				"description" : "Member displayed hostility or disruptive behaviour",
+				"ban_reason"  : "Member displayed hostility or behaved in a disruptive way towards staff and other servers members with the intention of inciting conflict or creating division in the community.",
 				"emote"       : "🛡️"
-			},
-			{
-				"reason"      : "Excessive Drama",
-				"description" : "Member continuously stirred conflict or created division within the community",
-				"ban_reason"  : "Member repeatedly instigated interpersonal conflicts, gossip, or disruptive behavior, creating division and tension within the community.",
-				"emote"       : "🔥"
-			},
-			{
-				"reason"      : "Trolling",
-				"description" : "Member intentionally provoked or disrupted conversations for attention or chaos",
-				"ban_reason"  : "Member engaged in disruptive behavior intended to provoke, derail discussions, or incite conflict among members.",
-				"emote"       : "🎭"
 			},
 			{
 				"reason"      : "Unauthorized Advertising",
@@ -98,7 +86,7 @@ class SelectReason(SecureView) :
 			{
 				"reason"      : "Spam",
 				"description" : "Flooding chat or DMing users with unwanted content",
-				"ban_reason"  : "Member repeatedly sent unsolicited messages, links, or content in server chats or direct messages, causing disruption and violating community guidelines. This includes mass mentions, excessive posting, or irrelevant content.",
+				"ban_reason"  : "Member repeatedly sent unsolicited messages, links, or content in server chats or direct messages.",
 				"emote"       : "📨"
 			},
 			{
@@ -108,12 +96,6 @@ class SelectReason(SecureView) :
 				"emote"       : "🔧"
 			},
 			{
-				"reason"      : "Alt Evasion",
-				"description" : "Using alternate accounts to evade bans or restrictions",
-				"ban_reason"  : "Member attempted to bypass existing bans, mutes, or restrictions by using alternate accounts, breaking Discord guidelines.",
-				"emote"       : "👥"
-			},
-			{
 				"reason"      : "Ban Evasion",
 				"description" : "Member returned after being banned using an alternate account",
 				"ban_reason"  : "Member rejoined the server using a different account to avoid an existing ban, circumventing moderation and ignoring prior disciplinary actions. ",
@@ -121,14 +103,14 @@ class SelectReason(SecureView) :
 			},
 			{
 				"reason"      : "Repeated Rule Violations",
-				"description" : "Member consistently broke server rules over time, despite receiving multiple warnings, mutes, or temporary bans",
-				"ban_reason"  : "Member demonstrated a persistent disregard for server rules by repeatedly violating guidelines despite prior warnings or disciplinary actions. Their ongoing behavior disrupted the community, interfered with normal interactions, and showed no signs of compliance or improvement.",
+				"description" : "Member repeatedly violated server rules, despite receiving warnings and/or other disciplinary action from staff",
+				"ban_reason"  : "Member repeatedly violated server rules, despite receiving warnings and/or other disciplinary action from staff.",
 				"emote"       : "📜"
 			},
 			{
 				"reason"      : "Harassment",
 				"description" : "[Evidence required] Targeted bullying or repeated unwanted contact",
-				"ban_reason"  : "Member engaged in harassment, including repeated unwanted messages, interactions, or behavior directed at another member that caused discomfort or distress, violating community guidelines and expectations for respectful conduct.",
+				"ban_reason"  : "Member repeatedly contacted other members with unwanted behaviour, messages or content causing discomfort or distress, disregarding requests, warnings or disciplinary actions to stop",
 				"emote"       : "🚫"
 			},
 			{
@@ -149,19 +131,6 @@ class SelectReason(SecureView) :
 				"ban_reason"  : "Member participated in or coordinated a raid, including mass messaging, flooding, or targeted disruption, intended to disturb or damage the community.",
 				"emote"       : "🎯"
 			},
-
-			{
-				"reason"      : "Malicious Links",
-				"description" : "Posting harmful or misleading URLs",
-				"ban_reason"  : "Member shared links that were harmful, deceptive, or potentially contained malware or exploits, putting members' devices and data at risk. ",
-				"emote"       : "🔗"
-			},
-			{
-				"reason"      : "Scam or Phishing",
-				"description" : "Attempting to steal information or promote scams",
-				"ban_reason"  : "Member attempted to defraud or deceive members through scams, phishing links, or malicious requests for sensitive information. ",
-				"emote"       : "🎣"
-			},
 			{
 				"reason"      : "Hate Speech",
 				"description" : "[Evidence required] Racist, sexist, homophobic, or otherwise discriminatory language",
@@ -171,7 +140,7 @@ class SelectReason(SecureView) :
 			{
 				"reason"      : "Doxxing",
 				"description" : "[Evidence required] Member shared or threatened to share private or identifying information",
-				"ban_reason"  : "Member attempted to expose or share private, sensitive, or personally identifying information of others without consent. This includes sharing addresses, phone numbers, or other data that could compromise an individual's privacy or safety.",
+				"ban_reason"  : "Member threatened or attempted to expose or share private, sensitive, or personally identifying information of others without consent.",
 				"emote"       : "🕵️‍♂️"
 			},
 			{
