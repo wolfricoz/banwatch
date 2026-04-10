@@ -180,6 +180,12 @@ class SelectReason(SecureView) :
 				"ban_reason"  : "Member made threats, exhibited intimidating behavior, or suggested potential physical or psychological harm toward others, creating a risk to the safety and well-being of the community. ",
 				"emote"       : "⚠️"
 			},
+			{
+				"reason"      : "Severe TOS Violation",
+				"description" : "This account was removed due to a significant breach of Discord\’s Terms of Service. Details are not retained or disclosed. ",
+				"ban_reason"  : "This account was removed due to a significant breach of Discord’s Terms of Service. Details are not retained or disclosed, please reach out to the server for more information.",
+				"emote"       : "🚨"
+			}
 		]
 		self.custom_reasons = [{
 			"reason"      : reason.name,
