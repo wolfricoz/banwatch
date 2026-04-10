@@ -16,6 +16,8 @@ from classes.configer import Configer
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from data.variables.messages import evidence_message_template
+from database.transactions.BanTransactions import BanTransactions
+from database.transactions.ProofTransactions import ProofTransactions
 from database.transactions.ServerTransactions import ServerTransactions
 from view.base.secureview import SecureView
 from view.buttons.banapproval import BanApproval
@@ -156,10 +158,12 @@ class BanOptionButtons(SecureView) :
 				queue().add(self.provide_proof(interaction, evidence), priority=2)
 			queue().add(self.status(interaction.client, guild, user, "waiting_approval", ban.reason, word=checkListResult,
 			                        message=message, silent=silent), priority=2)
-
+			proof_count = ProofTransactions().count(ban_id=wait_id)
 			embed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({guild.owner})",
 			                      description=f"{ban.reason}")
 			embed.add_field(name="flagged word", value=checkListResult, inline=False)
+			if proof_count > 0 :
+				embed.add_field(name="Evidence attached", value=f"{proof_count} piece{'s' if proof_count > 1 else ''} of evidence attached", inline=False)
 			embed.set_footer(text=f"invite: {guild_db.invite} To approve it manually: /approve_ban {wait_id} ")
 			queue().add(
 				send_message(channel, f"<@&{os.getenv('STAFF_ROLE')}>", embed=embed,

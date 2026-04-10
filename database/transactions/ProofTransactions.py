@@ -35,6 +35,15 @@ class ProofTransactions(DatabaseTransactions) :
 				return to_list(session.scalars(Select(Proof).join(Bans).options(joinedload(Proof.ban)).where(Proof.uid == user_id)).all())
 			return to_list(session.scalars(Select(Proof).join(Bans).options(joinedload(Proof.ban)).where(Proof.ban_id == ban_id)).all())
 
+	def count(self, ban_id: str | int = None, user_id: int = None):
+		with self.createsession() as session :
+
+			if isinstance(ban_id, str) :
+				ban_id = int(ban_id)
+			if user_id :
+				return session.query(Proof).where(Proof.uid == user_id).count()
+			return session.query(Proof).where(Proof.ban_id == ban_id).count()
+
 	def delete(self, proof_id: int) -> bool :
 		with self.createsession() as session :
 

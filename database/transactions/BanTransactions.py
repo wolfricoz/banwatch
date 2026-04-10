@@ -137,9 +137,9 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 		with self.createsession() as session :
 
 			return session.scalars(
-				Select(Bans).join(Servers).where(
+				Select(Bans).join(Servers).options(joinedload(Bans.proof)).where(
 					and_(Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None),
-					     Servers.hidden.is_(False)))).all()
+					     Servers.hidden.is_(False)))).unique().all()
 
 	def count(self, result_type="all") :
 		"""

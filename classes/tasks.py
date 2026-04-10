@@ -25,6 +25,7 @@ async def pending_bans(bot, revoked=False) :
 		guild_id = ban.gid
 		user = bot.get_user(user_id)
 		guild = bot.get_guild(guild_id)
+		proof_count = len(ban.proof)
 
 		# If the user is not found in the cache, fetch from the API
 		if user is None :
@@ -55,6 +56,9 @@ async def pending_bans(bot, revoked=False) :
 			embed.add_field(name="Staff Member", value=ban.staff, inline=False)
 			if ban.edited:
 				embed.add_field(name=f"Edited by {ban.edited_by}", value=ban.edited.strftime('%m/%d/%Y'), inline=False)
+			if proof_count > 0 :
+				embed.add_field(name="Evidence attached", value=f"{proof_count} piece{'s' if proof_count > 1 else ''} of evidence attached", inline=False)
+
 			embed.set_footer(text=f"/approve_ban {wait_id}")
 			queue().add(channel.send(f"", embed=embed, view=BanApproval(bot, wait_id, True)),
 			            priority=2)
