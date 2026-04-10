@@ -236,7 +236,7 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 
 	@app_commands.command(name="audit_bans", description="[Staff command] Audits all or unsent bans to ensure they follow our guidelines")
 	@AccessControl().check_access()
-	async def audit_bans(self, interaction: discord.Interaction, all_bans: bool = False, maximum: int = 100) :
+	async def audit_bans(self, interaction: discord.Interaction, all_bans: bool = False, maximum: int = 1000) :
 		"""
 		Audits all bans or just unsent bans to ensure they meet BanWatch's guidelines and standards. This is a maintenance command for staff to keep the ban database clean and accurate.
 
@@ -247,8 +247,8 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 		bans = BanTransactions().get_audit()
 		count = 0
 		for ban in bans :
-			if ban.message and not all_bans:
-				continue
+			# if ban.message and not all_bans:
+			# 	continue
 			if count >= maximum :
 				logging.info(f"maximum audit limit of {maximum} reached, stopping the audit")
 				break
