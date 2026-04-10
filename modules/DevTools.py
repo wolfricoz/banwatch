@@ -66,16 +66,14 @@ class DevTools(commands.GroupCog, name="dev") :
 		await send_response(interaction, "Command sync queue, high priority queue.")
 
 	@app_commands.command(name="stats", description="[DEV] View Banwatch's operational statistics.")
-	async def stats(self, interaction: discord.Interaction) :
+	async def dev_stats(self, interaction: discord.Interaction) :
 		"""
 		[DEV] Displays operational statistics for the bot.
 
 		**Permissions:**
 		- `Developer`
 		"""
-		with open('countbans.txt', 'w') :
-			pass
-		await Bans().update(self.bot, override=True)
+		# await Bans().update(self.bot, override=True)
 		stats = {
 			"servers_total" : ServerTransactions().count(),
 			"bans_total"    : BanTransactions().count(),
