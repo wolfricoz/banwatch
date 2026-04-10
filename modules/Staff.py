@@ -247,8 +247,8 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 		bans = BanTransactions().get_audit()
 		count = 0
 		for ban in bans :
-			# if ban.message and not all_bans:
-			# 	continue
+			if ban.message and not all_bans:
+				continue
 			if count >= maximum :
 				logging.info(f"maximum audit limit of {maximum} reached, stopping the audit")
 				break
