@@ -153,7 +153,9 @@ class BanApproval(SecureView) :
 			ephemeral=False)
 		await denial_channel.send(embed=banembed)
 		if mod_channel :
-			await mod_channel.send(embed=banembed)
+			ui = EvidenceUI(user, guild, ban_entry.ban_id, reason, staff_reason=deny_reason)
+			await ui.send_embed(mod_channel)
+
 		# await send_response(interaction, f"Ban Hidden: \n `{deny_reason}`", ephemeral=True)
 
 	@discord.ui.button(label="Hide Ban", style=discord.ButtonStyle.danger, custom_id="deny_silent")

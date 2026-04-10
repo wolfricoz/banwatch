@@ -87,7 +87,8 @@ class queue(metaclass=Singleton) :
 				print(self.status())
 				return
 			logging.info(f"Processing task: {task.__name__}")
-			asyncio.create_task(task)
+			await task
+
 
 		except Forbidden as e:
 
@@ -98,8 +99,9 @@ class queue(metaclass=Singleton) :
 			logging.warning(f"Key not found in queue: {task.__name__} for guild {task.guild.id if hasattr(task, 'guild') else 'unknown'}")
 		except Exception as e :
 			logging.error(f"Error in queue: {e}", exc_info=True)
-		self.task_finished = True
-		logging.info(self.status())
+		finally:
+			self.task_finished = True
+			logging.info(self.status())
 
 
 	def get_queue_time(self) -> float :

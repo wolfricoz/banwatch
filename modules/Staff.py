@@ -270,6 +270,7 @@ async def setup(bot: commands.Bot) :
 
 
 async def audit_ban(bot: commands.AutoShardedBot | commands.Bot, ban: BanTable):
+	await asyncio.sleep(1)
 	guild = bot.get_guild(ban.gid)
 	if not guild :
 		try :

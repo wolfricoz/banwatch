@@ -40,12 +40,12 @@ class EvidenceController() :
 			embed.set_footer(text=f"Ban ID: {ban_id}")
 			# could potentially add buttons to this?
 			from view.buttons.banapproval import BanApproval
-
+			BanTransactions().update(ban_id, hidden=False, approved=False, verified=False)
 			view = BanApproval(interaction.client, ban_id)
 			queue().add(send_message(channel,
 			                         f"Ban ID {ban_id} has been updated with new evidence:\n"
 			                         f"{result.proof}\n\n"
-			                         f"{'**This ban is currently hidden, use /staff banvisibility ban_id: hide: if you wish to edit visibility status**' if ban.hidden else ''}", files=attachments, embed=embed, view=view))
+			                         f"{'-# This ban has been returned to the queue for review.' if ban.hidden else ''}", files=attachments, embed=embed, view=view))
 			return
 		if ban_entry is None :
 			logging.info(f"pre-banwatch ban {ban_id} added evidence: {result.id}")
