@@ -195,7 +195,7 @@ class BanChecker() :
 					text=f"Server Invite: {guild_db.invite} Staff member: {guild_db.owner} ban ID: {guild.id + self.ban.user.id}. ")
 				queue().add(
 					Bans().check_guilds(None, bot, guild, self.ban.user, embed, guild.id + self.ban.user.id, silent=True),
-					priority=2)
+					priority=0)
 				return
 
 			case BanCheckerStatus.PROMPT :
@@ -210,7 +210,7 @@ class BanChecker() :
 					queue().add(
 
 						Bans().check_guilds(None, bot, guild, self.ban.user, embed, guild.id + self.ban.user.id, silent=True),
-						priority=2)
+						priority=0)
 					return
 				from view.buttons.banoptionbuttons import BanOptionButtons
 				view = BanOptionButtons()
