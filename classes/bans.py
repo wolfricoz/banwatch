@@ -74,12 +74,17 @@ class Bans(metaclass=Singleton) :
 
 	async def check_guilds(self, interaction, bot, guild, user, banembed, wait_id, open_thread=False, verified=False, silent=False) :
 		approved_channel = bot.get_channel(bot.APPROVALCHANNEL)
+		count = 0
 		for guilds in bot.guilds :
+			count += 1
+			if count % 5 == 0 :
+				# To prevent locking up the event loop for too long, we yield control every 5 iterations to allow other tasks to run.
+				await asyncio.sleep(0)
 			if guilds.id == guild.id :
 				continue
 			if ConfigData().get_key(guilds.id, "receive_all", False) is True :
 				queue().add(self.inform_server(bot, guilds, banembed, wait_id,), priority=0)
-			if user in guilds.members :
+			if user in guilds.members and not silent:
 				queue().add(self.inform_server(bot, guilds, banembed, wait_id), priority=0)
 		await Bans().change_ban_approval_status(wait_id, True, verified=verified)
 		if interaction is not None :

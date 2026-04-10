@@ -94,8 +94,12 @@ class EvidenceUI(discord.ui.LayoutView) :
 	custom_id = "EvidenceUI"
 
 
-	async def send_embed(self, channel: discord.TextChannel) :
-		await channel.send(view=self)
+	async def send_embed(self, channel: discord.TextChannel, review = False) :
+
+		msg = ""
+		if review:
+			msg = "-# **This ban has been marked for review, the ban is currently hidden until evidence has been provided. If this ban is not important, you may simply delete this request.**"
+		await channel.send(content=msg, view=self)
 
 	async def submit_evidence(self, interaction: discord.Interaction) :
 		if not self.check_perms(interaction) :

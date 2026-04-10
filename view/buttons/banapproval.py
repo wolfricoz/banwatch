@@ -1,4 +1,5 @@
 import logging
+import time
 
 import discord
 from discord_py_utilities.messages import send_message, send_response
@@ -202,25 +203,30 @@ class BanApproval(SecureView) :
 		if channel is None:
 			logging.info(f"Guild {guild} has no channel")
 			return
-		notice = f"Your ban {self.wait_id} has been {'edited' if ban.edited else 'approved'}  by the banwatch team{' and broadcast with ban reason' if not self.silent else '.'}"
+		notice = f"Your ban {self.wait_id} has been {'edited' if ban.edited else 'approved'}  by the banwatch team{f' and broadcast with ban reason: \n{ban.reason}'  if not self.silent else '.'}"
 		await send_message(channel, notice)
 
 	async def approve_handler(self, interaction: discord.Interaction) :
-
+		start = time.time()
 		ban_entry = BanTransactions().get(self.wait_id, override=True)
 		if ban_entry is None :
 			await send_response(interaction, "Ban not found", ephemeral=True)
 			return
+		logging.info(f"Approving ban {ban_entry.ban_id}. Time since button press: {time.time() - start} seconds")
+
 		guild, user, reason = await self.get_ban_data(ban_entry)
+		logging.info(f"fetched ban data for user {user} in guild {guild} with reason {reason}. Time since button press: {time.time() - start} seconds")
 		owner = guild.owner
 		banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
 		                         description=f"{reason}")
 		banembed.set_footer(text=f"Server Invite: {ban_entry.guild.invite} Server Owner: {owner} ban ID: {self.wait_id} ")
+		logging.info(f"Created embed for ban approval without proof. Time since button press: {time.time() - start} seconds")
 		queue().add(send_response(interaction,
 		                          f"Approved `{interaction.message.embeds[0].title}`   without proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}",
 		                          ephemeral=False), priority=2)
 		await self.update_embed(interaction, "approve")
 		queue().add(self.send_feedback(interaction), priority=0)
+		logging.info(f"Sent feedback for ban approval without proof. Time since button press: {time.time() - start} seconds")
 
 		if self.silent :
 			queue().add(inform_user(guild, user), 0)

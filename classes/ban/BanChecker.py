@@ -102,7 +102,7 @@ class BanChecker() :
 
 	async def check_word_count(self) :
 		word_count = len(self.ban.reason.split(" ")) < 4
-		if word_count and ("spam" not in self.ban.reason.lower() or "bot" not in self.ban.reason.lower()) :
+		if word_count and "spam" not in self.ban.reason.lower() and "bot" not in self.ban.reason.lower():
 			self.reason = "Short ban reason"
 			self.status = BanCheckerStatus.SHORT
 
@@ -174,7 +174,7 @@ class BanChecker() :
 					self.reason = "Ban marked for review and has been hidden until evidence has been provided: " + self.reason
 					ui = EvidenceUI(self.ban.user, guild, self.ban.user.id + guild.id, reason=self.ban.reason,
 					                staff_reason=self.reason)
-					queue().add(ui.send_embed(await ConfigData().get_channel(guild)), priority=2)
+					queue().add(ui.send_embed(await ConfigData().get_channel(guild), review=True), priority=2)
 					# To prevent spamming the approval channel, we hide them instead because this is called during large operations like mass reviewing bans.
 					await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=False,
 					                     hidden=True)
