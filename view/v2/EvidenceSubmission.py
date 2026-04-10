@@ -10,6 +10,9 @@ from database.transactions.BanTransactions import BanTransactions
 
 
 class EvidenceUI(discord.ui.LayoutView) :
+
+
+
 	def __init__(self, user: discord.User | discord.Member, guild: discord.Guild, ban_id: str, reason: str | None, staff_reason: str | None= None) :
 		super().__init__(timeout=None)
 		self.guild = guild
@@ -19,6 +22,25 @@ class EvidenceUI(discord.ui.LayoutView) :
 		self.reason = reason
 		if not user or not guild  or not ban_id or not reason:
 			# When we add the view to the bot for existing messages, we might not have all the data available, so we will load it when the user interacts with the view instead of now. The load_data function will load the data instead.
+
+			actions = discord.ui.ActionRow()
+			submit_btn = discord.ui.Button(
+				custom_id="submit_evidence",
+				label="Submit Evidence",
+				style=discord.ButtonStyle.primary
+			)
+			hide_btn = discord.ui.Button(
+				custom_id="hide_evidence",
+				label="Hide",
+				style=discord.ButtonStyle.danger
+			)
+
+			submit_btn.callback = self.submit_evidence
+			hide_btn.callback = self.hide
+
+			actions.add_item(submit_btn)
+			actions.add_item(hide_btn)
+			self.add_item(actions)
 			return
 
 		container = discord.ui.Container(
@@ -69,6 +91,9 @@ class EvidenceUI(discord.ui.LayoutView) :
 		actions.add_item(hide_btn)
 		self.add_item(actions)
 
+	custom_id = "EvidenceUI"
+
+
 	async def send_embed(self, channel: discord.TextChannel) :
 		await channel.send(view=self)
 
@@ -100,7 +125,10 @@ class EvidenceUI(discord.ui.LayoutView) :
 		await BansClass().revoke_bans(interaction.client, self.user.id + interaction.guild.id,
 		                              "Ban has been hidden by the server.")
 		await send_response(interaction, f"{self.user.mention}'s ban has been hidden by {interaction.user.name}")
+		await interaction.message.delete()
 		return None
+
+
 
 	async def load_data(self, interaction: discord.Interaction) -> bool :
 		if not self.ban_id :
