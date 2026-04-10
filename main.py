@@ -133,7 +133,7 @@ async def on_ready() :
 	queue().add(bot.tree.sync())
 	logging.info(f"Commands synced, start up done! Connected to {guild_count} guilds and {bot.shard_count} shards.")
 	# Checking if theres bans that aren't approved yet.
-	queue().add(pending_bans(bot), priority=0)
+	queue().add(pending_bans(bot, limit=50), priority=0)
 	logging.info("Loaded routers: " + ", ".join(routers))
 
 

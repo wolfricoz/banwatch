@@ -43,7 +43,7 @@ class Tasks(commands.Cog) :
 	async def check_pending_bans(self) :
 		if self.check_pending_bans.current_loop == 0 :
 			return
-		await pending_bans(self.bot)
+		await pending_bans(self.bot, limit=100)
 
 	@check_pending_bans.before_loop
 	async def before_check_pending_bans(self) :

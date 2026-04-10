@@ -93,7 +93,7 @@ class BanChecker() :
 		if (
 				not raw_reason
 				or raw_reason in ignored_reasons
-				or raw_reason.startswith(("[hidden]", "no pfp"))
+				or raw_reason.startswith(("[hidden]", "no pfp", "account has no avatar"))
 				or "no reason specified" in raw_reason
 		) :
 			logging.info("Hiding ban: Reason doesn't provide valuable information or has hidden tag.")

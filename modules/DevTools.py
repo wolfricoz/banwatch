@@ -447,14 +447,14 @@ class DevTools(commands.GroupCog, name="dev") :
 
 	@app_commands.command(name="pendingbans", description="[DEV] Manually triggers a check for all pending bans.")
 	@AccessControl().check_access("dev")
-	async def pendingbans(self, interaction: discord.Interaction) :
+	async def pendingbans(self, interaction: discord.Interaction, limit:int = None) :
 		"""
 		[DEV] Manually triggers the background task to check for pending bans.
 
 		**Permissions:**
 		- `Developer`
 		"""
-		await pending_bans(self.bot)
+		await pending_bans(self.bot, limit=limit)
 		await send_response(interaction, "Checking for pending bans", ephemeral=True)
 
 	@app_commands.command(name="refreshbans",

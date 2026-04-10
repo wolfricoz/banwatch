@@ -1,3 +1,4 @@
+import asyncio
 import os
 
 import discord
@@ -9,16 +10,23 @@ from database.transactions.BanTransactions import BanTransactions
 from view.buttons.banapproval import BanApproval
 
 
-async def pending_bans(bot, revoked=False) :
+async def pending_bans(bot, revoked=False, limit = None) :
 	bans = BanTransactions().get_all_pending()
 	channel = bot.get_channel(bot.BANCHANNEL)
 	ban: Bans
 	found_bans = []
 	if revoked :
 		await send_message(channel, "fetching pending bans after revoking ban")
+	count = 0
+
 	for ban in bans :
+		if limit and count >= limit :
+			break
+		if count % 10 == 0:
+			await asyncio.sleep(0)
 		if ban.approved is True or ban.hidden is True :
 			continue
+		count += 1
 		reason = ban.reason
 		wait_id = ban.ban_id
 		user_id = ban.uid

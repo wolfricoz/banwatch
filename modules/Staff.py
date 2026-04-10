@@ -196,7 +196,7 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 		await interaction.response.send_message("Queueing the search for the embed")
 		for ban_id in ban_ids :
 			await Bans().revoke_bans(self.bot, ban_id, reason, staff=True)
-		queue().add(pending_bans(self.bot, True))
+		queue().add(pending_bans(self.bot, True, limit=50))
 
 	@app_commands.command(name="amistaff", description="[DEV] check if you're a banwatch staff member.")
 	async def amistaff(self, interaction: discord.Interaction) :
