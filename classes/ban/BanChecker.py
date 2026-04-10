@@ -46,6 +46,7 @@ class BanChecker() :
 		logging.debug("count check: " + self.status)
 		await self.perform_action(self.check_flagged_terms(self.ban.reason))
 		logging.debug("Final check: " + self.status)
+		await self.perform_action(self.check_pii())
 		return self
 
 	async def perform_action(self, action: Coroutine) :
