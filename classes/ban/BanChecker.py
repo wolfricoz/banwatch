@@ -82,10 +82,20 @@ class BanChecker() :
 
 	async def assess_value(self) :
 		"""Checks if the ban is worth broadcasting, if the ban has no reason or a reason that doesn't provide valuable information, it'll be hidden."""
-		if self.ban.reason is None or self.ban.reason.lower() in ["", "none", "account has no avatar.", "no reason given.",
-		                                                          "breaking server rules"] or str(
-			self.ban.reason).lower().startswith(
-			'[hidden]') :
+		raw_reason = str(self.ban.reason or "").lower().strip()
+		ignored_reasons = {
+			"",
+			"none",
+			"account has no avatar.",
+			"no reason given.",
+			"breaking server rules"
+		}
+		if (
+				not raw_reason
+				or raw_reason in ignored_reasons
+				or raw_reason.startswith(("[hidden]", "no pfp"))
+				or "no reason specified" in raw_reason
+		) :
 			logging.info("Hiding ban: Reason doesn't provide valuable information or has hidden tag.")
 			self.status = BanCheckerStatus.HIDE
 			return
@@ -102,7 +112,7 @@ class BanChecker() :
 
 	async def check_word_count(self) :
 		word_count = len(self.ban.reason.split(" ")) < 4
-		if word_count and "spam" not in self.ban.reason.lower() and "bot" not in self.ban.reason.lower():
+		if word_count and "spam" not in self.ban.reason.lower() and "bot" not in self.ban.reason.lower() :
 			self.reason = "Short ban reason"
 			self.status = BanCheckerStatus.SHORT
 
@@ -130,7 +140,7 @@ class BanChecker() :
 			return None, None
 		return None, None
 
-	async def check_pii(self):
+	async def check_pii(self) :
 		"""This function does its best to detect personally identifiable information such as date of births, phone numbers, addresses, and emails."""
 		# This is a very basic check, and can be easily bypassed, but it's better than nothing.
 		email_regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"

@@ -1,3 +1,4 @@
+import asyncio
 import inspect
 import logging
 import math
@@ -79,14 +80,14 @@ class queue(metaclass=Singleton) :
 				self.task_finished = True
 				return
 			if not inspect.iscoroutine(task) :
-				task()
+				await asyncio.to_thread(task)
 				self.task_finished = True
 				logging.info(f"Processing task: {task.__name__}")
 
 				print(self.status())
 				return
 			logging.info(f"Processing task: {task.__name__}")
-			await task
+			asyncio.create_task(task)
 
 		except Forbidden as e:
 

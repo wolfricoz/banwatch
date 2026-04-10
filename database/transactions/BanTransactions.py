@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Type
 
 from sqlalchemy import Select, and_, text
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import contains_eager, joinedload
 
 from classes.singleton import Singleton
 from database.current import Bans, Proof, Servers
@@ -70,11 +70,15 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			if current_session :
 				session = current_session
 			if override :
-				return session.scalar(Select(Bans).options(joinedload(Bans.guild),  joinedload(Bans.proof)).where(Bans.ban_id == ban_id))
+				return session.query(Bans) \
+					.options(joinedload(Bans.guild), joinedload(Bans.proof)) \
+					.filter(Bans.ban_id == ban_id) \
+					.first()
+
 			return session.query(Bans) \
-				.options(joinedload(Bans.guild), joinedload(Bans.proof)) \
-				.join(Proof, Proof.ban_id == Bans.ban_id, isouter=True) \
 				.join(Servers, Servers.id == Bans.gid) \
+				.outerjoin(Proof, Proof.ban_id == Bans.ban_id) \
+				.options(contains_eager(Bans.guild), contains_eager(Bans.proof)) \
 				.filter(
 				Bans.ban_id == ban_id,
 				Bans.deleted_at.is_(None),
