@@ -183,8 +183,8 @@ class BanChecker() :
 					logging.info("ban marked for review")
 					self.reason = "Ban marked for review and has been hidden until evidence has been provided: " + self.reason
 					ui = EvidenceUI(self.ban.user, guild, self.ban.user.id + guild.id, reason=self.ban.reason,
-					                staff_reason=self.reason)
-					queue().add(ui.send_embed(await ConfigData().get_channel(guild), review=True), priority=2)
+					                staff_reason=self.reason, review=True)
+					queue().add(ui.send_embed(await ConfigData().get_channel(guild)), priority=2)
 					# To prevent spamming the approval channel, we hide them instead because this is called during large operations like mass reviewing bans.
 					await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=False,
 					                     hidden=True)

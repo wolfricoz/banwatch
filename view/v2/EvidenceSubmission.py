@@ -13,7 +13,7 @@ class EvidenceUI(discord.ui.LayoutView) :
 
 
 
-	def __init__(self, user: discord.User | discord.Member, guild: discord.Guild, ban_id: str, reason: str | None, staff_reason: str | None= None) :
+	def __init__(self, user: discord.User | discord.Member, guild: discord.Guild, ban_id: str, reason: str | None, staff_reason: str | None= None, review = False) :
 		super().__init__(timeout=None)
 		self.guild = guild
 		self.user = user
@@ -69,6 +69,11 @@ class EvidenceUI(discord.ui.LayoutView) :
 		container.add_item(discord.ui.TextDisplay(
 				content=f"-# **Ban ID:** {self.ban_id}",
 			))
+		if review:
+
+			container.add_item(discord.ui.TextDisplay(
+					content="-# **This ban has been marked for review, the ban is currently hidden until evidence has been provided. If this ban is not important, you may simply delete this request.**",
+				))
 
 		self.add_item(container)
 
@@ -94,12 +99,9 @@ class EvidenceUI(discord.ui.LayoutView) :
 	custom_id = "EvidenceUI"
 
 
-	async def send_embed(self, channel: discord.TextChannel, review = False) :
+	async def send_embed(self, channel: discord.TextChannel ):
 
-		msg = ""
-		if review:
-			msg = "-# **This ban has been marked for review, the ban is currently hidden until evidence has been provided. If this ban is not important, you may simply delete this request.**"
-		await channel.send(content=msg, view=self)
+		await channel.send(view=self)
 
 	async def submit_evidence(self, interaction: discord.Interaction) :
 		if not self.check_perms(interaction) :
