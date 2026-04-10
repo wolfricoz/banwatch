@@ -191,8 +191,11 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 		**Permissions:**
 		- Requires BanWatch Staff access.
 		"""
+		ban_ids = banid.split(",")
+
 		await interaction.response.send_message("Queueing the search for the embed")
-		await Bans().revoke_bans(self.bot, banid, reason, staff=True)
+		for ban_id in ban_ids :
+			await Bans().revoke_bans(self.bot, ban_id, reason, staff=True)
 		queue().add(pending_bans(self.bot, True))
 
 	@app_commands.command(name="amistaff", description="[DEV] check if you're a banwatch staff member.")
