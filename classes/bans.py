@@ -108,30 +108,32 @@ class Bans(metaclass=Singleton) :
 		evidence_channel = bot.get_channel(bot.BANCHANNEL)
 		wait_id = guild.id + user.id
 		mod_channel = guild.get_channel(int(ConfigData().get_key(guild.id, "modchannel")))
-
-		thread = await approved_message.create_thread(name=f"Ban Information for {user.name}")
-		logging.info(f"Created thread {thread.name} in {thread.guild.name}")
-		if rpsec is not None :
-			logging.info(f"User's RP Security thread: {rpsec.name}")
-			await send_message(thread, f"User's RP Security thread: {rpsec.mention}")
-		prev_bans = await self.check_previous_bans(approved_message, dev_guild, user.id)
-		if prev_bans :
-			logging.info(f"Previous bans for {user.name}: {prev_bans}")
-			text_bans = '\n'.join([f"{ban.jump_url}" for ban in prev_bans])
-			await send_message(thread, f"Previous bans for {user.name}:"
-			                           f"\n{text_bans}")
-		entries = ProofTransactions().get(ban_id=wait_id)
-		if not entries :
-			return
-		await send_message(thread, f"## __Proof for {wait_id}__")
-		evidence: Proof
-		for evidence in entries :
-			proof = '\n'.join(evidence.get_attachments())
-			content = (f"**{evidence.ban_id}**:"
-			           f"\n**ban reason**: {evidence.ban.reason}"
-			           f"\n**Provided Proof**: {evidence.proof}"
-			           f"\n**attachments:**\n {proof}")
-			queue().add(send_message(thread, content))
+		try:
+			thread = await approved_message.create_thread(name=f"Ban Information for {user.name}")
+			logging.info(f"Created thread {thread.name} in {thread.guild.name}")
+			if rpsec is not None :
+				logging.info(f"User's RP Security thread: {rpsec.name}")
+				await send_message(thread, f"User's RP Security thread: {rpsec.mention}")
+			prev_bans = await self.check_previous_bans(approved_message, dev_guild, user.id)
+			if prev_bans :
+				logging.info(f"Previous bans for {user.name}: {prev_bans}")
+				text_bans = '\n'.join([f"{ban.jump_url}" for ban in prev_bans])
+				await send_message(thread, f"Previous bans for {user.name}:"
+				                           f"\n{text_bans}")
+			entries = ProofTransactions().get(ban_id=wait_id)
+			if not entries :
+				return
+			await send_message(thread, f"## __Proof for {wait_id}__")
+			evidence: Proof
+			for evidence in entries :
+				proof = '\n'.join(evidence.get_attachments())
+				content = (f"**{evidence.ban_id}**:"
+				           f"\n**ban reason**: {evidence.ban.reason}"
+				           f"\n**Provided Proof**: {evidence.proof}"
+				           f"\n**attachments:**\n {proof}")
+				queue().add(send_message(thread, content))
+		except Exception as e :
+			logging.warning(f"Failed to create thread for ban {wait_id} in {guild.name}: {e}")
 
 	async def check_previous_bans(self, original_message, dev_guild: discord.Guild, user_id) -> list[discord.Message] :
 		ban_record = BanTransactions().get_all_user(user_id)
