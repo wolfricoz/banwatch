@@ -131,14 +131,13 @@ class EvidenceUI(discord.ui.LayoutView) :
 
 
 	async def load_data(self, interaction: discord.Interaction) -> bool :
-		if not self.ban_id :
-			for item in interaction.message.components :
-				for component in getattr(item, "children", []) :
-					content = getattr(component, "content", "")
-					if content.startswith("-# **Ban ID:**") :
-						self.ban_id = content.replace("-# **Ban ID:**", "").strip()
-						logging.info(f"Extracted Ban ID: {self.ban_id}")
-						break
+		for item in interaction.message.components :
+			for component in getattr(item, "children", []) :
+				content = getattr(component, "content", "")
+				if content.startswith("-# **Ban ID:**") :
+					self.ban_id = content.replace("-# **Ban ID:**", "").strip()
+					logging.info(f"Extracted Ban ID: {self.ban_id}")
+					break
 
 		logging.info(f"Ban ID: {self.ban_id}")
 		if isinstance(self.ban_id, str) :
