@@ -47,9 +47,9 @@ class BanApproval(SecureView) :
 		                         description=f"{reason}")
 		banembed.add_field(name="Banwatch Verified", value="This ban was verified by banwatch staff")
 		banembed.set_footer(text=f"Server Invite: {ban_entry.guild.invite} Server Owner: {owner} ban ID: {self.wait_id}. ")
-		await send_response(interaction, 
+		queue().add(send_response(interaction,
 			f"Approved `{interaction.message.embeds[0].title}`   with proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}",
-			ephemeral=False)
+			ephemeral=False), priority=2)
 		await self.update_embed(interaction)
 		queue().add(self.send_feedback(interaction), priority=0)
 
@@ -66,26 +66,9 @@ class BanApproval(SecureView) :
 		if self.bot is None or self.wait_id is None :
 			await send_response(interaction, "Error: The bot has restarted, the data of this button was lost", ephemeral=True)
 			return
-		ban_entry = BanTransactions().get(self.wait_id, override=True)
-		if ban_entry is None :
-			await send_response(interaction, "Ban not found", ephemeral=True)
-			return
-		guild, user, reason = await self.get_ban_data(ban_entry)
-		owner = guild.owner
-		banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
-		                         description=f"{reason}")
-		banembed.set_footer(text=f"Server Invite: {ban_entry.guild.invite} Server Owner: {owner} ban ID: {self.wait_id} ")
-		await send_response(interaction, 
-			f"Approved `{interaction.message.embeds[0].title}`   without proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}",
-			ephemeral=False)
-		await self.update_embed(interaction, "approve")
-		queue().add(self.send_feedback(interaction), priority=0)
+		queue().add(self.approve_handler(interaction), priority=2)
 
-		if self.silent :
-			queue().add(inform_user(guild, user), 0)
 
-			return
-		await Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, False)
 
 
 	@discord.ui.button(label="Inform Server", style=discord.ButtonStyle.primary, custom_id="request_evidence")
@@ -222,7 +205,28 @@ class BanApproval(SecureView) :
 		notice = f"Your ban {self.wait_id} has been {'edited' if ban.edited else 'approved'}  by the banwatch team{' and broadcast with ban reason' if not self.silent else '.'}"
 		await send_message(channel, notice)
 
+	async def approve_handler(self, interaction: discord.Interaction) :
 
+		ban_entry = BanTransactions().get(self.wait_id, override=True)
+		if ban_entry is None :
+			await send_response(interaction, "Ban not found", ephemeral=True)
+			return
+		guild, user, reason = await self.get_ban_data(ban_entry)
+		owner = guild.owner
+		banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
+		                         description=f"{reason}")
+		banembed.set_footer(text=f"Server Invite: {ban_entry.guild.invite} Server Owner: {owner} ban ID: {self.wait_id} ")
+		queue().add(send_response(interaction,
+		                          f"Approved `{interaction.message.embeds[0].title}`   without proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}",
+		                          ephemeral=False), priority=2)
+		await self.update_embed(interaction, "approve")
+		queue().add(self.send_feedback(interaction), priority=0)
+
+		if self.silent :
+			queue().add(inform_user(guild, user), 0)
+
+			return
+		await Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, False)
 
 	def update_buttons(self, selected) :
 		self.hide.disabled = True
