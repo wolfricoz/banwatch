@@ -105,4 +105,34 @@ class queue(metaclass=Singleton) :
 
 
 	def get_queue_time(self) -> float :
-		return (len(self.high_priority_queue) + len(self.normal_priority_queue) + len(self.low_priority_queue)) * 0.3
+		return (len(self.high_priority_queue) + len(self.normal_priority_queue) + len(self.low_priority_queue)) * 0.4
+
+	def get_queue_items(self) -> list :
+		return self.high_priority_queue + self.normal_priority_queue + self.low_priority_queue
+
+	def export_queue(self) -> dict :
+		total = {
+
+		}
+
+		for i in self.high_priority_queue :
+			i = i.__name__ + " (high)"
+			if i in total :
+				total[i] += 1
+			else :
+				total[i] = 1
+		for i in self.normal_priority_queue :
+			i = i.__name__ + " (normal)"
+			if i in total :
+				total[i] += 1
+			else :
+				total[i] = 1
+		for i in self.low_priority_queue :
+			i = i.__name__ + " (low)"
+			if i in total :
+				total[i] += 1
+			else :
+				total[i] = 1
+
+		return total
+

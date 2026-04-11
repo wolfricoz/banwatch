@@ -1,6 +1,6 @@
 import unittest
 
-from database.current import create_bot_database, drop_bot_database
+from database.current import Bans, create_bot_database, drop_bot_database
 from database.factories.ban import BanFactory
 from database.factories.serverfactory import ServerFactory
 from database.transactions.BanTransactions import BanTransactions
@@ -29,9 +29,9 @@ class TestBanDatabaseOperations(unittest.TestCase):
         ban = self.ban_controller.add(user_id, guild_id, "reason", "staff")
         self.assertIsNotNone(ban)
         self.assertEqual(ban.ban_id, user_id + guild_id)
-        # Negative: adding duplicate returns False
+        # Negative: adding duplicate returns the existing ban object
         dup = self.ban_controller.add(user_id, guild_id, "reason", "staff")
-        self.assertFalse(dup)
+        self.assertIsInstance(dup, Bans)
 
     def test_add_ban_negative_without_server(self):
         # Negative: adding a ban when server not present should fail (False/None)

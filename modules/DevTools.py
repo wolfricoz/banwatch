@@ -630,6 +630,23 @@ class DevTools(commands.GroupCog, name="dev") :
 		except discord.NotFound :
 			pass
 
+	@app_commands.command(name="inspect_queue", description="[DEV] Looks at the current state of the task queue for debugging purposes.")
+	@AccessControl().check_access("dev")
+	async def inspect_queue(self, interaction: discord.Interaction, guild: str = None) :
+		"""
+		[DEV] Inspects the current state of the task queue for debugging.
 
+		**Permissions:**
+		- `Developer`
+		"""
+		queue_data = queue().export_queue()
+		queue_text = "Current Queue items:"
+		for item, amount in queue_data.items() :
+			queue_text += f"\n- Task: {item}, Count: {amount} eta: {amount * 0.4} seconds"
+
+
+		await send_response(interaction, queue_text, ephemeral=True)
+
+	
 async def setup(bot: commands.Bot) :
 	await bot.add_cog(DevTools(bot))
