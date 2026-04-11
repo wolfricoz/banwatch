@@ -10,6 +10,8 @@ from database.transactions.ServerTransactions import ServerTransactions
 
 
 async def inform_user(guild: discord.Guild, user: discord.User):
+	# TODO: Temporarily disabled.
+	return
 	appeal_status = ConfigData().get_key_or_none(guild.id, "allow_appeals")
 	supguild = int(os.getenv('GUILD'))
 	if not supguild:
