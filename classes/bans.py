@@ -36,6 +36,7 @@ class Bans(metaclass=Singleton) :
 		known_guilds = ServerTransactions().get_all()
 		count = 0
 		for guild in bot.guilds :
+
 			if count % 10 == 0 :
 				logging.info(f"Updating guilds... {count}/{len(bot.guilds)}")
 				await asyncio.sleep(0)
@@ -274,6 +275,9 @@ class Bans(metaclass=Singleton) :
 
 		if not guild :
 			logging.error(f"Guild {guild.id} not found")
+			return
+		if not ConfigData().get_channel(guild, optional=True) :
+			logging.info('No modchannel set, skipping bans')
 			return
 
 		async for banentry in guild.bans(limit=None) :

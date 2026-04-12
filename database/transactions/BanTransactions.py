@@ -195,7 +195,8 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 	           message: int = None,
 	           reason: str = None,
 	           edited: datetime = None,
-	           edited_by: str = None
+	           edited_by: str = None,
+	           date_override: str = None
 	           ) -> bool | Bans | type[Bans] :
 		with self.createsession() as session :
 
@@ -213,7 +214,8 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 				'message'    : message,
 				'reason'     : reason,
 				'edited'     : edited,
-				'edited_by'  : edited_by
+				'edited_by'  : edited_by,
+				'date_override': date_override
 			}
 
 			for field, value in updates.items() :

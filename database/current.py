@@ -52,6 +52,7 @@ class Bans(Base) :
 	staff: Mapped[str] = mapped_column(String(1024, ))
 	edited: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
 	edited_by: Mapped[str] = mapped_column(String(1024, ), nullable=True)
+	date_override: Mapped[str] = mapped_column(String(128, ), nullable=True)
 	proof: Mapped[List["Proof"]] = relationship("Proof", back_populates="ban",
 	                                            cascade="all, save-update, merge, delete, delete-orphan")
 	appeals: Mapped[List["Appeals"]] = relationship("Appeals", back_populates="ban",

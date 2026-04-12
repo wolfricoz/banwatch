@@ -76,7 +76,7 @@ class LookUp(SecureView) :
 			embed.add_field(
 				name=f"{guild.name} ({ban.guild.invite}) (ban_id: {ban.ban_id})",
 				value=f"{ban.reason}\n"
-				      f"verified: {'Yes' if ban.verified else 'No'}, date: {created_at}{f', {staff_data}' if override else ''}, {edited}",
+				      f"verified: {'Yes' if ban.verified else 'No'}, Record Created: {created_at if not ban.date_override else ban.date_override}{f', {staff_data}' if override else ''}, {edited}",
 				inline=False
 			)
 

@@ -48,23 +48,6 @@ class DevTools(commands.GroupCog, name="dev") :
 		modchannel = self.bot.get_channel(int(config))
 		await modchannel.send(embed=banembed)
 
-	@app_commands.command(name="updatecommands", description="[DEV] Syncs all application commands globally.")
-	@AccessControl().check_access("dev")
-	async def update_commands(self, interaction: discord.Interaction) :
-		"""
-		[DEV] Unloads and syncs all application commands globally.
-
-		**Permissions:**
-		- `Developer`
-		"""
-		queue().add(self.bot.tree.sync(), priority=2)
-		for cog in self.bot.cogs :
-			try :
-				await self.bot.remove_cog(cog.qualified_name)
-			except Exception as e :
-				logging.warning(f"Failed to unload cog {cog.qualified_name}: {e}")
-		await send_response(interaction, "Command sync queue, high priority queue.")
-
 	@app_commands.command(name="stats", description="[DEV] View Banwatch's operational statistics.")
 	async def dev_stats(self, interaction: discord.Interaction) :
 		"""
@@ -447,7 +430,7 @@ class DevTools(commands.GroupCog, name="dev") :
 
 	@app_commands.command(name="pendingbans", description="[DEV] Manually triggers a check for all pending bans.")
 	@AccessControl().check_access("dev")
-	async def pendingbans(self, interaction: discord.Interaction, limit:int = None) :
+	async def pendingbans(self, interaction: discord.Interaction, limit: int = None) :
 		"""
 		[DEV] Manually triggers the background task to check for pending bans.
 
@@ -533,28 +516,6 @@ class DevTools(commands.GroupCog, name="dev") :
 			return
 		await send_message(interaction.channel, "successfully tested Config, no errors found")
 
-	@app_commands.command(name="test_channel", description="[DEV] Queues 1000 channel fetches to stress-test retrieval.")
-	@AccessControl().check_access("dev")
-	async def test_channel(self, interaction: discord.Interaction) :
-		"""
-		[DEV] Queues 1000 channel fetches to stress-test the API and bot's handling.
-
-		**Permissions:**
-		- `Developer`
-		"""
-		await send_response(interaction, "Starting channel fetch test.", ephemeral=True)
-
-		async def test_fetch() :
-			await self.bot.fetch_channel(interaction.channel.id)
-			await asyncio.sleep(0.1)
-
-		for i in range(1000) :
-			if i == 999 :
-				queue().add(test_fetch())
-				continue
-			queue().add(test_fetch())
-
-		await send_response(interaction, "Queued 1000 channel fetches.", ephemeral=True)
 
 	@app_commands.command(name="reload_access", description="[DEV] Reloads the access control lists from the database.")
 	@AccessControl().check_access("dev")
@@ -568,69 +529,10 @@ class DevTools(commands.GroupCog, name="dev") :
 		AccessControl().reload()
 		await send_response(interaction, "Access control reloaded.", ephemeral=True)
 
-	@app_commands.command(name="test_invites", description="[DEV] Reloads the access control lists from the database.")
-	@AccessControl().check_access("dev")
-	async def test_invites(self, interaction: discord.Interaction) :
-		"""
-		[DEV] Reloads the access control lists (staff, blacklists) from the database.
 
-		**Permissions:**
-		- `Developer`
-		"""
-		result = []
-		guilds = ServerTransactions().get_all(id_only=False)
-		for guild in guilds :
-			g = self.bot.get_guild(guild.id)
-			result.append(await Bans().create_invite(self.bot, g))
-		await send_response(interaction, f"Result:\n{'\n'.join(result)}", ephemeral=True)
 
-	@app_commands.command(name="start_onboard", description="[DEV] Starts the onboarding process for a specified server.")
-	@AccessControl().check_access("dev")
-	async def start_onboard(self, interaction: discord.Interaction, guild: str = None) :
-		"""
-		[DEV] Initiates the onboarding process for a specified server.
-
-		**Permissions:**
-		- `Developer`
-		"""
-		if guild is None :
-			guild = interaction.guild
-		else :
-			guild = self.bot.get_guild(int(guild))
-		if guild is None :
-			return await send_response(interaction, "Guild not found.", ephemeral=True)
-
-		channel = find_first_accessible_text_channel(guild)
-		await Onboarding().join_message(channel)
-		await send_response(interaction, f"Onboarding process started for {guild.name}.", ephemeral=True)
-
-	async def find_ban_id(self, channel) :
-		history = channel.history(limit=None, oldest_first=True)
-		try :
-			async for message in history :
-				if len(message.embeds) < 1 :
-					logging.info(f"Message {message.id} has no embeds ({len(message.embeds)})")
-					continue
-				embed = message.embeds[0]
-				try :
-					match = re.search(r'ban ID: (\d+)', embed.footer.text)
-				except :
-					match = None
-				if not match :
-					logging.warning(f"Failed to extract ban id from {embed.footer.text}")
-					continue
-				ban_id = int(match.group(1))
-				ban = BanTransactions().get(ban_id, override=True)
-				if ban is None :
-					logging.warning(f"Ban ID {ban_id} not found in database")
-					continue
-				BanTransactions().update(ban_id, message=message.id,
-				                         created_at=message.created_at if not ban.created_at else ban.created_at)
-
-		except discord.NotFound :
-			pass
-
-	@app_commands.command(name="inspect_queue", description="[DEV] Looks at the current state of the task queue for debugging purposes.")
+	@app_commands.command(name="inspect_queue",
+	                      description="[DEV] Looks at the current state of the task queue for debugging purposes.")
 	@AccessControl().check_access("dev")
 	async def inspect_queue(self, interaction: discord.Interaction, guild: str = None) :
 		"""
@@ -644,9 +546,46 @@ class DevTools(commands.GroupCog, name="dev") :
 		for item, amount in queue_data.items() :
 			queue_text += f"\n- Task: {item}, Count: {amount} eta: {amount * 0.4} seconds"
 
-
 		await send_response(interaction, queue_text, ephemeral=True)
 
-	
+	@app_commands.command(name="set_audit_message",
+	                      description="[DEV] sets date override for bans affected by the audit to show these were inspected.")
+	@AccessControl().check_access("dev")
+	async def set_audit_message(self, interaction: discord.Interaction, days: int) :
+		"""
+		[DEV] sets date override for bans affected by the audit to show these were inspected.
+		"""
+		await interaction.response.defer(ephemeral=True)
+		# It should loop through the messages in the bans channel, find the ban id, and then set the created at to now for any ban that was created in the last X days, where X is the input. Only if the ban was made before 2025.
+		channel = self.bot.get_channel(int(os.getenv("BANS")))
+
+		from datetime import timedelta
+		cutoff = discord.utils.utcnow() - timedelta(days=days)
+		updated_count = 0
+
+		async for message in channel.history(limit=None, oldest_first=True, after=cutoff) :
+			if not message.embeds:
+				continue
+			embed = message.embeds[0]
+			if not embed.footer or not embed.footer.text:
+				continue
+
+			match = re.search(r'ban ID: (\d+)', embed.footer.text, re.IGNORECASE)
+			if not match:
+				match = re.search(r'ID: (\d+)', embed.footer.text, re.IGNORECASE)
+
+			if match:
+				try:
+					ban_id = int(match.group(1))
+					ban = BanTransactions().get(ban_id, override=True)
+					if ban and ban.created_at and ban.created_at.year < 2026:
+						date = message.created_at.strftime("%m/%d/%Y")
+						BanTransactions().update(ban_id, date_override=f"Imported {date} (Pre-Banwatch record; actual date unknown. Contact server for details.)")
+						updated_count += 1
+				except ValueError:
+					continue
+
+		await interaction.followup.send(f"Updated {updated_count} bans.", ephemeral=True)
+
 async def setup(bot: commands.Bot) :
 	await bot.add_cog(DevTools(bot))

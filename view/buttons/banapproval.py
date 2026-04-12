@@ -191,8 +191,6 @@ class BanApproval(SecureView) :
 		return guild, user, ban_entry.reason
 
 	async def send_feedback(self, interaction: discord.Interaction) :
-		# TODO: Remove disable; this has been added just to reduce spam for the audit.
-		return
 		ban = BanTransactions().get(self.wait_id, override=True)
 		if ban is None :
 			await send_response(interaction, "Ban not found", ephemeral=True)
