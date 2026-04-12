@@ -551,7 +551,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		[DEV] sets date override for bans affected by the audit to show these were inspected.
 		"""
 		await interaction.response.defer(ephemeral=True)
-		channel = self.bot.get_channel(int(os.getenv("BANS")))
+		channel = self.bot.get_channel(int(os.getenv("APPROVED")))
 
 		from datetime import timedelta
 		import re
