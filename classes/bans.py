@@ -68,12 +68,18 @@ class Bans(metaclass=Singleton) :
 		return user_id + guild_id
 
 	async def inform_server(self, bot: commands.Bot, guild: discord.Guild, banembed: discord.Embed, ban_id: int) :
+
 		modchannel = await ConfigData().get_channel(guild, "modchannel")
 		options = BanInform(ban_class=Bans(), ban_id=ban_id)
 		message = await send_message(modchannel, embed=banembed, view=options)
 		BanMessageTransactions().add_ban_message(ban_id, guild.id, message.id)
 
 	async def check_guilds(self, interaction, bot, guild, user, banembed, wait_id, open_thread=False, verified=False, silent=False) :
+		# TODO: Temp disable
+		approved_channel = bot.get_channel(bot.APPROVALCHANNEL)
+		await self.send_to_ban_channel(approved_channel, banembed, guild, user, bot, wait_id)
+		return
+
 		approved_channel = bot.get_channel(bot.APPROVALCHANNEL)
 		count = 0
 		for guilds in bot.guilds :
