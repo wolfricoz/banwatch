@@ -75,11 +75,10 @@ class Bans(metaclass=Singleton) :
 		BanMessageTransactions().add_ban_message(ban_id, guild.id, message.id)
 
 	async def check_guilds(self, interaction, bot, guild, user, banembed, wait_id, open_thread=False, verified=False, silent=False) :
-		# TODO: Temp disable
-		approved_channel = bot.get_channel(bot.APPROVALCHANNEL)
-		await Bans().change_ban_approval_status(wait_id, True, verified=verified)
-		await self.send_to_ban_channel(approved_channel, banembed, guild, user, bot, wait_id)
-		return
+		# approved_channel = bot.get_channel(bot.APPROVALCHANNEL)
+		# await Bans().change_ban_approval_status(wait_id, True, verified=verified)
+		# await self.send_to_ban_channel(approved_channel, banembed, guild, user, bot, wait_id)
+		# return
 
 		approved_channel = bot.get_channel(bot.APPROVALCHANNEL)
 		count = 0
