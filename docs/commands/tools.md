@@ -2,11 +2,11 @@
 layout: default
 title: Tools
 parent: Commands
-nav_order: 8
+nav_order: 9
 ---
 
 <h1>Tools</h1>
-<h6>version: 3.2</h6>
+<h6>version: 3.3: New staff toys acquired!</h6>
 <h6>Documentation automatically generated from docstrings.</h6>
 
 The base class that all cogs must inherit from.
@@ -60,6 +60,18 @@ are equally valid here.
 
 **Permissions:**
 - Requires `Ban Members` permission.
+
+---
+
+### `ban_status`
+
+**Usage:** `/tools ban_status <user>`
+
+> Check the ban status of a user and manage it. You can update the ban reason, unban them and hide their ban.
+
+We recommend using user ID's to search, this is more reliable!
+**Permissions:**
+        - Requires `Ban Members` permission.
 
 ---
 

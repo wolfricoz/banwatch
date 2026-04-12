@@ -2,11 +2,11 @@
 layout: default
 title: Utility
 parent: Commands
-nav_order: 9
+nav_order: 10
 ---
 
 <h1>Utility</h1>
-<h6>version: 3.2</h6>
+<h6>version: 3.3: New staff toys acquired!</h6>
 <h6>Documentation automatically generated from docstrings.</h6>
 
 The base class that all cogs must inherit from.
@@ -46,6 +46,17 @@ are equally valid here.
 
 **Permissions:**
 - None required for the user.
+
+---
+
+### `clean_messages`
+
+**Usage:** `/utility clean_messages <channel> <limit>`
+
+> Cleans up messages sent by BanWatch in the current channel. This is useful for removing old ban notifications or clutter.
+
+**Permissions:**
+- Requires `Manage Messages` permission.
 
 ---
 

@@ -69,12 +69,22 @@ class LookUp(SecureView) :
 				count = 0
 			count += 1
 			guild = bot.get_guild(ban.gid)
+
+			if not guild:
+				try:
+					guild = await bot.fetch_guild(ban.gid)
+				except:
+					guild_name = f"Guild not found (ID: {ban.gid})"
+			if isinstance(guild, discord.Guild) :
+				guild_name = f"{guild.name} ({guild.id})"
+
+
 			staff_data = f"approved: {ban.approved}, hidden: {ban.hidden}"
 			edited = f"edited: {ban.edited.strftime('%m/%d/%Y')}" if ban.edited else None
 			created_at = ban.created_at.strftime(
 				'%m/%d/%Y') if ban.message else 'pre-banwatch, please check with server owner.'
 			embed.add_field(
-				name=f"{guild.name} ({ban.guild.invite}) (ban_id: {ban.ban_id})",
+				name=f"{guild_name} (ban_id: {ban.ban_id})",
 				value=f"{ban.reason}\n"
 				      f"verified: {'Yes' if ban.verified else 'No'}, Record Created: {created_at if not ban.date_override else ban.date_override}{f', {staff_data}' if override else ''}, {edited}",
 				inline=False

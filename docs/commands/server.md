@@ -2,11 +2,11 @@
 layout: default
 title: Server
 parent: Commands
-nav_order: 6
+nav_order: 7
 ---
 
 <h1>Server</h1>
-<h6>version: 3.2</h6>
+<h6>version: 3.3: New staff toys acquired!</h6>
 <h6>Documentation automatically generated from docstrings.</h6>
 
 These commands are for server staff to communicate regarding bans, and anything related to server management and communication.
