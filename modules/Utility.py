@@ -46,6 +46,18 @@ class Utility(commands.Cog, description="Miscellaneous utility commands for gene
 		await send_response(interaction,
 		                    f"If you like the service banwatch provides and would like to financially support banwatch, you can do so here: https://buy.stripe.com/7sYbJ17fYeGY45bgygao803")
 
+	@app_commands.command(name="clean_messages", description="Clean messages from banwatch in a channel.")
+	@app_commands.checks.has_permissions(manage_messages=True)
+	async def clean_messages(self, interaction: discord.Interaction, limit: int = 100):
+		"""
+		Cleans up messages sent by BanWatch in the current channel. This is useful for removing old ban notifications or clutter.
+
+		**Permissions:**
+		- Requires `Manage Messages` permission.
+		"""
+		deleted = await interaction.channel.purge(limit=limit, check=lambda m: m.author == self.bot.user)
+		await send_response(interaction, f"Deleted {len(deleted)} messages sent by BanWatch.", ephemeral=True)
+
 
 async def setup(bot: commands.Bot) :
 	await bot.add_cog(Utility(bot))

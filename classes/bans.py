@@ -283,7 +283,7 @@ class Bans(metaclass=Singleton) :
 		if not guild :
 			logging.error(f"Guild {guild.id} not found")
 			return
-		if not ConfigData().get_channel(guild, optional=True) :
+		if not await ConfigData().get_channel(guild, optional=True) :
 			logging.info('No modchannel set, skipping bans')
 			return
 
