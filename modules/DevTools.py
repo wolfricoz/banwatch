@@ -11,14 +11,12 @@ from discord.app_commands import Choice
 from discord.ext import commands
 from discord.utils import get
 from discord_py_utilities.messages import send_message, send_response
-from discord_py_utilities.permissions import find_first_accessible_text_channel
 
 from classes.access import AccessControl
 from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.configer import Configer
 from classes.evidence import EvidenceController
-from classes.onboarding import Onboarding
 from classes.queue import queue
 from classes.tasks import pending_bans
 from database.transactions.BanMessageTransactions import BanMessageTransactions
@@ -516,7 +514,6 @@ class DevTools(commands.GroupCog, name="dev") :
 			return
 		await send_message(interaction.channel, "successfully tested Config, no errors found")
 
-
 	@app_commands.command(name="reload_access", description="[DEV] Reloads the access control lists from the database.")
 	@AccessControl().check_access("dev")
 	async def reload_access(self, interaction: discord.Interaction) :
@@ -528,8 +525,6 @@ class DevTools(commands.GroupCog, name="dev") :
 		"""
 		AccessControl().reload()
 		await send_response(interaction, "Access control reloaded.", ephemeral=True)
-
-
 
 	@app_commands.command(name="inspect_queue",
 	                      description="[DEV] Looks at the current state of the task queue for debugging purposes.")
@@ -556,36 +551,50 @@ class DevTools(commands.GroupCog, name="dev") :
 		[DEV] sets date override for bans affected by the audit to show these were inspected.
 		"""
 		await interaction.response.defer(ephemeral=True)
-		# It should loop through the messages in the bans channel, find the ban id, and then set the created at to now for any ban that was created in the last X days, where X is the input. Only if the ban was made before 2025.
 		channel = self.bot.get_channel(int(os.getenv("BANS")))
 
 		from datetime import timedelta
+		import re
+
 		cutoff = discord.utils.utcnow() - timedelta(days=days)
 		updated_count = 0
+		processed_count = 0
 
 		async for message in channel.history(limit=None, oldest_first=True, after=cutoff) :
-			if not message.embeds:
+			processed_count += 1
+
+			# Provide a status update every 500 messages
+			if processed_count % 500 == 0 :
+				await interaction.edit_original_response(
+					content=f"Processing... Checked {processed_count} messages, updated {updated_count} bans so far."
+				)
+
+			if not message.embeds :
 				continue
 			embed = message.embeds[0]
-			if not embed.footer or not embed.footer.text:
+			if not embed.footer or not embed.footer.text :
 				continue
 
 			match = re.search(r'ban ID: (\d+)', embed.footer.text, re.IGNORECASE)
-			if not match:
+			if not match :
 				match = re.search(r'ID: (\d+)', embed.footer.text, re.IGNORECASE)
 
-			if match:
-				try:
+			if match :
+				try :
 					ban_id = int(match.group(1))
 					ban = BanTransactions().get(ban_id, override=True)
-					if ban and ban.created_at and ban.created_at.year < 2026:
+					if ban and ban.created_at and ban.created_at.year < 2026 :
 						date = message.created_at.strftime("%m/%d/%Y")
-						BanTransactions().update(ban_id, date_override=f"Imported {date} (Pre-Banwatch record; actual date unknown. Contact server for details.)")
+						BanTransactions().update(ban_id,
+						                         date_override=f"Imported {date} (Pre-Banwatch record; actual date unknown. Contact server for details.)")
 						updated_count += 1
-				except ValueError:
+				except ValueError :
+					logging.info(f"Failed to parse ban ID from message {embed.footer.text} with result {match.group(1)}")
 					continue
 
-		await interaction.followup.send(f"Updated {updated_count} bans.", ephemeral=True)
+		await interaction.edit_original_response(
+			content=f"Finished! Scanned {processed_count} messages and updated {updated_count} bans.")
+
 
 async def setup(bot: commands.Bot) :
 	await bot.add_cog(DevTools(bot))
