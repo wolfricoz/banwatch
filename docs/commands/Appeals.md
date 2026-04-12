@@ -6,7 +6,7 @@ nav_order: 1
 ---
 
 <h1>Appeals</h1>
-<h6>version: 3.2</h6>
+<h6>version: 3.3: New staff toys acquired!</h6>
 <h6>Documentation automatically generated from docstrings.</h6>
 
 Commands for users to appeal their bans or report unjust bans.

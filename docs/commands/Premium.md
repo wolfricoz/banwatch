@@ -2,11 +2,11 @@
 layout: default
 title: Premium
 parent: Commands
-nav_order: 5
+nav_order: 6
 ---
 
 <h1>Premium</h1>
-<h6>version: 3.2</h6>
+<h6>version: 3.3: New staff toys acquired!</h6>
 <h6>Documentation automatically generated from docstrings.</h6>
 
 Exclusive commands for servers with a premium subscription.

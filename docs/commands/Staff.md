@@ -2,11 +2,11 @@
 layout: default
 title: Staff
 parent: Commands
-nav_order: 7
+nav_order: 8
 ---
 
 <h1>Staff</h1>
-<h6>version: 3.2</h6>
+<h6>version: 3.3: New staff toys acquired!</h6>
 <h6>Documentation automatically generated from docstrings.</h6>
 
 Commands for BanWatch staff members. These commands provide tools for managing and overseeing the bot's operations across servers.
@@ -117,6 +117,17 @@ Access to these commands is restricted to authorized staff only.
 **Usage:** `/staff staff_visibility <server> <hide>`
 
 > Sets the visibility of a server's bans within the BanWatch network. Hiding a server prevents its bans from being shared or viewed by other servers.
+
+**Permissions:**
+- Requires BanWatch Staff access.
+
+---
+
+### `audit_bans`
+
+**Usage:** `/staff audit_bans <all_bans> <maximum>`
+
+> Audits all bans or just unsent bans to ensure they meet BanWatch's guidelines and standards. This is a maintenance command for staff to keep the ban database clean and accurate.
 
 **Permissions:**
 - Requires BanWatch Staff access.

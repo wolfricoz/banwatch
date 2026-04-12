@@ -2,11 +2,11 @@
 layout: default
 title: MemberLookup
 parent: Commands
-nav_order: 4
+nav_order: 5
 ---
 
 <h1>MemberLookup</h1>
-<h6>version: 3.2</h6>
+<h6>version: 3.3: New staff toys acquired!</h6>
 <h6>Documentation automatically generated from docstrings.</h6>
 
 Commands to look up users and check for bans across all monitored servers.

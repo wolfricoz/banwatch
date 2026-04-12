@@ -6,7 +6,7 @@ nav_order: 2
 ---
 
 <h1>Config</h1>
-<h6>version: 3.2</h6>
+<h6>version: 3.3: New staff toys acquired!</h6>
 <h6>Documentation automatically generated from docstrings.</h6>
 
 Configure Banwatch for your server. Set channels, toggle features, and check permissions.
