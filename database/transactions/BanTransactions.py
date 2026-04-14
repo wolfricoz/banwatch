@@ -56,7 +56,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			if ServerTransactions().exists(gid) is False :
 				return False
 			if self.exists(uid + gid, remove_deleted=remove_deleted) :
-				self.update(uid + gid, approved=approved, verified=verified, hidden=hidden)
+				self.update(uid + gid, gid=gid, uid=uid , approved=approved, verified=verified, hidden=hidden)
 				return self.get(uid + gid)
 
 			ban = Bans(ban_id=uid + gid, uid=uid, gid=gid, reason=reason, approved=approved, verified=verified, hidden=hidden,
@@ -188,6 +188,8 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			return True
 
 	def update(self, ban: int | Bans | Type[Bans],
+	           gid, int : bool = None,
+	           uid: int = None,
 	           approved: bool = None,
 	           verified: bool = None,
 	           hidden: bool = None,
@@ -215,7 +217,9 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 				'reason'     : reason,
 				'edited'     : edited,
 				'edited_by'  : edited_by,
-				'date_override': date_override
+				'date_override': date_override,
+				'gid': gid,
+				'uid': uid,
 			}
 
 			for field, value in updates.items() :
