@@ -188,7 +188,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			return True
 
 	def update(self, ban: int | Bans | Type[Bans],
-	           gid, int : bool = None,
+	           gid: int= None,
 	           uid: int = None,
 	           approved: bool = None,
 	           verified: bool = None,
