@@ -10,6 +10,7 @@ from classes.TermsChecker import TermsChecker
 from classes.access import AccessControl
 from classes.configdata import ConfigData
 from classes.queue import queue
+from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ServerTransactions import ServerTransactions
 from view.v2.EvidenceSubmission import EvidenceUI
 
@@ -65,7 +66,7 @@ class BanChecker() :
 		"""Checks if the ban is a migrated ban, and if it is, approves it without prompting."""
 		if str(self.ban.reason).lower().startswith('[migrated') :
 			logging.info("Migrated ban, not prompting")
-			self.status = BanCheckerStatus.APPROVE
+			self.status = BanCheckerStatus.HIDE
 			return
 
 	async def check_cross_ban(self) :
@@ -165,6 +166,7 @@ class BanChecker() :
 		logging.info(
 			f"Evaluating ban for {self.ban.user} in {guild.name} with reason: {self.ban.reason}, current status: {self.status}")
 		bot = self.bot
+
 		from classes.bans import Bans
 		match self.status :
 			case BanCheckerStatus.HIDE :
@@ -196,9 +198,11 @@ class BanChecker() :
 
 			case BanCheckerStatus.APPROVE :
 				self.reason = "Ban approved without prompting: " + self.reason
-				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=True)
+				ban = await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=True)
+				if not ban:
+					return
 				embed = discord.Embed(title=f"{self.ban.user} ({self.ban.user.id}) was banned in {guild}({guild.owner})",
-				                      description=f"{self.ban.reason}")
+				                      description=f"{ban.reason}")
 				guild_db = ServerTransactions().get(guild.id)
 
 				embed.set_footer(
@@ -210,9 +214,9 @@ class BanChecker() :
 
 			case BanCheckerStatus.PROMPT :
 				if server_only :
-					await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=True)
+					ban = await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=True)
 					embed = discord.Embed(title=f"{self.ban.user} ({self.ban.user.id}) was banned in {guild}({guild.owner})",
-					                      description=f"{self.ban.reason}")
+					                      description=f"{ban.reason}")
 					guild_db = ServerTransactions().get(guild.id)
 
 					embed.set_footer(

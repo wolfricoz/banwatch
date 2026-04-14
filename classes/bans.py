@@ -278,6 +278,9 @@ class Bans(metaclass=Singleton) :
 	async def check_guild_bans(self, bot: commands.AutoShardedBot, guild: discord.Guild) :
 		count = 0
 		server = Server(guild.id)
+		db_server = ServerTransactions().get(guild.id)
+		if db_server and db_server.hidden is True:
+			return
 
 		if not guild :
 			logging.error(f"Guild {guild.id} not found")
@@ -341,7 +344,7 @@ class Bans(metaclass=Singleton) :
 			hidden = True
 			reason = reason[8 :]
 		logging.info(f"Adding ban for {user_id} in {guild_id} with reason: {reason} and approval status: {approved}")
-		BanTransactions().add(user_id, guild_id, reason, staff, hidden=hidden, approved=approved,
+		return BanTransactions().add(user_id, guild_id, reason, staff, hidden=hidden, approved=approved,
 		                      remove_deleted=remove_deleted)
 
 	async def delete_ban(self, user_id, guild_id, permanent=False) :
