@@ -56,7 +56,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			if ServerTransactions().exists(gid) is False :
 				return False
 			if self.exists(uid + gid, remove_deleted=remove_deleted) :
-				self.update(uid + gid, gid=gid, uid=uid , approved=approved, verified=verified, hidden=hidden)
+				self.update(ban=uid + gid, gid=gid, uid=uid , approved=approved, verified=verified, hidden=hidden)
 				return self.get(uid + gid)
 
 			ban = Bans(ban_id=uid + gid, uid=uid, gid=gid, reason=reason, approved=approved, verified=verified, hidden=hidden,
