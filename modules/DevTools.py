@@ -606,13 +606,13 @@ class DevTools(commands.GroupCog, name="dev") :
 		**Permissions:**
 		- `Developer`
 		"""
-		await send_response(interaction, "Syncing bans", ephemeral=True)
+		msg = await send_response(interaction, "Syncing bans", ephemeral=False)
 		count = 0
 		for guild in self.bot.guilds :
 			async for ban in guild.bans() :
 				if count % 200 == 0:
 					await asyncio.sleep(0)
-					await interaction.edit_original_response(
+					await msg.edit(
 						content=f"Synced {count} bans so far..",
 					)
 				if reason:
@@ -632,7 +632,7 @@ class DevTools(commands.GroupCog, name="dev") :
 					override=False
 				)
 				count += 1
-		await interaction.edit_original_response(
+		await msg.edit(
 			content=f"Finished syncing {count} bans!",
 		)
 
