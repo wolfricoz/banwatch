@@ -10,7 +10,6 @@ from classes.TermsChecker import TermsChecker
 from classes.access import AccessControl
 from classes.configdata import ConfigData
 from classes.queue import queue
-from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ServerTransactions import ServerTransactions
 from view.v2.EvidenceSubmission import EvidenceUI
 

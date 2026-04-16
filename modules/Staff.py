@@ -16,9 +16,9 @@ from classes.queue import queue
 from classes.rpsec import RpSec
 from classes.tasks import pending_bans
 from data.variables.messages import evidence_message_template
+from database.current import Bans as BanTable
 from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ServerTransactions import ServerTransactions
-from database.current import Bans as BanTable
 
 GUILD = int(os.getenv("GUILD"))
 

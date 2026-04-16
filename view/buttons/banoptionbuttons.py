@@ -7,16 +7,14 @@ from discord.ui import Item, button
 from discord_py_utilities.messages import await_message, send_message, send_response
 
 from classes.TermsChecker import TermsChecker
-from classes.access import AccessControl
 from classes.appeal import inform_user
-from classes.bans import Bans
 from classes.ban.BanChecker import BanChecker
+from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.configer import Configer
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from data.variables.messages import evidence_message_template
-from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ProofTransactions import ProofTransactions
 from database.transactions.ServerTransactions import ServerTransactions
 from view.base.secureview import SecureView

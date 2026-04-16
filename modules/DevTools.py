@@ -3,7 +3,6 @@ import logging
 import os
 import re
 from datetime import datetime
-from itertools import count
 from typing import Coroutine
 
 import discord
@@ -606,8 +605,9 @@ class DevTools(commands.GroupCog, name="dev") :
 		**Permissions:**
 		- `Developer`
 		"""
-		msg = await send_response(interaction, "Syncing bans", ephemeral=False)
-		count = 0
+		await send_response(interaction, "Syncing bans", ephemeral=True)
+		msg = await send_message(interaction.channel, f"Starting ban sync, please be patient!")
+		count: int = 0
 		for guild in self.bot.guilds :
 			async for ban in guild.bans() :
 				if count % 200 == 0:

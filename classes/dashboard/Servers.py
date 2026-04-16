@@ -4,7 +4,6 @@ import logging
 import os
 
 import aiohttp
-import requests
 
 from database.current import Servers as dbServers
 from database.transactions.ServerTransactions import ServerTransactions
