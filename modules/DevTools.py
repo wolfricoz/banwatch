@@ -609,27 +609,31 @@ class DevTools(commands.GroupCog, name="dev") :
 		msg = await send_message(interaction.channel, f"Starting ban sync, please be patient!")
 		count: int = 0
 		for guild in self.bot.guilds :
-			async for ban in guild.bans() :
-				if count % 200 == 0:
-					await asyncio.sleep(0)
-					logging.info(f"Found {count} bans")
-				if reason:
+			try:
+				async for ban in guild.bans() :
+					if count % 200 == 0:
+						await asyncio.sleep(0)
+						logging.info(f"Found {count} bans")
+					if reason:
+						queue().add(asyncio.to_thread(
+							BanTransactions().update,
+							guild.id + ban.user.id,
+							gid=guild.id,
+							uid=ban.user.id,
+							reason=ban.reason,
+							override=False
+						), priority=0)
 					queue().add(asyncio.to_thread(
 						BanTransactions().update,
 						guild.id + ban.user.id,
 						gid=guild.id,
 						uid=ban.user.id,
-						reason=ban.reason,
 						override=False
 					), priority=0)
-				queue().add(asyncio.to_thread(
-					BanTransactions().update,
-					guild.id + ban.user.id,
-					gid=guild.id,
-					uid=ban.user.id,
-					override=False
-				), priority=0)
-				count += 1
+					count += 1
+			except Exception as e:
+				logging.info(f"Failed to sync {guild.id} bans: {e}")
+				continue
 		await send_message(interaction.channel, f"Finished ban sync of {count} bans so far..")
 
 
