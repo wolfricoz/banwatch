@@ -612,29 +612,26 @@ class DevTools(commands.GroupCog, name="dev") :
 			async for ban in guild.bans() :
 				if count % 200 == 0:
 					await asyncio.sleep(0)
-					await msg.edit(
-						content=f"Synced {count} bans so far..",
-					)
+					logging.info(f"Found {count} bans")
 				if reason:
-					await asyncio.to_thread(
+					queue().add(asyncio.to_thread(
 						BanTransactions().update,
 						guild.id + ban.user.id,
 						gid=guild.id,
 						uid=ban.user.id,
 						reason=ban.reason,
 						override=False
-					)
-				await asyncio.to_thread(
+					), priority=0)
+				queue().add(asyncio.to_thread(
 					BanTransactions().update,
 					guild.id + ban.user.id,
 					gid=guild.id,
 					uid=ban.user.id,
 					override=False
-				)
+				), priority=0)
 				count += 1
-		await msg.edit(
-			content=f"Finished syncing {count} bans!",
-		)
+		await send_message(interaction.channel, f"Finished ban sync of {count} bans so far..")
+
 
 
 
