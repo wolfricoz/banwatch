@@ -616,12 +616,25 @@ class DevTools(commands.GroupCog, name="dev") :
 						content=f"Synced {count} bans so far..",
 					)
 				if reason:
-					BanTransactions().update(guild.id + ban.user.id, gid=guild.id, uid=ban.user.id, reason=ban.reason, override=False)
-				BanTransactions().update(guild.id + ban.user.id, gid=guild.id, uid=ban.user.id, override=False)
-				count += 1
-				await interaction.edit_original_response(
-					content=f"Finished syncing {count} bans!",
+					await asyncio.to_thread(
+						BanTransactions().update,
+						guild.id + ban.user.id,
+						gid=guild.id,
+						uid=ban.user.id,
+						reason=ban.reason,
+						override=False
+					)
+				await asyncio.to_thread(
+					BanTransactions().update,
+					guild.id + ban.user.id,
+					gid=guild.id,
+					uid=ban.user.id,
+					override=False
 				)
+				count += 1
+		await interaction.edit_original_response(
+			content=f"Finished syncing {count} bans!",
+		)
 
 
 
