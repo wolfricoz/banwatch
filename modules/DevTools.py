@@ -3,6 +3,7 @@ import logging
 import os
 import re
 from datetime import datetime
+from itertools import count
 from typing import Coroutine
 
 import discord
@@ -543,57 +544,86 @@ class DevTools(commands.GroupCog, name="dev") :
 
 		await send_response(interaction, queue_text, ephemeral=True)
 
-	@app_commands.command(name="set_audit_message",
-	                      description="[DEV] sets date override for bans affected by the audit to show these were inspected.")
+	# @app_commands.command(name="set_audit_message",
+	#                       description="[DEV] sets date override for bans affected by the audit to show these were inspected.")
+	# @AccessControl().check_access("dev")
+	# async def set_audit_message(self, interaction: discord.Interaction, days: int) :
+	# 	"""
+	# 	[DEV] sets date override for bans affected by the audit to show these were inspected.
+	# 	"""
+	# 	await interaction.response.defer(ephemeral=True)
+	# 	channel = self.bot.get_channel(int(os.getenv("APPROVED")))
+	#
+	# 	from datetime import timedelta
+	# 	import re
+	#
+	# 	cutoff = discord.utils.utcnow() - timedelta(days=days)
+	# 	updated_count = 0
+	# 	processed_count = 0
+	#
+	# 	async for message in channel.history(limit=None, oldest_first=True, after=cutoff) :
+	# 		processed_count += 1
+	#
+	# 		# Provide a status update every 500 messages
+	# 		if processed_count % 500 == 0 :
+	# 			await interaction.edit_original_response(
+	# 				content=f"Processing... Checked {processed_count} messages, updated {updated_count} bans so far."
+	# 			)
+	#
+	# 		if not message.embeds :
+	# 			continue
+	# 		embed = message.embeds[0]
+	# 		if not embed.footer or not embed.footer.text :
+	# 			continue
+	#
+	# 		match = re.search(r'ban ID: (\d+)', embed.footer.text, re.IGNORECASE)
+	# 		if not match :
+	# 			match = re.search(r'ID: (\d+)', embed.footer.text, re.IGNORECASE)
+	#
+	# 		if match :
+	# 			try :
+	# 				ban_id = int(match.group(1))
+	# 				ban = BanTransactions().get(ban_id, override=True)
+	# 				if ban and ban.created_at and ban.created_at.year < 2026 :
+	# 					date = message.created_at.strftime("%m/%d/%Y")
+	# 					BanTransactions().update(ban_id,
+	# 					                         date_override=f"Imported {date} (Pre-Banwatch record; actual date unknown. Contact server for details.)")
+	# 					updated_count += 1
+	# 			except ValueError :
+	# 				logging.info(f"Failed to parse ban ID from message {embed.footer.text} with result {match.group(1)}")
+	# 				continue
+	#
+	# 	await interaction.edit_original_response(
+	# 		content=f"Finished! Scanned {processed_count} messages and updated {updated_count} bans.")
+
+	@app_commands.command(name="sync",
+	                      description="[DEV] Syncs the bans")
 	@AccessControl().check_access("dev")
-	async def set_audit_message(self, interaction: discord.Interaction, days: int) :
+	async def sync(self, interaction: discord.Interaction, reason: bool = False) :
 		"""
-		[DEV] sets date override for bans affected by the audit to show these were inspected.
+		[DEV] Inspects the current state of the task queue for debugging.
+
+		**Permissions:**
+		- `Developer`
 		"""
-		await interaction.response.defer(ephemeral=True)
-		channel = self.bot.get_channel(int(os.getenv("APPROVED")))
-
-		from datetime import timedelta
-		import re
-
-		cutoff = discord.utils.utcnow() - timedelta(days=days)
-		updated_count = 0
-		processed_count = 0
-
-		async for message in channel.history(limit=None, oldest_first=True, after=cutoff) :
-			processed_count += 1
-
-			# Provide a status update every 500 messages
-			if processed_count % 500 == 0 :
+		await send_response(interaction, "Syncing bans", ephemeral=True)
+		count = 0
+		for guild in self.bot.guilds :
+			async for ban in guild.bans() :
+				if count % 200 == 0:
+					await asyncio.sleep(0)
+					await interaction.edit_original_response(
+						content=f"Synced {count} bans so far..",
+					)
+				if reason:
+					BanTransactions().update(guild.id + ban.user.id, gid=guild.id, uid=ban.user.id, reason=ban.reason, override=False)
+				BanTransactions().update(guild.id + ban.user.id, gid=guild.id, uid=ban.user.id, override=False)
+				count += 1
 				await interaction.edit_original_response(
-					content=f"Processing... Checked {processed_count} messages, updated {updated_count} bans so far."
+					content=f"Finished syncing {count} bans!",
 				)
 
-			if not message.embeds :
-				continue
-			embed = message.embeds[0]
-			if not embed.footer or not embed.footer.text :
-				continue
 
-			match = re.search(r'ban ID: (\d+)', embed.footer.text, re.IGNORECASE)
-			if not match :
-				match = re.search(r'ID: (\d+)', embed.footer.text, re.IGNORECASE)
-
-			if match :
-				try :
-					ban_id = int(match.group(1))
-					ban = BanTransactions().get(ban_id, override=True)
-					if ban and ban.created_at and ban.created_at.year < 2026 :
-						date = message.created_at.strftime("%m/%d/%Y")
-						BanTransactions().update(ban_id,
-						                         date_override=f"Imported {date} (Pre-Banwatch record; actual date unknown. Contact server for details.)")
-						updated_count += 1
-				except ValueError :
-					logging.info(f"Failed to parse ban ID from message {embed.footer.text} with result {match.group(1)}")
-					continue
-
-		await interaction.edit_original_response(
-			content=f"Finished! Scanned {processed_count} messages and updated {updated_count} bans.")
 
 
 async def setup(bot: commands.Bot) :

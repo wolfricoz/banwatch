@@ -198,7 +198,8 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 	           reason: str = None,
 	           edited: datetime = None,
 	           edited_by: str = None,
-	           date_override: str = None
+	           date_override: str = None,
+	           override: bool = True
 	           ) -> bool | Bans | type[Bans] :
 		with self.createsession() as session :
 
@@ -223,6 +224,8 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			}
 
 			for field, value in updates.items() :
+				if field == 'reason' and ban.edited and not override:
+					continue
 				if value is not None :
 					setattr(ban, field, value)
 			logging.info(f"Updated {ban.ban_id} with:")
