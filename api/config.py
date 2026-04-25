@@ -5,6 +5,7 @@ import os
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
+from api.auth.auth import Auth
 from classes.configdata import ConfigData
 
 router = APIRouter()
@@ -18,8 +19,8 @@ class BanRequest(BaseModel) :
 
 @router.post("/Config/refresh", )
 async def bans_get(request: Request) :
-	if request.headers.get('token') != os.getenv("RPSECSECRET") :
-		logging.warning(f"Invalid token {request.headers.get('token')} from {request.client.host}")
-		return HTTPException(404)
+	if not await Auth(request).verify() :
+		# the error is usually raised in the verify function, but this is just a final catch.
+		raise HTTPException(status_code=403)
 	ConfigData().reload()
 	return {"status": "success", "message": "Config reloaded"}

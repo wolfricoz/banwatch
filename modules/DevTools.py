@@ -634,7 +634,7 @@ class DevTools(commands.GroupCog, name="dev") :
 			except Exception as e:
 				logging.info(f"Failed to sync {guild.id} bans: {e}")
 				continue
-		await send_message(interaction.channel, f"Finished ban sync of {count} bans so far..")
+		await send_message(interaction.channel, f"Finished ban sync of {count} bans.")
 
 
 
