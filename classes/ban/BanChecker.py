@@ -36,7 +36,6 @@ class BanChecker() :
 		await self.auto_hide()
 		logging.debug("Hide check: " + self.status)
 		await self.perform_action(self.migrated_ban())
-		# await self.perform_action(self.check_claims())
 		logging.debug("Check: " + self.status)
 		await self.perform_action(self.check_bot())
 		logging.debug("bot Check: " + self.status)
@@ -47,6 +46,7 @@ class BanChecker() :
 		await self.perform_action(self.check_flagged_terms(self.ban.reason))
 		logging.debug("Final check: " + self.status)
 		await self.perform_action(self.check_pii())
+		await self.perform_action(self.check_ascii_alphanumeric())
 		return self
 
 	async def perform_action(self, action: Coroutine) :
@@ -151,6 +151,12 @@ class BanChecker() :
 				dob_regex, self.ban.reason) :
 			self.reason = "Ban reason may contain personally identifiable information."
 			self.status = BanCheckerStatus.REVIEW
+
+	async def check_ascii_alphanumeric(self):
+		if not re.search(r'[^a-zA-Z0-9]', self.ban.reason):
+			self.reason = "Ban reason may contain non-english or special characters."
+			self.status = BanCheckerStatus.REVIEW
+
 
 	def get_status(self) -> str :
 		"""Returns the status of the ban check."""
