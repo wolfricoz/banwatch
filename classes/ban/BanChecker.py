@@ -170,7 +170,7 @@ class BanChecker() :
 
 		# This regex looks for anything that IS NOT:
 		# a-z, A-Z, 0-9, whitespace (\s), or the characters . , ! ? - _ ( )
-		if re.search(r'[^a-zA-Z0-9\s.,!?\-_()]', reason_str) :
+		if re.search(r'[^\x20-\x7E]', reason_str) :
 			self.reason = "Ban reason contains unsupported special characters or emojis."
 			self.status = BanCheckerStatus.REVIEW
 
