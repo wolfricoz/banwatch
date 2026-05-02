@@ -121,6 +121,10 @@ class BanChecker() :
 			self.status = BanCheckerStatus.REVIEW
 
 	async def check_word_count(self) :
+		if self.ban.reason is None :
+			self.reason = "Short ban reason"
+			self.status = BanCheckerStatus.SHORT
+			return
 		word_count = len(self.ban.reason.split(" ")) < 4
 		if word_count and "spam" not in self.ban.reason.lower() and "bot" not in self.ban.reason.lower() :
 			self.reason = "Short ban reason"
@@ -160,9 +164,14 @@ class BanChecker() :
 			self.reason = "Ban reason may contain personally identifiable information."
 			self.status = BanCheckerStatus.REVIEW
 
-	async def check_ascii_alphanumeric(self):
-		if not re.search(r'[^a-zA-Z0-9]', self.ban.reason):
-			self.reason = "Ban reason may contain non-english or special characters."
+	async def check_ascii_alphanumeric(self) :
+		# Ensure we have a string to work with
+		reason_str = str(self.ban.reason or "")
+
+		# This regex looks for anything that IS NOT:
+		# a-z, A-Z, 0-9, whitespace (\s), or the characters . , ! ? - _ ( )
+		if re.search(r'[^a-zA-Z0-9\s.,!?\-_()]', reason_str) :
+			self.reason = "Ban reason contains unsupported special characters or emojis."
 			self.status = BanCheckerStatus.REVIEW
 
 
