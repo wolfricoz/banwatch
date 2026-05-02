@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Any
 
@@ -109,8 +110,8 @@ class BanOptionButtons(SecureView) :
 			return
 		# check if the ban has a checklisted word, and takes action based on action type
 		wait_id = Bans().create_ban_id(user.id, guild.id)
-		checkListCheckType: str|None = None
-		checkListResult: str|None = None
+		checkListCheckType: str|None
+		checkListResult: str|None
 		# checkListCheckType, checkListResult = await self.checkFlaggedTerms(ban.reason.lower())
 
 		# if isinstance(checkListCheckType, list):
@@ -140,7 +141,7 @@ class BanOptionButtons(SecureView) :
 		await ban_checker.run()
 		checkListCheckType = ban_checker.get_status()
 		checkListResult = ban_checker.get_reason()
-
+		logging.info(f"[Ban Buttons] {user.name} banned in {interaction.guild.name} with status: {checkListCheckType} and reason: {checkListResult}. Ban reason:\n{ban.reason}")
 
 		if checkListCheckType and checkListCheckType.lower() == "hide":
 			await self.sendDeniedEmbed(interaction, ban, checkListResult)
