@@ -103,7 +103,7 @@ class BanOptionButtons(SecureView) :
 		# check is ban has to be hidden
 
 		if hidden :
-			queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, hidden=True), priority=2)
+			queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, hidden=True, status="Hidden button"), priority=2)
 			await send_response(interaction, f"Ban for {user.mention} has been successfully hidden.", ephemeral=True)
 			await interaction.message.delete()
 			return
@@ -144,14 +144,14 @@ class BanOptionButtons(SecureView) :
 
 		if checkListCheckType and checkListCheckType.lower() == "hide":
 			await self.sendDeniedEmbed(interaction, ban, checkListResult)
-			queue().add(Bans().add_ban(user.id, guild.id, ban.reason + " (HIDDEN DUE TO BLOCKLIST)", staff_member.name, approved=False, hidden=True), priority=2)
+			queue().add(Bans().add_ban(user.id, guild.id, ban.reason + " (HIDDEN DUE TO BLOCKLIST)", staff_member.name, approved=False, hidden=True, status="Hidden by automod"), priority=2)
 			return
 
 
 		if checkListCheckType in ['review'] :
 
 			channel = interaction.client.get_channel(int(os.getenv("BANS")))
-			queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=False), priority=2)
+			queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=False, status=checkListResult), priority=2)
 			if evidence :
 				queue().add(self.provide_proof(interaction, evidence), priority=2)
 			queue().add(self.status(interaction.client, guild, user, "waiting_approval", ban.reason, word=checkListResult,
@@ -168,7 +168,7 @@ class BanOptionButtons(SecureView) :
 				             view=BanApproval(interaction.client, wait_id, True, silent=silent)), priority=1)
 			return
 
-		queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=True), priority=2)
+		queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=True,  status=checkListResult), priority=2)
 
 		if evidence :
 			queue().add(self.provide_proof(interaction, evidence), priority=2)

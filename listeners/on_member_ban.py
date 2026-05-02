@@ -45,7 +45,6 @@ class BanEvents(commands.Cog) :
 		# Check if modchannel is set, else just log it.
 		if mod_channel is None:
 			logging.warning(f"{guild.name}({guild.id}) doesn't have modchannel set.")
-			await Bans().add_ban(user.id, guild.id, ban.reason, "No Modchannel Set", approved=False)
 			queue().add(send_message(guild.owner, f"{guild.name}({guild.id}) doesn't have modchannel set. Please set it using the /Config change command."), priority=2)
 			return
 
@@ -54,7 +53,7 @@ class BanEvents(commands.Cog) :
 		                                                "breaking server rules"] or str(ban.reason).lower().startswith(
 				'[hidden]') :
 			logging.info("Hiding ban: Reason doesn't provide valuable information or has hidden tag.")
-			await Bans().add_ban(user.id, guild.id, ban.reason, "Unknown", hidden=True)
+			await Bans().add_ban(user.id, guild.id, ban.reason, "Unknown", hidden=True, status="autoHidden")
 			if mod_channel is None :
 				logging.error(f"{guild.name}({guild.id}) doesn't have modchannel set.")
 				return
@@ -69,12 +68,12 @@ class BanEvents(commands.Cog) :
 		match = re.match(r"Cross-ban from (?P<guild_name>.+?) with ban id: (?P<ban_id>\d+)", ban.reason)
 		if match or str(ban.reason).lower() in ['crossban', 'cross-ban'] :
 			logging.info("Cross-ban with no additional info, this ban has been hidden")
-			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name, hidden=True)
+			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name, hidden=True, status="crossban")
 			return
 		# Check if the ban is a migrated ban
 		if str(ban.reason).lower().startswith('[Migrated'):
 			logging.info("Migrated ban, not prompting")
-			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name,)
+			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name, status="Migrated")
 		# PREMIUM: bans the users from other servers automatically
 
 		logging.info(ConfigData().get_key(guild.id, "cross_ban", False))
@@ -93,7 +92,6 @@ class BanEvents(commands.Cog) :
 		view = BanOptionButtons()
 		if mod_channel is None :
 			logging.error(f"{guild.name}({guild.id}) doesn't have modchannel set.")
-			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name)
 			try :
 				await guild.owner.send(
 					"No moderation channel set, please setup your moderation channel using the /Config commands. Your ban has not been broadcasted but has been recorded")

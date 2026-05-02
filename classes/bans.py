@@ -334,7 +334,7 @@ class Bans(metaclass=Singleton) :
 		except Exception as e :
 			logging.error(f"Error creating invite: {e}")
 
-	async def add_ban(self, user_id, guild_id, reason, staff, hidden=False, approved=False, remove_deleted=True) :
+	async def add_ban(self, user_id, guild_id, reason, staff, hidden=False, approved=False, remove_deleted=True, status = "Not set") :
 		"""Adds a ban to the database"""
 		if reason is None or reason == "" or reason.lower() == "none" :
 			hidden = True
@@ -343,7 +343,7 @@ class Bans(metaclass=Singleton) :
 		if reason.lower().startswith('[hidden]') :
 			hidden = True
 			reason = reason[8 :]
-		logging.info(f"Adding ban for {user_id} in {guild_id} with reason: {reason} and approval status: {approved}")
+		logging.info(f"Adding ban for {user_id} in {guild_id} with reason: {reason} and approval status: {approved} (status: {status})")
 		return BanTransactions().add(user_id, guild_id, reason, staff, hidden=hidden, approved=approved,
 		                      remove_deleted=remove_deleted)
 
