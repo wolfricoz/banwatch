@@ -166,6 +166,9 @@ class BanChecker() :
 
 	async def check_ascii_alphanumeric(self) :
 		# Ensure we have a string to work with
+		return # Disabled because too many false positives.
+
+
 		reason_str = str(self.ban.reason or "")
 
 		# This regex looks for anything that IS NOT:
