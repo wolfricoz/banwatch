@@ -11,6 +11,7 @@ from classes.queue import queue
 from database.current import Proof
 from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ProofTransactions import ProofTransactions
+from view.buttons.CleanupButtons import CleanupButtons
 
 
 class EvidenceController() :
@@ -165,4 +166,5 @@ class EvidenceController() :
 			           f"\n**ban reason**: {evidence.ban.reason}"
 			           f"\n**Provided Proof**: {evidence.proof}"
 			           f"\n**attachments:**\n {proof}")
-			await send_message(interaction.channel, content)
+			buttons = CleanupButtons()
+			await send_message(interaction.channel, content, buttons)
