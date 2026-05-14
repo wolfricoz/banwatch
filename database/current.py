@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List
 
 import pymysql
+from discord.utils import TimestampStyle
 from dotenv import load_dotenv
 from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, String, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Relationship, mapped_column, relationship, sessionmaker
@@ -28,17 +29,24 @@ class Base(DeclarativeBase) :
 	pass
 
 
-class Staff(Base) :
+
+class Timestamps:
+	"""Adds the created_at and updated_at columns to the session."""
+	created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now())
+	updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
+
+class Staff(Timestamps, Base) :
 	__tablename__ = "staff"
 	id: Mapped[int] = mapped_column(primary_key=True)
 	uid: Mapped[int] = mapped_column(BigInteger)
 	role: Mapped[str] = mapped_column(String(128))
 
+
 	def __int__(self) :
 		return self.id
 
 
-class Bans(Base) :
+class Bans(Timestamps, Base) :
 	__tablename__ = "bans"
 	ban_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
 	uid: Mapped[int] = mapped_column(BigInteger)
@@ -64,7 +72,7 @@ class Bans(Base) :
 		return self.ban_id
 
 
-class Proof(Base) :
+class Proof(Timestamps,Base) :
 	__tablename__ = "proof"
 	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 	ban_id: Mapped[int] = mapped_column(ForeignKey("bans.ban_id"))
@@ -80,7 +88,7 @@ class Proof(Base) :
 		return self.id
 
 
-class Servers(Base) :
+class Servers(Timestamps, Base) :
 	__tablename__ = "servers"
 	id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
 	owner: Mapped[str] = mapped_column(String(1024, ))
@@ -100,7 +108,7 @@ class Servers(Base) :
 		return self.id
 
 
-class Appeals(Base) :
+class Appeals(Timestamps,Base) :
 	__tablename__ = "appeals"
 	id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
 	ban_id: Mapped[int] = mapped_column(ForeignKey("bans.ban_id"))
@@ -115,7 +123,10 @@ class Appeals(Base) :
 		return self.id
 
 
-class AppealMsgs(Base) :
+
+
+
+class AppealMsgs(Timestamps, Base) :
 	__tablename__ = "appeal_msgs"
 	id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
 	message: Mapped[str] = mapped_column(String(2000, ))
@@ -123,10 +134,11 @@ class AppealMsgs(Base) :
 	recipient: Mapped[int] = mapped_column(BigInteger)  # this can be either the server, staff member, or user.
 	created: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 	appeal_id: Mapped[int] = mapped_column(ForeignKey("appeals.id"))
-	appeal: Mapped["Appeals"] = Relationship("Appeals", back_populates="msgs", )
+	appeal: Mapped["Appeals"] = Relationship( "Appeals", back_populates="msgs", )
 
 
-class Config(Base) :
+
+class Config(Timestamps,Base) :
 	# Reminder to self you can add multiple keys in this database
 	__tablename__ = "config"
 	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -135,7 +147,7 @@ class Config(Base) :
 	value: Mapped[str] = mapped_column(String(1980))
 
 
-class FlaggedTerms(Base) :
+class FlaggedTerms(Timestamps,Base) :
 	__tablename__ = "flagged_terms"
 	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 	term: Mapped[str] = mapped_column(String(512, ), unique=True)
@@ -144,7 +156,7 @@ class FlaggedTerms(Base) :
 	active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
-class BanReasons(Base) :
+class BanReasons(Timestamps,Base) :
 	__tablename__ = "ban_reasons"
 	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 	server_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("servers.id", ondelete="CASCADE"))
@@ -153,12 +165,22 @@ class BanReasons(Base) :
 	reason: Mapped[str] = mapped_column(String(512), unique=True)
 	active: Mapped[bool] = mapped_column(Boolean, default=True)
 
-class BanMessages(Base) :
+
+class BanMessages(Timestamps,Base) :
 	__tablename__ = "ban_messages"
 	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 	server_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("servers.id", ondelete="CASCADE"))
 	ban_id: Mapped[int] = mapped_column(BigInteger)
 	message_id: Mapped[int] = mapped_column(BigInteger, unique=True)
+
+
+
+class Warnings(Timestamps,Base):
+	__table__ = "warnings"
+	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+	user_id: Mapped[int] = mapped_column(BigInteger)
+	guild_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("servers.id", ondelete="CASCADE"))
+	reason: Mapped[str] = mapped_column(String(4048), unique=True)
 
 def create_bot_database() :
 	Base.metadata.create_all(engine)
