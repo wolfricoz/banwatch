@@ -277,9 +277,8 @@ class DevTools(commands.GroupCog, name="dev") :
 			async for message in evidence_history :
 				if message.content.startswith("Evidence") is False :
 					continue
-				queue().add(
-					backupevidence.send(message.content, files=[await attachment.to_file() for attachment in message.attachments],
-					                    embeds=message.embeds), 0)
+				queue().add(self.backup_message(backupevidence, message), 0)
+
 			for channel in pending_removal :
 				await channel
 			if evidence_only is True :
@@ -290,9 +289,7 @@ class DevTools(commands.GroupCog, name="dev") :
 				if len(message.embeds) < 1 :
 					continue
 				queue().add(
-					backupbans.send(f"{message.content}",
-					                files=[await attachment.to_file() for attachment in message.attachments],
-					                embeds=message.embeds), 0)
+					self.backup_message(backupbans, message), 0)
 
 	@app_commands.command(name="rebuild_evidence",
 	                      description="[DEV] Rebuilds the evidence database from a channel's history.")
@@ -637,8 +634,12 @@ class DevTools(commands.GroupCog, name="dev") :
 		await send_message(interaction.channel, f"Finished ban sync of {count} bans.")
 
 
-
-
+	async def backup_message(self, channel, message):
+			"""
+				Sends the message to the designated channel.
+			"""
+			channel.send(message.content, files=[await attachment.to_file() for attachment in message.attachments],
+			             embeds=message.embeds)
 
 async def setup(bot: commands.Bot) :
 	await bot.add_cog(DevTools(bot))
