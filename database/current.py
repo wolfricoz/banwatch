@@ -174,21 +174,31 @@ class BanMessages(Timestamps,Base) :
 	message_id: Mapped[int] = mapped_column(BigInteger, unique=True)
 
 
-
-class Warnings(Timestamps,Base):
+class Warnings(Timestamps, Base) :
 	__tablename__ = "warnings"
+
 	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 	user_id: Mapped[int] = mapped_column(BigInteger, unique=False)
 	guild_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("servers.id", ondelete="CASCADE"), unique=False)
 	reason: Mapped[str] = mapped_column(String(4048), unique=False)
+	evidence: Mapped[List["WarningEvidence"]] = relationship(
+		"WarningEvidence",
+		back_populates="warning",
+		cascade="all, delete-orphan"  # Deleting a warning will automatically delete its evidence
+	)
 
-class WarningEvidence(Timestamps,Base) :
+
+class WarningEvidence(Timestamps, Base) :
 	__tablename__ = "warning_evidence"
+
 	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-	warning_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("warnings.id"))
+	warning_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("warnings.id", ondelete="CASCADE"))
 	user_id: Mapped[int] = mapped_column(BigInteger, unique=False)
 	guild_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("servers.id", ondelete="CASCADE"), unique=False)
 	message_id: Mapped[int] = mapped_column(BigInteger, unique=True)
+
+	# MANY-TO-ONE: Many evidence pieces link back to one warning
+	warning: Mapped["Warnings"] = relationship("Warnings", back_populates="evidence")
 
 
 

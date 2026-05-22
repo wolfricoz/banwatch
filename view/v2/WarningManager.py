@@ -1,10 +1,13 @@
-from typing import List
+from typing import Any, List
 import discord
 from discord_py_utilities.bans import ban_user
 from discord_py_utilities.messages import await_message, send_message, send_response
 
 from classes.bans import Bans
+from classes.configdata import ConfigData
+from classes.queue import queue
 from classes.warnings.evidence import WarningEvidence
+from data.config.mappings import Channels
 from data.variables.messages import evidence_message_template, evidence_warning_message_template
 from database.current import Warnings
 from database.transactions.WarningTransactions import WarningTransactions
@@ -32,53 +35,62 @@ class WarningManager(discord.ui.LayoutView) :
 		self.row_1 = discord.ui.ActionRow()  # For moderation action items
 
 		# 3. Define the button instances
-		self.prev_page = discord.ui.Button(
-			label="◀",
-			style=discord.ButtonStyle.secondary,
-			custom_id="warn_prev"
-		)
-		self.prev_page.callback = self.prev_page_callback
+		if warnings:
+			self.prev_page = discord.ui.Button(
+				label="◀",
+				style=discord.ButtonStyle.secondary,
+				custom_id="warn_prev"
+			)
+			self.prev_page.callback = self.prev_page_callback
 
-		self.next_page = discord.ui.Button(
-			label="▶",
-			style=discord.ButtonStyle.secondary,
-			custom_id="warn_next"
-		)
-		self.next_page.callback = self.next_page_callback
+			self.next_page = discord.ui.Button(
+				label="▶",
+				style=discord.ButtonStyle.secondary,
+				custom_id="warn_next"
+			)
+			self.next_page.callback = self.next_page_callback
 
-		self.add_evidence_btn = discord.ui.Button(
-			label="Add Evidence",
-			style=discord.ButtonStyle.primary,
-			custom_id="warn_add_evidence"
-		)
-		self.add_evidence_btn.callback = self.add_evidence_callback
+			self.add_evidence_btn = discord.ui.Button(
+				label="Add Evidence",
+				style=discord.ButtonStyle.primary,
+				custom_id="warn_add_evidence"
+			)
+			self.add_evidence_btn.callback = self.add_evidence_callback
 
-		self.delete_btn = discord.ui.Button(
-			label="Delete",
-			style=discord.ButtonStyle.danger,
-			custom_id="warn_delete"
-		)
-		self.delete_btn.callback = self.delete_warning_callback
+			self.view_evidence_btn = discord.ui.Button(
+				label="view Evidence",
+				style=discord.ButtonStyle.primary,
+				custom_id="view_add_evidence"
+			)
+			self.view_evidence_btn.callback = self.view_evidence_callback
 
-		self.ban_btn = discord.ui.Button(
-			label="Ban User",
-			style=discord.ButtonStyle.danger,
-			custom_id="warn_ban"
-		)
-		self.ban_btn.callback = self.ban_user_callback
+			self.delete_btn = discord.ui.Button(
+				label="Delete",
+				style=discord.ButtonStyle.danger,
+				custom_id="warn_delete"
+			)
+			self.delete_btn.callback = self.delete_warning_callback
 
-		# 4. Pack buttons into their respective ActionRows
-		self.row_0.add_item(self.prev_page)
-		self.row_0.add_item(self.next_page)
+			self.ban_btn = discord.ui.Button(
+				label="Ban User",
+				style=discord.ButtonStyle.danger,
+				custom_id="warn_ban"
+			)
+			self.ban_btn.callback = self.ban_user_callback
 
-		self.row_1.add_item(self.add_evidence_btn)
-		self.row_1.add_item(self.delete_btn)
-		self.row_1.add_item(self.ban_btn)
+			# 4. Pack buttons into their respective ActionRows
+			self.row_0.add_item(self.prev_page)
+			self.row_0.add_item(self.next_page)
 
-		# 5. Add components directly to the LayoutView (Text first, then buttons)
-		self.add_item(self.text_display)
-		self.add_item(self.row_0)
-		self.add_item(self.row_1)
+			self.row_1.add_item(self.add_evidence_btn)
+			self.row_1.add_item(self.view_evidence_btn)
+			self.row_1.add_item(self.delete_btn)
+			self.row_1.add_item(self.ban_btn)
+
+			# 5. Add components directly to the LayoutView (Text first, then buttons)
+			self.add_item(self.text_display)
+			self.add_item(self.row_0)
+			self.add_item(self.row_1)
 
 		# Update button states right at initialization
 		self.update_button_states()
@@ -144,13 +156,31 @@ class WarningManager(discord.ui.LayoutView) :
 		else :
 			await interaction.response.defer()
 
-	async def add_evidence_callback(self, interaction: discord.Interaction) :
-		current_warning = self.warnings[self.current_page] if self.warnings else None
-		evidence = await await_message(interaction, evidence_warning_message_template.format(user=self.user.name, warning_id=current_warning.id))
-		if evidence is False :
-			return
+	async def add_evidence_callback(self, interaction: discord.Interaction) -> Any :
+		current_warning: Warnings = self.warnings[self.current_page] if self.warnings else None
+		evidence_channel: discord.TextChannel = await ConfigData().get_channel(interaction.guild, Channels.WARNING_EVIDENCE_ARCHIVE, True)
+		if not isinstance(evidence_channel, discord.TextChannel) :
+			return await send_response(interaction, f"[Config Missing] No evidence archive is set, please set it with /config change")
+		evidence: discord.Message | bool = await await_message(interaction, evidence_warning_message_template.format(user=self.user.name, warning_id=current_warning.id))
+		if not isinstance(evidence, discord.Message) :
+			return send_response(interaction, f"Adding evidence has been cancelled.")
 		manager = WarningEvidence(current_warning)
-		await manager.create_evidence(evidence)
+		await manager.create_evidence(evidence, evidence_channel)
+		# clean up the message
+		queue().add(evidence.delete(), 0)
+		return None
+
+	async def view_evidence_callback(self, interaction: discord.Interaction) -> None :
+		manager = WarningEvidence(self.warnings[self.current_page])
+		evidence_channel: discord.TextChannel = await ConfigData().get_channel(interaction.guild, Channels.WARNING_EVIDENCE_ARCHIVE, True)
+		await send_response(interaction, f"Fetching evidence...", ephemeral=True)
+
+		if not isinstance(evidence_channel, discord.TextChannel) :
+			return await send_response(interaction, f"[Config Missing] No evidence archive is set, please set it with /config change")
+		await manager.fetch_evidence(evidence_channel, interaction.channel)
+
+		return None
+
 
 	async def delete_warning_callback(self, interaction: discord.Interaction) :
 		current_warning = self.warnings[self.current_page] if self.warnings else None

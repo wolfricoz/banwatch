@@ -45,13 +45,17 @@ class WarningTransactions(DatabaseTransactions) :
 		with self.createsession() as session:
 			return session.scalar(select(Warnings).where(Warnings.id == warning_id))
 
+	def exists(self, warning_id: int) -> bool:
+		with self.createsession() as session:
+			return session.scalar(select(Warnings).where(Warnings.id == warning_id)) is not None
+
 	def create_evidence(self, warning: Warnings, message: discord.Message):
 		with self.createsession() as session:
 			evidence = WarningEvidence(warning_id=warning.id, user_id=warning.user_id, guild_id=warning.guild_id, message_id=message.id)
 			session.add(evidence)
 			self.commit(session)
 
-	def fetch_all_evidence(self, guild_id: int, user_id: int = None, warnind_id: int = None) -> List[WarningEvidence]:
+	def fetch_all_evidence(self, guild_id: int, user_id: int = None, warnind_id: None | int = None) -> List[WarningEvidence]:
 		with self.createsession() as session:
 			if user_id:
 				return session.scalars(select(WarningEvidence).where(WarningEvidence.user_id == user_id, WarningEvidence.guild_id == guild_id)).all()
