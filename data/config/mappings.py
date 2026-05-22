@@ -14,3 +14,8 @@ class Channels(StrEnum):
 	INVITE = "INVITE_CHANNEL"
 	WARNING_EVIDENCE_ARCHIVE = "WARNING_EVIDENCE_ARCHIVE" # This is where the evidence messages are stored
 	WARNING_LOG = "WARNING_LOG" # this is where warnings are stored.
+
+class WarningConfigs(StrEnum):
+	TIMEOUT_WARNINGS = "TIMEOUT_WARNINGS"
+	KICK_WARNINGS = "KICK_WARNINGS"
+	BAN_WARNINGS = "BAN_WARNINGS"

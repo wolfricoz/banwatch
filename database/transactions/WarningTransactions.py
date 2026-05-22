@@ -26,9 +26,9 @@ class WarningTransactions(DatabaseTransactions) :
 			session.add(warning)
 			self.commit(session)
 
-	def count_warnings(self, user_id: int):
+	def count_warnings(self, user_id: int, guild_id: int) -> int:
 		with self.createsession() as session:
-			return session.query(Warnings).filter(Warnings.user_id == user_id).count()
+			return session.query(Warnings).filter(Warnings.user_id == user_id, Warnings.guild_id == guild_id).count()
 
 	def get_all(self, user_id: int, guild_id: int) -> List[Warnings]:
 		with self.createsession() as session:
