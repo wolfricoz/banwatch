@@ -1,2 +1,2 @@
-VERSION = "3.3.1: Performance improved!"
+VERSION = "3.4.0: Now with a warning system!"
 CACHE = f"resources/data/commands_cache.json"

@@ -6,7 +6,7 @@ nav_order: 4
 ---
 
 <h1>Invite</h1>
-<h6>version: 3.3: New staff toys acquired!</h6>
+<h6>version: 3.4.0: Now with a warning system!</h6>
 <h6>Documentation automatically generated from docstrings.</h6>
 
         
@@ -16,7 +16,10 @@ nav_order: 4
 
 **Usage:** `/invite set_channel <channel>`
 
-> Missing Documentation
+> Allows you to set the channel where the invite gets created.
+
+Permissions:
+- manage_channels
 
 ---
 
@@ -24,7 +27,10 @@ nav_order: 4
 
 **Usage:** `/invite regenerate`
 
-> Missing Documentation
+> Creates a new invite!
+
+Permissions:
+- manage_channels
 
 ---
 

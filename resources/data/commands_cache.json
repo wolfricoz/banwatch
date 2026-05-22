@@ -8,9 +8,9 @@
     "permissioncheck": "Checks if the bot has the required permissions in the current channel and server. This is the first step in troubleshooting if the bot is not functioning as expected. Please run this command before contacting support.\n\n**Permissions:**\n- None required for the user.",
     "add": "Adds evidence to a user's ban record.\nCan be text, attachments, or both.\n\n**Permissions:**\n- `Moderate Members`",
     "get": "Retrieves and displays all evidence for a given user or ban ID.\n\n**Permissions:**\n- `Moderate Members`",
-    "manage": "Displays evidence in a paginated view for management.\nAllows staff to review and handle evidence entries.\n\n**Permissions:**\n- `Moderate Members`",
-    "set_channel": "Missing Documentation",
-    "regenerate": "Missing Documentation",
+    "manage": "Allows you to manage the warnings you have, as well as add evidence or even take actions against the user.\n\nPermissions:\n- manage messages",
+    "set_channel": "Allows you to set the channel where the invite gets created.\n\nPermissions:\n- manage_channels",
+    "regenerate": "Creates a new invite!\n\nPermissions:\n- manage_channels",
     "lookup": "Looks up a user's ban history across all monitored servers.\nCan search by user or a specific ban ID.\n\n**Permissions:**\n- `Ban Members`",
     "checkall": "Scans all members in the current server against the global ban database.\nReports users who are found in the database.\n\n**Permissions:**\n- `Ban Members`",
     "remove_deleted": "Scans the server's ban list and removes entries for deleted user accounts, and kicks any deleted accounts still present in the server! This will help you clean up IP bans and ensure your server is free of inactive or deleted users.\n\nWhy would you want to remove IP bans for deleted users? In many cases the IP has been reassigned to a new person because most ISPs recycle IP addresses. Keeping bans for deleted users can inadvertently block new users who are assigned those IPs, potentially causing frustration and loss of legitimate members.\n\n**Permissions:**\n- `Manage Server`\n- `Premium Server`",
@@ -42,5 +42,6 @@
     "export_bans": "Fetches the entire ban list for the server and compiles it into a text file. This is extremely useful for auditing, backup, or migrating bans to another server or bot.\n\n**Permissions:**\n- Requires `Ban Members` permission.",
     "support": "Provides a link to the official documentation and support server. Use this if you need help with the bot or want to report an issue.\n\n**Permissions:**\n- None required for the user.",
     "donate": "Provides a link to financially support the development and hosting of BanWatch. Donations help keep the bot running and support future updates.\n\n**Permissions:**\n- None required for the user.",
-    "clean_messages": "Cleans up messages sent by BanWatch in the current channel. This is useful for removing old ban notifications or clutter.\n\n**Permissions:**\n- Requires `Manage Messages` permission."
+    "clean_messages": "Cleans up messages sent by BanWatch in the current channel. This is useful for removing old ban notifications or clutter.\n\n**Permissions:**\n- Requires `Manage Messages` permission.",
+    "warn": "Create a warning for the selected member with the options to inform them, kick them, and permanent logging.\n\nPermissions:\n- manage messages"
 }

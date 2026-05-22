@@ -65,9 +65,9 @@ class Warnings(GroupCog) :
 	# view/manage warnings UI (Edit, Delete, Add Evidence)
 	@app_commands.command(name="manage", description="View and manage the warnings the user has.")
 	@app_commands.checks.has_permissions(manage_messages=True)
-	async def view(self, interaction: discord.Interaction, user: discord.User) :
+	async def manage(self, interaction: discord.Interaction, user: discord.User) :
 		"""
-
+		Allows you to manage the warnings you have, as well as add evidence or even take actions against the user.
 
 		Permissions:
 		- manage messages
