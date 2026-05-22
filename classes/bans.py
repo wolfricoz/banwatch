@@ -157,19 +157,14 @@ class Bans(metaclass=Singleton) :
 	async def create_invite(self, bot: commands.AutoShardedBot | commands.Bot, guild: discord.Guild,
 	                        force_new: bool = False) -> str :
 		invite = None
-		logging.info("a")
 		if not force_new :
-			logging.info("b")
 
 			server = ServerTransactions().get(guild.id)
 			if server:
 				invite = server.invite
-		logging.info("c")
 
 		channel = await ConfigData().get_channel(guild, Channels.INVITE, optional=True)
-		logging.info("d")
 		inv = await check_guild_invites(bot, guild, invite, channel=channel)
-		logging.info("end")
 		return inv
 
 	def get_ban_id(self, embed: discord.Embed) :

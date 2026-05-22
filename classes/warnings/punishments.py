@@ -56,16 +56,35 @@ class Punishments :
 	                             warning_count) -> None :
 		"""Executes the determined action on the user."""
 		reason_message = "Triggered by warning system, user has passed the warning threshold for this punishment."
+		mod_channel = await ConfigData().get_channel(guild, Channels.MOD_CHANNEL)
 
 		match result :
 			case PunishmentOptions.TIMEOUT :
 				print(f"Timing out {user.id} in guild {guild.id}")
+				embed = discord.Embed(
+					title="🔨 Automated Action: Timeout",
+					description=f"User {user.mention} has crossed a warning threshold.",
+					color=discord.Color.orange()
+				)
+				embed.add_field(name="User", value=f"{user.name} (`{user.id}`)", inline=True)
+				embed.add_field(name="Warning Count", value=f"`{warning_count}`", inline=True)
+				embed.add_field(name="Duration", value="24 Hours", inline=True)
+
+				# If your send_message function accepts embeds:
+				await send_message(mod_channel, embed=embed)
 				await user.timeout(timedelta(hours=24), reason=reason_message)
 
 			case PunishmentOptions.KICK :
 				server = ServerTransactions().get(guild.id)
+				embed = discord.Embed(
+					title="👢 Automated Action: Kick",
+					description=f"User {user.mention} has crossed the kick threshold.",
+					color=discord.Color.yellow()
+				)
+				embed.add_field(name="User", value=f"{user.name} (`{user.id}`)", inline=True)
+				embed.add_field(name="Warning Count", value=f"`{warning_count}`", inline=True)
 
-				print(f"Kicking {user.id} from guild {guild.id}")
+				await send_message(mod_channel, embed=embed)
 				reason_message = (
 					f"You have been kicked from {guild.name} because your account has reached the maximum allowed threshold for warnings. You may rejoin the server, but please review the rules to avoid further moderation actions, as subsequent infractions will lead to a permanent ban."
 					f"\n\n"
@@ -84,12 +103,12 @@ class Punishments :
 				embed = discord.Embed(title=f"{user.name} ({user.id}) banned!", description=f"{reason_message}",
 				                      color=discord.Color.red())
 				embed.set_footer(text=f"Moderator: {user.name}, was the user informed? Yes")
-				mod_channel = await ConfigData().get_channel(guild, Channels.MOD_CHANNEL)
 				await send_message(mod_channel, embed=embed)
 				try :
 					await user.send(f"You have been banned from {guild.name} for `{reason_message}`")
 				except discord.errors.Forbidden or discord.errors.NotFound :
 					pass
+				await user.ban(reason=reason_message, delete_message_days=0)
 
 			case _ :
 				# Fallback for unexpected cases

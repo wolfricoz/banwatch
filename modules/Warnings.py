@@ -10,6 +10,7 @@ from data.config.mappings import Channels, WarningConfigs
 from database.transactions.ConfigTransactions import ConfigTransactions
 from database.transactions.WarningTransactions import WarningTransactions
 from view.modals.inputmodal import send_modal
+from view.multiselect.selectreason import SelectReason
 from view.v2.WarningManager import WarningManager
 
 
@@ -36,8 +37,12 @@ class Warnings(GroupCog) :
 			return
 
 		# Prompt for message
-		reason = await send_modal(interaction, f"Creating warning, it will show up in {warning_archive.mention}",
-		                          ephemeral=True)
+		view = SelectReason(reason_type="warning")
+		await send_message(interaction.channel, "Select your reason.", view=view)
+		await view.wait()
+		reason = view.get_reason()
+		if reason == "custom" :
+			reason = await send_modal(view.interaction, f"Creating warning, it will show up in {warning_archive.mention}", "Warn Reason")
 
 		# Prepare a simple embed
 		count = WarningTransactions().count_warnings(member.id, interaction.guild.id) + 1
