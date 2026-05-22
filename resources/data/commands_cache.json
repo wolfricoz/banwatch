@@ -43,5 +43,6 @@
     "support": "Provides a link to the official documentation and support server. Use this if you need help with the bot or want to report an issue.\n\n**Permissions:**\n- None required for the user.",
     "donate": "Provides a link to financially support the development and hosting of BanWatch. Donations help keep the bot running and support future updates.\n\n**Permissions:**\n- None required for the user.",
     "clean_messages": "Cleans up messages sent by BanWatch in the current channel. This is useful for removing old ban notifications or clutter.\n\n**Permissions:**\n- Requires `Manage Messages` permission.",
-    "warn": "Create a warning for the selected member with the options to inform them, kick them, and permanent logging.\n\nPermissions:\n- manage messages"
+    "warn": "Create a warning for the selected member with the options to inform them, kick them, and permanent logging.\n\nPermissions:\n- manage messages",
+    "punishments": "Define automated punishments based on warning count. To remove input 0 in warning_count\n\nPermissions:\n- manage guild\n- Premium"
 }

@@ -58,3 +58,15 @@ Permissions:
 
 ---
 
+### `punishments`
+
+**Usage:** `/warnings punishments <option> <warning_count>`
+
+> Define automated punishments based on warning count. To remove input 0 in warning_count
+
+Permissions:
+- manage guild
+- Premium
+
+---
+
