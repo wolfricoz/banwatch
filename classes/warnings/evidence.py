@@ -1,4 +1,4 @@
-
+import logging
 from typing import List
 
 import discord
@@ -37,8 +37,11 @@ class WarningEvidence():
 		evidence_list = WarningEvidenceTransactions().get_warning(self.warning.id)
 		# forward it to the channel
 		for evidence in evidence_list:
-			message = await evidence_channel.fetch_message(evidence.message_id)
-			queue().add(message.forward(target_channel))
+			try:
+				message = await evidence_channel.fetch_message(evidence.message_id)
+				queue().add(message.forward(target_channel))
+			except Exception as e:
+				logging.warning(f"Couldn't fetch evidence for warning {self.warning.id}: {evidence.message_id}")
 		# return successful
 		return True
 
