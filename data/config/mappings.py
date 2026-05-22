@@ -10,4 +10,7 @@ premium_roles = {
 }
 
 class Channels(StrEnum):
+	MOD_CHANNEL = "modchannel"
 	INVITE = "INVITE_CHANNEL"
+	WARNING_EVIDENCE_ARCHIVE = "WARNING_EVIDENCE_ARCHIVE" # This is where the evidence messages are stored
+	WARNING_LOG = "WARNING_LOG" # this is where warnings are stored.

@@ -6,6 +6,7 @@ from discord_py_utilities.messages import send_response
 
 from classes.configdata import ConfigData
 from classes.permissions import PermissionsCheck
+from data.config.mappings import Channels
 from database.transactions.ServerTransactions import ServerTransactions
 from view.v2.HelpLayout import HelpLayout
 
@@ -28,7 +29,7 @@ class Config(commands.GroupCog, name="config") :
 
 	@app_commands.command(name="change", description="Set the channel for bot announcements and moderation logs.")
 	@app_commands.choices(option=[
-		Choice(name="Mod channel", value="mod"),
+		Choice(name=c.name.replace("_", " ").title(), value=c.value) for c in Channels
 	])
 	@app_commands.checks.has_permissions(manage_guild=True)
 	@app_commands.guild_only()
@@ -39,13 +40,18 @@ class Config(commands.GroupCog, name="config") :
 		**Permissions:**
 		- `Manage Server`
 		"""
-		if option.value == "mod" :
-			if not channel.permissions_for(interaction.guild.me).send_messages :
-				return await send_response(interaction, f"❌ I need the `Send Messages` permission in {channel.mention} to set it as the mod channel.")
-			if not channel.permissions_for(interaction.guild.me).view_channel :
-				return await send_response(interaction, f"❌ I need the `Read Messages` permission in {channel.mention} to set it as the mod channel.")
-			ConfigData().add_key(interaction.guild.id, "modchannel", channel.id, overwrite=True)
-		await send_response(interaction, f"Set {option.name} to {channel.mention}")
+		permissions = channel.permissions_for(interaction.guild.me)
+		if not permissions.send_messages :
+			return await send_response(interaction,
+			                           f"❌ I need the `Send Messages` permission in {channel.mention} to set it as the {option.name}.")
+		if not permissions.view_channel :
+			return await send_response(interaction,
+			                           f"❌ I need the `Read Messages` permission in {channel.mention} to set it as the {option.name}.")
+
+		ConfigData().add_key(interaction.guild.id, option.value, channel.id, overwrite=True)
+		if option.value == "modchannel":
+			return await send_response(interaction, f"Set **{option.name}** to {channel.mention}. If this is your first time setting the mod channel then banwatch is going to automatically add all your bans to the database. For bans that require evidence or additional action we may request evidence or additional action. \n\n__**This may result in many messages in the mod channel**__")
+		await send_response(interaction, f"Set **{option.name}** to {channel.mention}")
 
 	@app_commands.command(name="appeals", description="Enable or disable the ability for users to appeal bans.")
 	@app_commands.checks.has_permissions(manage_guild=True)

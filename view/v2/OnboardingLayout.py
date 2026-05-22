@@ -13,7 +13,10 @@ class OnboardingLayout(discord.ui.LayoutView) :
 	def __init__(self):
 		super().__init__(timeout=None, )
 	custom_id = "onboarding_layout"
-	support_server = ServerTransactions().get(int(os.getenv("GUILD")))
+	try:
+		support_server = ServerTransactions().get(int(os.getenv("GUILD")))
+	except:
+		support_server = None
 
 
 

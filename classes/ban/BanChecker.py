@@ -166,7 +166,7 @@ class BanChecker() :
 
 	async def check_ascii_alphanumeric(self) :
 		# Ensure we have a string to work with
-		return # Disabled because too many false positives.
+		return # TODO: Disabled because too many false positives. Fix in the future
 
 
 		reason_str = str(self.ban.reason or "")

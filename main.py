@@ -122,13 +122,16 @@ async def on_ready() :
 	logging.info(f"Bot is in {guild_count} guilds:\n{formguilds}")
 	queue().add(send_message(devroom, f"Banwatch is in {guild_count} guilds. Version {VERSION}"), priority=2)
 	# Adding views
-	bot.add_view(ServerInfo())
-	bot.add_view(LookUp())
-	bot.add_view(AppealButtons())
-	bot.add_view(CommunicationButtons())
-	bot.add_view(BanInform(Bans()))
-	bot.add_view(OnboardingLayout())
-	bot.add_view(EvidenceUI(None, None, None, None))
+	try:
+		bot.add_view(ServerInfo())
+		bot.add_view(LookUp())
+		bot.add_view(AppealButtons())
+		bot.add_view(CommunicationButtons())
+		bot.add_view(BanInform(Bans()))
+		bot.add_view(OnboardingLayout())
+		bot.add_view(EvidenceUI(None, None, None, None))
+	except Exception as e:
+		logging.error(f"Failed to load views: {e}")
 	# Syncing commands
 	queue().add(bot.tree.sync())
 	logging.info(f"Commands synced, start up done! Connected to {guild_count} guilds and {bot.shard_count} shards.")

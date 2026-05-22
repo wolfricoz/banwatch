@@ -176,11 +176,21 @@ class BanMessages(Timestamps,Base) :
 
 
 class Warnings(Timestamps,Base):
-	__table__ = "warnings"
+	__tablename__ = "warnings"
 	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-	user_id: Mapped[int] = mapped_column(BigInteger)
-	guild_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("servers.id", ondelete="CASCADE"))
-	reason: Mapped[str] = mapped_column(String(4048), unique=True)
+	user_id: Mapped[int] = mapped_column(BigInteger, unique=False)
+	guild_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("servers.id", ondelete="CASCADE"), unique=False)
+	reason: Mapped[str] = mapped_column(String(4048), unique=False)
+
+class WarningEvidence(Timestamps,Base) :
+	__tablename__ = "warning_evidence"
+	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+	warning_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("warnings.id"))
+	user_id: Mapped[int] = mapped_column(BigInteger, unique=False)
+	guild_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("servers.id", ondelete="CASCADE"), unique=False)
+	message_id: Mapped[int] = mapped_column(BigInteger, unique=True)
+
+
 
 def create_bot_database() :
 	Base.metadata.create_all(engine)
