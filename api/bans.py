@@ -1,7 +1,6 @@
 # my_discord_bot/routes/example_routes.py
 import json
 import logging
-import os
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel

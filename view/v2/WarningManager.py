@@ -1,4 +1,5 @@
 from typing import Any, List
+
 import discord
 from discord_py_utilities.bans import ban_user
 from discord_py_utilities.messages import await_message, send_message, send_response
@@ -8,7 +9,7 @@ from classes.configdata import ConfigData
 from classes.queue import queue
 from classes.warnings.evidence import WarningEvidence
 from data.config.mappings import Channels
-from data.variables.messages import evidence_message_template, evidence_warning_message_template
+from data.variables.messages import evidence_warning_message_template
 from database.current import Warnings
 from database.transactions.WarningTransactions import WarningTransactions
 from view.buttons.confirm import Confirm

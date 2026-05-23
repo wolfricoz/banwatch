@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import List
 
 import pymysql
-from discord.utils import TimestampStyle
 from dotenv import load_dotenv
 from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, String, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Relationship, mapped_column, relationship, sessionmaker

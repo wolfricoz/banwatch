@@ -1,16 +1,8 @@
-from typing import List
-
-import discord
-from discord.ui import Select
-from discord_py_utilities.messages import send_message
 from sqlalchemy import select
 from sqlalchemy.orm import Mapped
 
-from classes.configdata import ConfigData
-from data.config.mappings import Channels
-from database.current import WarningEvidence, Warnings
+from database.current import WarningEvidence
 from database.transactions.DatabaseController import DatabaseTransactions
-
 
 
 class WarningEvidenceTransactions(DatabaseTransactions) :

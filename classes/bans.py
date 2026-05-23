@@ -106,6 +106,7 @@ class Bans(metaclass=Singleton) :
 		approved_message = await approved_channel.send(embed=banembed)
 		BanTransactions().update(wait_id, message=approved_message.id)
 		BanMessageTransactions().add_ban_message(ban_id=wait_id, guild_id=guild.id, message_id=approved_message.id)
+
 		dev_guild: discord.Guild = bot.get_guild(bot.SUPPORTGUILD)
 
 		queue().add(self.open_thread(user, guild, approved_message, dev_guild, bot), priority=1)

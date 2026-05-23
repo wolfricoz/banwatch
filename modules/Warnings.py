@@ -29,6 +29,8 @@ class Warnings(GroupCog) :
 
 		Permissions:
 		- manage messages
+		Requirements:
+		- Warning Log must be set (/config change)
 		"""
 
 		# prepare the configs
@@ -91,6 +93,9 @@ class Warnings(GroupCog) :
 
 		Permissions:
 		- manage messages
+		Requirements:
+		- WARNING_LOG must be set (/config change)
+		- WARNING_EVIDENCE_ARCHIVE must be set (/config change)
 		"""
 		if not user :
 			return await send_response(interaction, f"You must specify a user to view.")

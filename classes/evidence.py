@@ -167,4 +167,4 @@ class EvidenceController() :
 			           f"\n**Provided Proof**: {evidence.proof}"
 			           f"\n**attachments:**\n {proof}")
 			buttons = CleanupButtons()
-			await send_message(interaction.channel, content, buttons)
+			await send_message(interaction.channel, content, view=buttons)
