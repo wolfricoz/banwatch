@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 from typing import Type
 
-from sqlalchemy import Select, and_, text
+from sqlalchemy import Select, and_, or_, select, text
 from sqlalchemy.orm import contains_eager, joinedload
 
 from classes.singleton import Singleton
@@ -236,3 +236,15 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 	def get_deleted_bans(self) -> list[type[Bans]] :
 		with self.createsession() as session :
 			return session.query(Bans).filter(Bans.deleted_at.isnot(None)).all()
+
+	def get_criminal_bans(self):
+		with self.createsession() as session :
+			statement = select(Bans).where(
+				or_(
+					Bans.reason.ilike('%pedo%'),
+					Bans.reason.ilike('%groom%'),
+					Bans.reason.ilike('%convicted%')
+				)
+			)
+
+			return session.execute(statement).scalars().all()

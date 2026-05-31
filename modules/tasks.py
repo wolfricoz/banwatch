@@ -9,6 +9,7 @@ from classes.configdata import ConfigData
 from classes.dashboard.Servers import Servers
 from classes.queue import queue
 from classes.tasks import pending_bans
+from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ServerTransactions import ServerTransactions
 
 
@@ -19,12 +20,14 @@ class Tasks(commands.Cog) :
 		self.check_active_servers.start()
 		self.check_pending_bans.start()
 		self.purge_bot_roles.start()
+		self.clean_convict_bans.start()
 
 	def cog_unload(self) :
 		self.check_blacklist.cancel()
 		self.check_active_servers.cancel()
 		self.check_pending_bans.cancel()
 		self.purge_bot_roles.cancel()
+		self.clean_convict_bans.cancel()
 
 
 	@tasks.loop(hours=1)
@@ -106,6 +109,20 @@ class Tasks(commands.Cog) :
 				except Exception as e :
 					logging.warning(f"Failed to remove bot {member} from trap role in {g.name}({g.id}): {e}", exc_info=True)
 
+	@tasks.loop(hours=24)
+	async def clean_convict_bans(self):
+		logging.info(f"Cleaning convict bans from servers")
+		bans = BanTransactions().get_criminal_bans()
+		total_bans = len(bans)
+		current = 0
+
+		for ban in bans:
+			if current % 10 == 0:
+				logging.info(f"Redacting criminal bans: {current}/{total_bans}")
+				await asyncio.sleep(0)
+			BanTransactions().update(ban.uid, reason="This account was removed due to a significant breach of Discord’s Terms of Service. Details are not retained or disclosed, please reach out to the server for more information.", edited_by="System")
+			current += 1
+		logging.info(f"Cleaned up {current}/{total_bans} criminal bans from servers")
 
 
 	@check_active_servers.before_loop
@@ -114,6 +131,10 @@ class Tasks(commands.Cog) :
 
 	@purge_bot_roles.before_loop
 	async def before_purge_bot_roles(self) :
+		await self.bot.wait_until_ready()
+
+	@clean_convict_bans.before_loop
+	async def before_clean_convict_bans(self) :
 		await self.bot.wait_until_ready()
 
 
