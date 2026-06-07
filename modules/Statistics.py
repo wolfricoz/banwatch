@@ -17,10 +17,16 @@ class Statistics(GroupCog, name="statistics") :
 
 	pass
 
-	@app_commands.command(name="bans", description="Shows the stats of your bans!")
+	@app_commands.command(name="bans", description="Shows you a detailed graph of the status of your bans")
 	@app_commands.guild_only()
 	@app_commands.checks.has_permissions(manage_messages=True)
 	async def bans(self, interaction: discord.Interaction) :
+		"""
+		Shows you a detailed graph of the status of your bans
+
+		**Permissions:**
+		- manage_messages
+		"""
 		db_data = BanTransactions().status_statistic(interaction.guild_id)
 
 		# Prepare the data
@@ -33,11 +39,20 @@ class Statistics(GroupCog, name="statistics") :
 		await send_message(interaction.channel, f"-# Note: Bans may be hidden due to insufficient evidence, unclear justification, low value to external servers, privacy protection, or if the ban is outdated. You can view them on the dashboard!", files=[discord.File(fp=file, filename="ban_status.png")])
 		clean_pie(interaction.guild_id)
 
-	@app_commands.command(name="trend", description="Show the trend in your bans!")
+	@app_commands.command(name="trend", description="Shows you a detailed graph of the timeline of your bans!")
 	@app_commands.guild_only()
 	@app_commands.checks.has_permissions(manage_messages=True)
 	async def trend(self, interaction: discord.Interaction, days: int = 30) :
+		"""
+		Shows you a detailed graph of the timeline of your bans!
+
+		**Permissions:**
+		- manage_messages
+
+		"""
+
 		db_data = BanTransactions().trend_statistic(interaction.guild_id, days)
+
 
 		file = create_ban_trend_chart(interaction.guild_id, db_data)
 		await send_message(interaction.channel, f" ", files=[discord.File(fp=file, filename="ban_status.png")])

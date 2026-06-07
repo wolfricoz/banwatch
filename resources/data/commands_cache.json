@@ -8,7 +8,7 @@
     "permissioncheck": "Checks if the bot has the required permissions in the current channel and server. This is the first step in troubleshooting if the bot is not functioning as expected. Please run this command before contacting support.\n\n**Permissions:**\n- None required for the user.",
     "add": "Adds evidence to a user's ban record.\nCan be text, attachments, or both.\n\n**Permissions:**\n- `Moderate Members`",
     "get": "Retrieves and displays all evidence for a given user or ban ID.\n\n**Permissions:**\n- `Moderate Members`",
-    "manage": "Allows you to manage the warnings you have, as well as add evidence or even take actions against the user.\n\nPermissions:\n- manage messages",
+    "manage": "Allows you to manage the warnings you have, as well as add evidence or even take actions against the user.\n\nPermissions:\n- manage messages\nRequirements:\n- WARNING_LOG must be set (/config change)\n- WARNING_EVIDENCE_ARCHIVE must be set (/config change)",
     "set_channel": "Allows you to set the channel where the invite gets created.\n\nPermissions:\n- manage_channels",
     "regenerate": "Creates a new invite!\n\nPermissions:\n- manage_channels",
     "lookup": "Looks up a user's ban history across all monitored servers.\nCan search by user or a specific ban ID.\n\n**Permissions:**\n- `Ban Members`",
@@ -32,6 +32,8 @@
     "calc_banid": "Calculates the unique ban ID that would be generated for a specific user in a specific guild. This is a utility for debugging and manual lookups.\n\n**Permissions:**\n- Requires BanWatch Staff access.",
     "staff_visibility": "Sets the visibility of a server's bans within the BanWatch network. Hiding a server prevents its bans from being shared or viewed by other servers.\n\n**Permissions:**\n- Requires BanWatch Staff access.",
     "audit_bans": "Audits all bans or just unsent bans to ensure they meet BanWatch's guidelines and standards. This is a maintenance command for staff to keep the ban database clean and accurate.\n\n**Permissions:**\n- Requires BanWatch Staff access.",
+    "bans": "Shows you a detailed graph of the status of your bans\n\n**Permissions:**\n- manage_messages",
+    "trend": "Shows you a detailed graph of the timeline of your bans!\n\n**Permissions:**\n- manage_messages",
     "ban": "Bans a specified user from the server. This command offers options for silent bans, message cleaning, and whether to notify the user. A reason for the ban will be requested.\n\n**Permissions:**\n- Requires `Ban Members` permission.",
     "mass_ban": "Bans multiple users from the server simultaneously. This is an efficient tool for handling raids or removing multiple disruptive users at once. A single reason will apply to all.\n\n**Permissions:**\n- Requires `Ban Members` permission.",
     "unban": "Revokes a ban for a specified user, allowing them to rejoin the server. This is essential for correcting banning mistakes or allowing users to return after an appeal.\n\n**Permissions:**\n- Requires `Ban Members` permission.",
@@ -43,6 +45,6 @@
     "support": "Provides a link to the official documentation and support server. Use this if you need help with the bot or want to report an issue.\n\n**Permissions:**\n- None required for the user.",
     "donate": "Provides a link to financially support the development and hosting of BanWatch. Donations help keep the bot running and support future updates.\n\n**Permissions:**\n- None required for the user.",
     "clean_messages": "Cleans up messages sent by BanWatch in the current channel. This is useful for removing old ban notifications or clutter.\n\n**Permissions:**\n- Requires `Manage Messages` permission.",
-    "warn": "Create a warning for the selected member with the options to inform them, kick them, and permanent logging.\n\nPermissions:\n- manage messages",
+    "warn": "Create a warning for the selected member with the options to inform them, kick them, and permanent logging.\n\nPermissions:\n- manage messages\nRequirements:\n- Warning Log must be set (/config change)",
     "punishments": "Define automated punishments based on warning count. To remove input 0 in warning_count\n\nPermissions:\n- manage guild\n- Premium"
 }

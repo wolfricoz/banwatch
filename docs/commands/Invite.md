@@ -6,7 +6,7 @@ nav_order: 4
 ---
 
 <h1>Invite</h1>
-<h6>version: 3.4.0: Now with a warning system!</h6>
+<h6>version: 3.4: Now with a warning system!</h6>
 <h6>Documentation automatically generated from docstrings.</h6>
 
         

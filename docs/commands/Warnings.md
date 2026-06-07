@@ -2,11 +2,11 @@
 layout: default
 title: Warnings
 parent: Commands
-nav_order: 11
+nav_order: 12
 ---
 
 <h1>Warnings</h1>
-<h6>version: 3.4.0: Now with a warning system!</h6>
+<h6>version: 3.4: Now with a warning system!</h6>
 <h6>Documentation automatically generated from docstrings.</h6>
 
 Represents a cog that also doubles as a parent :class:`discord.app_commands.Group` for
@@ -44,6 +44,8 @@ For example:
 
 Permissions:
 - manage messages
+Requirements:
+- Warning Log must be set (/config change)
 
 ---
 
@@ -55,6 +57,9 @@ Permissions:
 
 Permissions:
 - manage messages
+Requirements:
+- WARNING_LOG must be set (/config change)
+- WARNING_EVIDENCE_ARCHIVE must be set (/config change)
 
 ---
 

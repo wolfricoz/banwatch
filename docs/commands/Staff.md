@@ -6,7 +6,7 @@ nav_order: 8
 ---
 
 <h1>Staff</h1>
-<h6>version: 3.4.0: Now with a warning system!</h6>
+<h6>version: 3.4: Now with a warning system!</h6>
 <h6>Documentation automatically generated from docstrings.</h6>
 
 Commands for BanWatch staff members. These commands provide tools for managing and overseeing the bot's operations across servers.

@@ -6,7 +6,7 @@ nav_order: 3
 ---
 
 <h1>Evidence</h1>
-<h6>version: 3.4.0: Now with a warning system!</h6>
+<h6>version: 3.4: Now with a warning system!</h6>
 <h6>Documentation automatically generated from docstrings.</h6>
 
 Commands to add, retrieve, and manage evidence for user bans.
