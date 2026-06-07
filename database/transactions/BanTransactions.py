@@ -32,16 +32,14 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			if str(ban.uid) not in self.local_cache :
 				self.local_cache[str(ban.uid)] = {}
 			self.local_cache[str(ban.uid)][str(ban.ban_id)] = data
-			count+=1
+			count += 1
 			if count % 1000 == 0 :
 				logging.info(f"Cached {count} bans...")
 				await asyncio.sleep(0)
 		logging.info(f"Completed caching {count} bans.")
 
-
 	def exists(self, ban_id: int, remove_deleted: bool = False) -> bool :
 		with self.createsession() as session :
-
 			ban = session.scalar(Select(Bans).where(Bans.ban_id == ban_id))
 			if ban is not None and ban.deleted_at and remove_deleted :
 				self.delete_permanent(ban_id)
@@ -56,7 +54,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			if ServerTransactions().exists(gid) is False :
 				return False
 			if self.exists(uid + gid, remove_deleted=remove_deleted) :
-				self.update(ban=uid + gid, gid=gid, uid=uid , approved=approved, verified=verified, hidden=hidden)
+				self.update(ban=uid + gid, gid=gid, uid=uid, approved=approved, verified=verified, hidden=hidden)
 				return self.get(uid + gid)
 
 			ban = Bans(ban_id=uid + gid, uid=uid, gid=gid, reason=reason, approved=approved, verified=verified, hidden=hidden,
@@ -65,7 +63,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			self.commit(session)
 			return ban
 
-	def get(self, ban_id: int = None, current_session = None, override: bool = False) -> Type[Bans] | None :
+	def get(self, ban_id: int = None, current_session=None, override: bool = False) -> Type[Bans] | None :
 		with self.createsession() as session :
 			if current_session :
 				session = current_session
@@ -89,16 +87,15 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 
 	def get_all_user(self, user_id, override=False) :
 		with self.createsession() as session :
-
 			if override :
-				return session.scalars(Select(Bans).options(joinedload(Bans.guild)).join(Servers).where(Bans.uid == user_id)).all()
+				return session.scalars(
+					Select(Bans).options(joinedload(Bans.guild)).join(Servers).where(Bans.uid == user_id)).all()
 			return session.query(Bans).options(joinedload(Bans.guild)).join(Servers).filter(
 				and_(Bans.uid == user_id, Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None),
 				     Bans.approved.is_(True), Servers.hidden.is_(False))).all()
 
 	def count_all_user(self, user_id, override=False) :
 		with self.createsession() as session :
-
 			if override :
 				return session.query(Bans).where(Bans.uid == user_id).count()
 			return session.query(Bans).join(Servers).filter(
@@ -116,7 +113,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 
 	def get_audit(self, override=False) :
 		with self.createsession() as session :
-			if override:
+			if override :
 				return session.scalars(
 					Select(Bans).join(Servers).options(joinedload(Bans.guild)).where(
 						and_(Bans.deleted_at.is_(None),
@@ -126,7 +123,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			return session.scalars(
 				Select(Bans).join(Servers).options(joinedload(Bans.guild)).where(
 					and_(Bans.deleted_at.is_(None),
-					     Bans.verified.is_(False) ,
+					     Bans.verified.is_(False),
 					     Bans.hidden.is_(False),
 					     Bans.approved.is_(True),
 					     Bans.message.is_(None),
@@ -136,37 +133,47 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 
 	def get_all_pending(self) :
 		with self.createsession() as session :
-
 			return session.scalars(
 				Select(Bans).join(Servers).options(joinedload(Bans.proof)).where(
 					and_(Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None),
 					     Servers.hidden.is_(False)))).unique().all()
 
-	def count(self, result_type="all") :
+	# noinspection SqlResolve
+	def count(self, result_type="all", server_id = None) :
 		"""
 		This function takes: available, approved, hidden, and deleted as result type, leave empty for all bans
 		:param result_type:
 		:return:
 		"""
+		server = ""
+		if server_id:
+			server = f" AND GID = {server_id}"
+
 		with self.createsession() as session :
 
 			match result_type.lower() :
 				case "available" :
-					return session.execute(text("SELECT count(*) FROM bans WHERE hidden = false AND deleted_at IS NULL")).scalar()
+					return session.execute(text(f"SELECT count(*) FROM bans WHERE hidden = false AND deleted_at IS NULL {server}")).scalar()
 				case "verified" :
-					return session.execute(text("SELECT count(*) FROM bans WHERE verified = true")).scalar()
+					return session.execute(
+						text(f"SELECT count(*) FROM bans WHERE approved = TRUE AND verified = TRUE AND hidden = FALSE {server}")).scalar()
 				case "hidden" :
-					return session.execute(text("SELECT count(*) FROM bans WHERE hidden = true")).scalar()
+					return session.execute(text(f"SELECT count(*) FROM bans WHERE hidden = true {server}")).scalar()
 				case "deleted" :
-					return session.execute(text("SELECT count(*) FROM bans WHERE deleted_at IS NOT NULL")).scalar()
-				case "prebanwatch":
-					return session.execute(text("SELECT count(*) FROM bans WHERE message IS NULL and hidden = false")).scalar()
+					return session.execute(text(f"SELECT count(*) FROM bans WHERE deleted_at IS NOT NULL {server}")).scalar()
+				case "approved" :
+					return session.execute(
+						text(f"SELECT count(*) FROM bans WHERE approved = TRUE AND verified = FALSE AND hidden = FALSE {server}")).scalar()
+				case "pending" :
+					return session.execute(
+						text(f"SELECT count(*) FROM bans WHERE approved = FALSE AND verified = FALSE AND hidden = FALSE {server}")).scalar()
+				case "prebanwatch" :
+					return session.execute(text(f"SELECT count(*) FROM bans WHERE message IS NULL and hidden = false {server}")).scalar()
 				case _ :
-					return session.execute(text("SELECT count(*) FROM bans")).scalar()
+					return session.execute(text(f"SELECT count(*) FROM bans {server}")).scalar()
 
 	def delete_soft(self, ban_id: int) -> bool :
 		with self.createsession() as session :
-
 			logging.info(f"Ban soft removed {ban_id}.")
 			ban = self.get(ban_id, session)
 			if not ban or ban.deleted_at :
@@ -188,7 +195,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			return True
 
 	def update(self, ban: int | Bans | Type[Bans],
-	           gid: int= None,
+	           gid: int = None,
 	           uid: int = None,
 	           approved: bool = None,
 	           verified: bool = None,
@@ -209,22 +216,22 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 				logging.error(f"Ban {ban} not found.")
 				return False
 			updates = {
-				'approved'   : approved,
-				'verified'   : verified,
-				'hidden'     : hidden,
-				'updated_at' : datetime.now(),
-				'deleted_at' : datetime.now() if deleted_at else None if deleted_at is False else ban.deleted_at,
-				'message'    : message,
-				'reason'     : reason,
-				'edited'     : edited,
-				'edited_by'  : edited_by,
-				'date_override': date_override,
-				'gid': gid,
-				'uid': uid,
+				'approved'      : approved,
+				'verified'      : verified,
+				'hidden'        : hidden,
+				'updated_at'    : datetime.now(),
+				'deleted_at'    : datetime.now() if deleted_at else None if deleted_at is False else ban.deleted_at,
+				'message'       : message,
+				'reason'        : reason,
+				'edited'        : edited,
+				'edited_by'     : edited_by,
+				'date_override' : date_override,
+				'gid'           : gid,
+				'uid'           : uid,
 			}
 
 			for field, value in updates.items() :
-				if field == 'reason' and ban.edited and not override:
+				if field == 'reason' and ban.edited and not override :
 					continue
 				if value is not None :
 					setattr(ban, field, value)
@@ -237,7 +244,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 		with self.createsession() as session :
 			return session.query(Bans).filter(Bans.deleted_at.isnot(None)).all()
 
-	def get_criminal_bans(self):
+	def get_criminal_bans(self) :
 		with self.createsession() as session :
 			statement = select(Bans).where(
 				or_(
@@ -248,3 +255,19 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			)
 
 			return session.execute(statement).scalars().all()
+
+	#	=== Statistics ===
+
+	def status_statistic(self, guild_id: int = None) -> dict[str, int] :
+		"""
+
+		:return:
+		"""
+		# TODO: MAKE THESE SERVER SPECIFIC.
+		return {
+			'approved' : self.count("approved", server_id=guild_id),
+			'hidden'   : self.count("hidden", server_id=guild_id),
+			'verified' : self.count("verified", server_id=guild_id),
+			'pending'  : self.count("pending", server_id=guild_id),
+			'deleted'  : self.count("deleted", server_id=guild_id),
+		}
