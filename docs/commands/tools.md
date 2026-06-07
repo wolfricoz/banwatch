@@ -2,11 +2,11 @@
 layout: default
 title: Tools
 parent: Commands
-nav_order: 9
+nav_order: 10
 ---
 
 <h1>Tools</h1>
-<h6>version: 3.4.0: Now with a warning system!</h6>
+<h6>version: 3.4: Now with a warning system!</h6>
 <h6>Documentation automatically generated from docstrings.</h6>
 
 The base class that all cogs must inherit from.

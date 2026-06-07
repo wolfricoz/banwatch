@@ -2,11 +2,11 @@
 layout: default
 title: Utility
 parent: Commands
-nav_order: 10
+nav_order: 11
 ---
 
 <h1>Utility</h1>
-<h6>version: 3.4.0: Now with a warning system!</h6>
+<h6>version: 3.4: Now with a warning system!</h6>
 <h6>Documentation automatically generated from docstrings.</h6>
 
 The base class that all cogs must inherit from.
