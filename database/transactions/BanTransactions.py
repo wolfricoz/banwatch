@@ -2,7 +2,7 @@ import asyncio
 import datetime
 import logging
 from datetime import datetime
-from typing import Type
+from typing import Any, Type
 
 from sqlalchemy import Select, and_, or_, select, text
 from sqlalchemy.orm import contains_eager, joinedload
@@ -263,7 +263,6 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 
 		:return:
 		"""
-		# TODO: MAKE THESE SERVER SPECIFIC.
 		return {
 			'approved' : self.count("approved", server_id=guild_id),
 			'hidden'   : self.count("hidden", server_id=guild_id),
@@ -271,3 +270,16 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			'pending'  : self.count("pending", server_id=guild_id),
 			'deleted'  : self.count("deleted", server_id=guild_id),
 		}
+
+	def trend_statistic(self, guild_id: int = None, days = 30) -> dict[Any, Any] | dict[str, Any] | dict[str, str] | dict[
+		bytes, bytes] :
+		with self.createsession() as session :
+			return dict(session.execute(
+        text(
+            "SELECT created_at::date, COUNT(*) "
+            "FROM bans "
+            "WHERE created_at > NOW() - CAST(:days || ' DAY' AS INTERVAL) and gid = :gid "
+            "GROUP BY 1"
+        ),
+        {"days": days, 'gid': guild_id}
+    ).all())
