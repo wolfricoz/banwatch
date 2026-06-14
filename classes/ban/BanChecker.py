@@ -76,18 +76,21 @@ class BanChecker() :
 		if str(self.ban.reason).lower().startswith('[migrated') :
 			logging.info("Migrated ban, not prompting")
 			self.status = BanCheckerStatus.HIDE
+			self.reason = "Migrated ban"
 			return
 
 	async def check_cross_ban(self) :
 		"""Checks if the ban is a cross-ban, and if it is, hides it and adds it to the database."""
 		if self.ban.reason is None :
 			self.status = BanCheckerStatus.HIDE
+			self.reason = "Cross ban"
 			return
 
 		match = re.match(r"Cross-ban from (?P<guild_name>.+?) with ban id: (?P<ban_id>\d+)", str(self.ban.reason))
 		if match or str(self.ban.reason).lower() in ['crossban', 'cross-ban'] :
 			logging.info("Cross-ban with no additional info, this ban has been hidden")
 			self.status = BanCheckerStatus.HIDE
+			self.reason = "Cross ban"
 			return
 
 	async def assess_value(self) :
@@ -108,6 +111,7 @@ class BanChecker() :
 		) :
 			logging.info("Hiding ban: Reason doesn't provide valuable information or has hidden tag.")
 			self.status = BanCheckerStatus.HIDE
+			self.reason = "Low Value Ban"
 			return
 
 	async def check_staff(self) :
