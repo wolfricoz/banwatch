@@ -61,6 +61,7 @@ class Tasks(commands.Cog) :
 		logging.info(f"Checking active servers")
 		guild_ids = ServerTransactions().get_all()
 		for guild in self.bot.guilds :
+
 			if guild.id in guild_ids :
 				guild_ids.remove(guild.id)
 				ServerTransactions().update(guild.id, owner=guild.owner.name, owner_id=guild.owner.id, member_count=guild.member_count, name=guild.name,  active=True)

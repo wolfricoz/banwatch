@@ -36,7 +36,7 @@ class Bans(metaclass=Singleton) :
 		known_guilds = ServerTransactions().get_all()
 		count = 0
 		for guild in bot.guilds :
-
+			logging.info(f"Updating guild {guild.id}...")
 			if count % 10 == 0 :
 				logging.info(f"Updating guilds... {count}/{len(bot.guilds)}")
 				await asyncio.sleep(0)
@@ -48,7 +48,7 @@ class Bans(metaclass=Singleton) :
 				                         len(guild.members), None)
 			except Exception as e :
 				logging.error(f"Error adding guild {guild.id}: {e}")
-			await Bans().check_guild_bans(bot, guild)
+			queue().add(Bans().check_guild_bans(bot, guild), priority=0)
 			await Bans().check_guild_invites(bot, guild)
 		logging.info(f"Finished updating {count}/{len(bot.guilds)} guilds. {len(known_guilds)} guilds no longer known, removing...")
 
@@ -298,7 +298,11 @@ class Bans(metaclass=Singleton) :
 			if count % 25 == 0 :
 				logging.info(f"Found {count} new bans so far in {guild.name}({guild.id})")
 				await asyncio.sleep(0)
-		queue().add(server.remove_missing_ids(), priority=0)
+		missed_targets = server.check_missed_ids()
+		server.remove_missing_ids(missed_targets)
+
+		logging.info(
+			f"Found {count} new bans in {guild.name}({guild.id}). Queued {len(missed_targets)} old bans for deletion.")
 		logging.info(f"Found {count} new bans in {guild.name}({guild.id})")
 
 	async def check_guild_invites(self, bot: commands.AutoShardedBot, guild: discord.Guild) :
