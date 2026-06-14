@@ -33,7 +33,7 @@ class AppealButtons(SecureView) :
 
 	@discord.ui.button(label="Respond", style=discord.ButtonStyle.success, custom_id="Respond")
 	async def respond(self, interaction: discord.Interaction, button: discord.ui.Button) :
-		if interaction.user.guild_permissions.ban_members is False:
+		if not isinstance(interaction.user, discord.Member) or interaction.user.guild_permissions.ban_members is False:
 			await send_response(interaction, "You don't have permission to do that!", ephemeral=True)
 			return
 		await self.load_data(interaction)
