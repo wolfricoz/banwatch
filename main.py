@@ -44,24 +44,21 @@ DEV = int(os.getenv("DEV"))
 
 create_bot_database()
 
-
 # Sentry Integration
 sentry_sdk.init(
-    dsn=os.getenv("SENTRY_DSN"),
-    # Add data like request headers and IP for users,
-    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
-    send_default_pii=True,
+	dsn=os.getenv("SENTRY_DSN"),
+	# Add data like request headers and IP for users,
+	# see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+	send_default_pii=True,
 )
-
-
 
 # declares the bots intent
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 shard_count = 5
-if os.getenv('DEBUG') == "TRUE":
-		shard_count = 1
+if os.getenv('DEBUG') == "TRUE" :
+	shard_count = 1
 bot = commands.AutoShardedBot(command_prefix=PREFIX, case_insensitive=False, intents=intents, shard_id=randint,
                               shard_count=shard_count)
 
@@ -75,13 +72,17 @@ async def lifespan(app: FastAPI) :
 	await bot.close()
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan,
+              docs_url=None,
+              redoc_url=None,
+              openapi_url=None,
+              )
 routers = []
 for router in api.__all__ :
-	try:
+	try :
 		app.include_router(getattr(api, router))
 		routers.append(router)
-	except Exception as e:
+	except Exception as e :
 		logging.error(f"Failed to load {router}: {e}")
 
 bot.SUPPORTGUILD = int(os.getenv('GUILD'))
@@ -122,7 +123,7 @@ async def on_ready() :
 	logging.info(f"Bot is in {guild_count} guilds:\n{formguilds}")
 	queue().add(send_message(devroom, f"Banwatch is in {guild_count} guilds. Version {VERSION}"), priority=2)
 	# Adding views
-	try:
+	try :
 		bot.add_view(ServerInfo())
 		bot.add_view(LookUp())
 		bot.add_view(AppealButtons())
@@ -130,7 +131,7 @@ async def on_ready() :
 		bot.add_view(BanInform(Bans()))
 		bot.add_view(OnboardingLayout())
 		bot.add_view(EvidenceUI(None, None, None, None))
-	except Exception as e:
+	except Exception as e :
 		logging.error(f"Failed to load views: {e}")
 	# Syncing commands
 	queue().add(bot.tree.sync())
@@ -195,16 +196,15 @@ async def setup_hook() :
 	loaded = []
 	dirs = ["commands", "modules", "listeners"]
 	for dir in dirs :
-		try:
+		try :
 			for filename in os.listdir(dir) :
 				if filename.endswith('.py') :
 					await bot.load_extension(f"{dir}.{filename[:-3]}")
 					loaded.append(filename[:-3])
 				else :
 					logging.info(f'Unable to load {filename[:-3]}')
-		except FileNotFoundError:
+		except FileNotFoundError :
 			pass
-
 
 	loaded = ", ".join(loaded)
 	logging.info(f"Loaded Modules: {loaded}")
