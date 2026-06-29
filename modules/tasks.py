@@ -121,7 +121,7 @@ class Tasks(commands.Cog) :
 			if current % 10 == 0:
 				logging.info(f"Redacting criminal bans: {current}/{total_bans}")
 				await asyncio.sleep(0)
-			BanTransactions().update(ban.uid, reason="This account was removed due to a significant breach of Discord’s Terms of Service. Details are not retained or disclosed, please reach out to the server for more information.", edited_by="System")
+			BanTransactions().update(ban.ban_id, reason="This account was removed due to a significant breach of Discord’s Terms of Service. Details are not retained or disclosed, please reach out to the server for more information.", edited_by="System")
 			current += 1
 		logging.info(f"Cleaned up {current}/{total_bans} criminal bans from servers")
 
