@@ -91,8 +91,13 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 				return session.scalars(
 					Select(Bans).options(joinedload(Bans.guild)).join(Servers).where(Bans.uid == user_id)).all()
 			return session.query(Bans).options(joinedload(Bans.guild)).join(Servers).filter(
-				and_(Bans.uid == user_id, Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None),
-				     Bans.approved.is_(True), Servers.hidden.is_(False))).all()
+				and_(Bans.uid == user_id,
+				     Bans.deleted_at.is_(None),
+				     Bans.hidden.is_(False),
+				     Servers.deleted_at.is_(None),
+				     Bans.approved.is_(True),
+				     Servers.hidden.is_(False),
+				     Servers.active.is_(True))).all()
 
 	def count_all_user(self, user_id, override=False) :
 		with self.createsession() as session :
