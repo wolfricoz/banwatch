@@ -17,14 +17,14 @@ class CommunicationButtons(SecureView) :
 		super().__init__(timeout=None)
 
 
-	@discord.ui.button(label="Respond", style=discord.ButtonStyle.success, custom_id="Respond")
+	@discord.ui.button(label="Respond", style=discord.ButtonStyle.success, custom_id="Respond_comms")
 	async def respond(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		await self.load_data(interaction)
 		message = await send_modal(interaction, f"Your response has been delivered to {self.recipient.name}", "What's your message?", 2000)
 		await self.send_embed(interaction, message)
 		await self.disable_buttons(interaction)
 
-	@discord.ui.button(label="Report", style=discord.ButtonStyle.danger, custom_id="Report")
+	@discord.ui.button(label="Report", style=discord.ButtonStyle.danger, custom_id="Report_comms")
 	async def report(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		await self.load_data(interaction)
 		staff_channel = self.bot.get_channel(int(os.getenv("BANS")))
