@@ -17,6 +17,11 @@ class AppealButtons(SecureView) :
 
 	def __init__(self, response=False) :
 		super().__init__(timeout=None)
+		self.user = None
+		self.guild = None
+		self.ban = None
+		self.ban_id = None
+		self.dmChannel = None
 		self.response = response
 		if response :
 			self.change_status.disabled = True
