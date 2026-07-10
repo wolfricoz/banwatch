@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Ban Guidelines
-nav_order: 2
+nav_order: 3
 ---
 
 Version: 3.2

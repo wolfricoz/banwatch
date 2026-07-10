@@ -2,7 +2,7 @@
 layout: default
 title: Commands
 has_children: true
-nav_order: 5
+nav_order: 10
 ---
 
 # Commands

@@ -34,34 +34,24 @@ https://discord.com/oauth2/authorize?client_id=1047697525349564436
 
 ## code of conduct
 
-Banwatch has a code of conduct that all users must follow. The code of conduct is as follows:
-
-- You must not use the bot to harass or bully other users by spreading false information.
-- You must not use the bot to spam or flood the server.
-- You must not use the bot to spread hate speech or any other form of discrimination.
-- You must not use the bot to spread any form of illegal content.
-- You must not use hate speech or any other form of discriminatory language in your ban reasons.
-- We reserve the right to request proof of the ban reason if we suspect it is false or if the ban reason has a serious
-  impact on the user's reputation.
-- You must not pressure other users to ban an user if they do not want to. This includes threatening to ban them if they
-  do not ban the user. __Banwatch is a tool to help you make informed decisions, not a tool to force others to ban
-  users.__
+Banwatch has a code of conduct that all users must follow — no harassment or
+spreading false information, no spam, no hate speech or illegal content, and
+never pressuring other owners into banning someone. **Banwatch is a tool to help
+you make informed decisions, not a tool to force others to ban users.** The full
+code of conduct lives on the [Ban Guidelines](BanGuidelines.md) page.
 
 ## usage
 
-To use banwatch, you need to invite the bot to your server. You can do this by
-clicking [here](https://discord.com/oauth2/authorize?client_id=1047697525349564436). the bot requires the following
-permissions:
+New here? The [Getting Started](getting-started.md) guide walks you through setup
+in about five minutes.
 
-- Manage server: This permission is required to set up the bot as well as access server invites and information.
-- Ban members: This permission is required to check if a user has any bans, without the bot cant access bans.
-- create instant invite: This allows the bot to create invites to the server the user was banned from.
-- send messages: This permission is required to send messages to the channel you set up for the bot.
-- use embedded activities: This permission is required to send embeds to the channel you set up for the bot.
+In short: invite the bot using the link above, run `/config permissioncheck` so
+it can tell you it has everything it needs, then run `/config change` and choose
+**Mod Channel** to pick where Banwatch posts. Once that's done, the bot works in
+the background to keep your server safe.
 
-After you have invited the bot to your server, you can set it up by using the `/config change option:Mod channel input:`
-command. This command sets up the channel where the bot will post user-related information; once that is done, the bot
-is ready to use and will work in the background to keep your server safe.
+For the full list of permissions Banwatch needs and why, and how to see who in
+your server can configure it, see the [Permissions](permissions.md) page.
 
 ## Commands
 

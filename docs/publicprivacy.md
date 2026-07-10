@@ -1,7 +1,7 @@
 ---
 layout: default
 title: privacy
-nav_order: 6
+nav_order: 15
 ---
 
 # Privacy Policy

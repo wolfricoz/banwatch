@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Bans
-nav_order: 3
+nav_order: 4
 ---
 
 <h1 style="text-align: center;">Bans</h1>
