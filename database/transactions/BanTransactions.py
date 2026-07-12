@@ -151,31 +151,33 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 		:return:
 		"""
 		server = ""
-		if server_id:
-			server = f" AND GID = {server_id}"
+		params: dict = {}
+		if server_id :
+			server = " AND GID = :gid"
+			params["gid"] = server_id
 
 		with self.createsession() as session :
 
 			match result_type.lower() :
 				case "available" :
-					return session.execute(text(f"SELECT count(*) FROM bans WHERE hidden = false AND deleted_at IS NULL {server}")).scalar()
+					return session.execute(text(f"SELECT count(*) FROM bans WHERE hidden = false AND deleted_at IS NULL {server}"), params).scalar()
 				case "verified" :
 					return session.execute(
-						text(f"SELECT count(*) FROM bans WHERE approved = TRUE AND verified = TRUE AND hidden = FALSE {server}")).scalar()
+						text(f"SELECT count(*) FROM bans WHERE approved = TRUE AND verified = TRUE AND hidden = FALSE {server}"), params).scalar()
 				case "hidden" :
-					return session.execute(text(f"SELECT count(*) FROM bans WHERE hidden = true {server}")).scalar()
+					return session.execute(text(f"SELECT count(*) FROM bans WHERE hidden = true {server}"), params).scalar()
 				case "deleted" :
-					return session.execute(text(f"SELECT count(*) FROM bans WHERE deleted_at IS NOT NULL {server}")).scalar()
+					return session.execute(text(f"SELECT count(*) FROM bans WHERE deleted_at IS NOT NULL {server}"), params).scalar()
 				case "approved" :
 					return session.execute(
-						text(f"SELECT count(*) FROM bans WHERE approved = TRUE AND verified = FALSE AND hidden = FALSE {server}")).scalar()
+						text(f"SELECT count(*) FROM bans WHERE approved = TRUE AND verified = FALSE AND hidden = FALSE {server}"), params).scalar()
 				case "pending" :
 					return session.execute(
-						text(f"SELECT count(*) FROM bans WHERE approved = FALSE AND verified = FALSE AND hidden = FALSE {server}")).scalar()
+						text(f"SELECT count(*) FROM bans WHERE approved = FALSE AND verified = FALSE AND hidden = FALSE {server}"), params).scalar()
 				case "prebanwatch" :
-					return session.execute(text(f"SELECT count(*) FROM bans WHERE message IS NULL and hidden = false {server}")).scalar()
+					return session.execute(text(f"SELECT count(*) FROM bans WHERE message IS NULL and hidden = false {server}"), params).scalar()
 				case _ :
-					return session.execute(text(f"SELECT count(*) FROM bans {server}")).scalar()
+					return session.execute(text(f"SELECT count(*) FROM bans {server}"), params).scalar()
 
 	def delete_soft(self, ban_id: int) -> bool :
 		with self.createsession() as session :
