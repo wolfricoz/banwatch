@@ -13,9 +13,12 @@ class OnboardingLayout(discord.ui.LayoutView) :
 	def __init__(self):
 		super().__init__(timeout=None, )
 	custom_id = "onboarding_layout"
+	# TODO: [ERROR-HANDLING] Bare `except:` - two distinct failures are hidden here: os.getenv("GUILD")
+	#  returning None (int(None) -> TypeError) and a DB error from .get(). Handle the missing-env case
+	#  explicitly and catch the DB exception specifically rather than swallowing everything.
 	try:
 		support_server = ServerTransactions().get(int(os.getenv("GUILD")))
-	except:
+	except Exception:
 		support_server = None
 
 
