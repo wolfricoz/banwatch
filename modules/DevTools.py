@@ -307,9 +307,6 @@ class DevTools(commands.GroupCog, name="dev") :
 				continue
 			try :
 				id = int(message.content.replace(":", "").split(" ")[2])
-			# TODO: [ERROR-HANDLING] Bare `except:` - the only expected failures here are
-			#  IndexError/ValueError from split()/int(). Catch those explicitly so unrelated errors
-			#  (and CancelledError) aren't silently swallowed. Also `id` shadows the builtin.
 			except :
 				logging.warning(f"Failed to extract id from {message.content}")
 				continue
@@ -319,9 +316,6 @@ class DevTools(commands.GroupCog, name="dev") :
 			try :
 				match = re.search(r"```(.*?)```", message.content, flags=re.DOTALL).group(1)
 				message.content = match
-			# TODO: [ERROR-HANDLING] Bare `except:` masks the real failure mode: re.search returns None
-			#  when there's no match, so `.group(1)` raises AttributeError. Guard the None case explicitly
-			#  instead of catching everything.
 			except :
 				logging.warning(f"Failed to extract message content from {message.content}")
 				message.content = ""
@@ -375,10 +369,8 @@ class DevTools(commands.GroupCog, name="dev") :
 					continue
 				embed = message.embeds[0]
 				try :
-					# TODO: [ERROR-HANDLING] Bare `except:` - guards against embed.footer.text being None
-					#  (AttributeError). Catch AttributeError specifically rather than everything.
 					match = re.search(r'ban ID: (\d+)', embed.footer.text)
-				except :
+				except AttributeError:
 					match = None
 				if not match :
 					continue
@@ -548,10 +540,7 @@ class DevTools(commands.GroupCog, name="dev") :
 
 		await send_response(interaction, queue_text, ephemeral=True)
 
-	# TODO: [DEAD CODE / decide] Large commented-out `set_audit_message` dev command (~60 lines) below.
-	#  This was a one-off migration/audit backfill. Either delete it (git history keeps it) or, if it's
-	#  a script you re-run periodically, move it to dev/ as a real maintenance command rather than
-	#  leaving it commented inside the live cog.
+
 	# @app_commands.command(name="set_audit_message",
 	#                       description="[DEV] sets date override for bans affected by the audit to show these were inspected.")
 	# @AccessControl().check_access("dev")
