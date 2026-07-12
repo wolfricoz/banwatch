@@ -15,6 +15,11 @@ class Refresher(commands.Cog):
     def cog_unload(self):
         self.ban_update_task.cancel()
 
+    # TODO: [BUG/dead code] ban_update_task is DEFINED TWICE in this class. In Python the second
+    #  definition (the @tasks.loop(minutes=10) one below) completely replaces this @tasks.loop(hours=2)
+    #  method - so this 2-hour full refresh, including `await Bans().update(bot)`, NEVER RUNS. Only the
+    #  10-minute cache rebuild is active. If the full banlist refresh is still wanted, rename one of the
+    #  two loops (e.g. full_refresh_task) and register/cancel both in cog_load/cog_unload.
     @tasks.loop(hours=2)
     async def ban_update_task(self):
         """Updates banlist when user is unbanned"""
@@ -27,7 +32,7 @@ class Refresher(commands.Cog):
         logging.info(f"[auto refresh]Bans Updated")
 
     @tasks.loop(minutes=10)
-    async def ban_update_task(self) :
+    async def populate_cache_task(self) :
         await self.bot.wait_until_ready()
         logging.info("Rebuilding cache")
         await BanTransactions().populate_cache()
