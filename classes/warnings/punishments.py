@@ -91,7 +91,7 @@ class Punishments :
 					f"You can rejoin here: {server.invite}")
 				try :
 					await user.send(reason_message)
-				except discord.errors.Forbidden or discord.errors.NotFound :
+				except (discord.errors.Forbidden or discord.errors.NotFound) :
 					pass
 
 				await user.kick(reason=reason_message)
@@ -106,7 +106,8 @@ class Punishments :
 				await send_message(mod_channel, embed=embed)
 				try :
 					await user.send(f"You have been banned from {guild.name} for `{reason_message}`")
-				except discord.errors.Forbidden or discord.errors.NotFound :
+
+				except (discord.errors.Forbidden or discord.errors.NotFound) :
 					pass
 				await user.ban(reason=reason_message, delete_message_days=0)
 
