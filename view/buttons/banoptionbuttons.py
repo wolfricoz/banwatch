@@ -34,11 +34,6 @@ class BanOptionButtons(SecureView) :
 	async def get_data(self, interaction: discord.Interaction) :
 		"""Gets the user data from the embed"""
 		ids = interaction.message.embeds[0].footer.text.split("-")
-		# TODO: [CLEANUP] Debug print leftover - remove or convert to logging.debug(). This project
-		#  has ~30 stray print() calls in production paths (access.py, bans.py, tasks.py,
-		#  punishments.py, etc.); they bypass the logging config (level/handlers/formatting) and can't
-		#  be silenced. Sweep them into the logging module.
-		print(ids)
 		self.guild = interaction.guild
 		self.user = interaction.client.get_user(int(ids[1]))
 		if self.user is None :
@@ -116,10 +111,6 @@ class BanOptionButtons(SecureView) :
 		wait_id = Bans().create_ban_id(user.id, guild.id)
 		checkListCheckType: str|None
 		checkListResult: str|None
-		# TODO: [DEAD CODE / remove] This ~20-line commented-out block is the pre-BanChecker inline
-		#  vetting logic. It has been fully replaced by the BanChecker call directly below (lines
-		#  ~137-143). Keeping it invites confusion and accidental partial edits. Delete it - git history
-		#  preserves it if ever needed.
 		ban_checker = BanChecker(
 			interaction.client,
 			ban,

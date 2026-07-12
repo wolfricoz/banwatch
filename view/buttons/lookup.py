@@ -72,10 +72,7 @@ class LookUp(SecureView) :
 
 			if not guild:
 				try:
-					# TODO: [ERROR-HANDLING] Bare `except:` - expected failures are discord.Forbidden /
-					#  discord.NotFound / discord.HTTPException. Catch those; a bare except also swallows
-					#  CancelledError. (Note: guild_name set here but guild stays falsy - verify the branch
-					#  below handles that.)
+
 					guild = await bot.fetch_guild(ban.gid)
 				except Exception:
 					guild_name = f"Guild not found (ID: {ban.gid})"

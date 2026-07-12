@@ -34,7 +34,6 @@ class Statistics(GroupCog, name="statistics") :
 		data = list(db_data.values())
 
 		# Create the chart with the data.
-		# TODO: Make it actually show the amount, not percentages.
 		file = create_pie(interaction.guild_id, data, tags, "# of bans by status")
 		await send_message(interaction.channel, f"-# Note: Bans may be hidden due to insufficient evidence, unclear justification, low value to external servers, privacy protection, or if the ban is outdated. You can view them on the dashboard!", files=[discord.File(fp=file, filename="ban_status.png")])
 		clean_pie(interaction.guild_id)
