@@ -138,20 +138,20 @@ class EvidenceController() :
 			await send_message(interaction.channel, "Failed to clean up evidence in channel, please grant me the ability to manage messages.")
 		return attachments, result
 
-	async def retrieve_proof(self, evidence: Proof) :
-		"""Gets image from discord CDN and then creates a discord.File"""
-		if len(evidence.get_attachments()) <= 0 :
-			return None
-		attachments = []
-		for i, url in enumerate(evidence.get_attachments()) :
-			response = requests.get(url, stream=True)
-			if response.status_code != 200 :
-				print("Could not fetch image")
-				continue
-			image_data = io.BytesIO(response.content)
-			image_data.seek(0)
-			attachments.append(discord.File(image_data, filename=f"image_{i}.jpg"))
-		return attachments
+	# Deprecated
+	# async def retrieve_proof(self, evidence: Proof) :
+	# 	"""Gets image from discord CDN and then creates a discord.File"""
+	# 	if len(evidence.get_attachments()) <= 0 :
+	# 		return None
+	# 	attachments = []
+	# 	for i, url in enumerate(evidence.get_attachments()) :
+	# 		response = requests.get(url, stream=True)
+	# 		if response.status_code != 200 :
+	# 			continue
+	# 		image_data = io.BytesIO(response.content)
+	# 		image_data.seek(0)
+	# 		attachments.append(discord.File(image_data, filename=f"image_{i}.jpg"))
+	# 	return attachments
 
 	async def send_proof(self, interaction: discord.Interaction, entries: list, ban_id: int) :
 		if not entries :
