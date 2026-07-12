@@ -193,39 +193,11 @@ class Bans(metaclass=Singleton) :
 			result = self.get_ban_id(embed)
 			if result and int(ban_id) == int(result) :
 				BanMessageTransactions().add_ban_message(ban_id, channel.guild.id, message.id)
-				print(f"Found {message.id} in {channel.name} ({channel.guild.name})")
 				return message, embed
 		return None, None
 
-	# Deprecated function
-	# async def search_messages(self, bot, channel: discord.TextChannel, banid: str, reason: str) :
-	# 	"""
-	#
-	# 	:param bot:
-	# 	:param channel:
-	# 	:param banid:
-	# 	:param reason:
-	# 	:return:
-	# 	"""
-	# 	banid = str(banid)
-	# 	try :
-	# 		message, embed = await self.find_ban_record(bot, banid, channel)
-	# 	except discord.Forbidden :
-	# 		await channel.guild.owner.send(
-	# 			f"Banwatch does not have permission to view chat history or access to the channel in {channel.name} ({channel.guild}). Please give Banwatch the necessary permissions to revoke bans from the channel. This is to ensure that"
-	# 			f" the correct information is shared and bans with false information can be removed.")
-	# 		logging.warning(f"Missing permissions to search messages in {channel.name} ({channel.guild})")
-	# 		return
-	# 	if message is None :
-	# 		return
-	# 	queue().add(self.delete_message(message), priority=2)
-	# 	queue().add(channel.send(f"Revoked ban `{embed.title}`! Reason: \n"
-	# 	                         f"{reason}"), priority=2)
-	# 	print(f"[revoke_ban] Queued deletion of {message.id} in {channel.name} ({channel.guild.name})")
-	# 	logging.info(f"[revoke_ban] Queued deletion of {message.id} in {channel.name} ({channel.guild.name})")
 
 	async def revoke_bans(self, bot: commands.Bot, ban_id, reason, staff=False) :
-		print("revoking bans")
 		ban_messages = BanMessageTransactions().get_by_ban_id(ban_id=ban_id)
 		ban_message: BanMessages
 
@@ -261,15 +233,6 @@ class Bans(metaclass=Singleton) :
 		except Exception as e :
 			logging.error(f"Error deleting ban message {message_id} in {channel.guild.name}: {e}")
 
-	# for guild in bot.guilds :
-	# 	channel = ConfigData().get_channel(guild.id, "modchannel")
-	# 	if channel is None :
-	# 		continue
-	# 	queue().add(self.search_messages(bot, channel, ban_id, reason), 0)
-	# if staff :
-	# 	BanTransactions().update(int(ban_id), approved=False)
-	# channel = bot.get_channel(bot.APPROVALCHANNEL)
-	# queue().add(self.search_messages(bot, channel, ban_id, reason), 0)
 
 	async def check_guild_bans(self, bot: commands.AutoShardedBot, guild: discord.Guild) :
 		count = 0
@@ -312,7 +275,8 @@ class Bans(metaclass=Singleton) :
 			try :
 				await bot.fetch_invite(guild_record.invite)
 				return
-			except discord.HTTPException or discord.NotFound :
+
+			except (discord.HTTPException or discord.NotFound):
 				logging.info(f"{guild.name}'s invite expired, creating a new one.")
 		try :
 			for channel in guild.channels :
