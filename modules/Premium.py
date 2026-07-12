@@ -62,7 +62,6 @@ class Premium(GroupCog, name="premium") :
 		"""
 		await send_response(interaction, "Removing deleted users from ban list...", ephemeral=True)
 		banlist = [entry async for entry in interaction.guild.bans(limit=None)]
-		banlist_file = tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt")
 		deleted_bans = []
 		kicked_users = []
 
