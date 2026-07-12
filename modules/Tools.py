@@ -78,7 +78,10 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 			except discord.errors.NotFound :
 				await interaction.channel.send(f"User with id {user_id} not found")
 				continue
-			except :
+			# TODO: [ERROR-HANDLING] Bare `except:` catch-all - at minimum use `except Exception` so
+			#  KeyboardInterrupt/SystemExit/CancelledError propagate, and log the exception (exc_info=True)
+			#  so these "an error occurred" cases are diagnosable.
+			except Exception as e:
 				await interaction.channel.send(
 					f"An error occurred while fetching user with id {user_id}, please ban them manually")
 				continue
