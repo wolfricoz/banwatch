@@ -41,5 +41,5 @@ class PermissionsCheck():
             embed.add_field(name=key, value=value, inline=False)
         try:
             await send_message(channel, embed=embed)
-        except:
+        except (discord.Forbidden or discord.NotFound):
             await send_message(interaction.user, embed=embed, error_mode='ignore')
