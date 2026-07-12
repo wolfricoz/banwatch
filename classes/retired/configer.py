@@ -127,7 +127,7 @@ class Configer(ABC) :
 			await Configer.create_appeals()
 		with open(appeals_path) as f :
 			data = json.load(f)
-			print(userid, " ", guildid, " ", status)
+
 			data[str(userid)][str(guildid)]["status"] = str(status)
 		with open(appeals_path, 'w') as f :
 			json.dump(data, f, indent=4)
