@@ -34,6 +34,10 @@ class BanOptionButtons(SecureView) :
 	async def get_data(self, interaction: discord.Interaction) :
 		"""Gets the user data from the embed"""
 		ids = interaction.message.embeds[0].footer.text.split("-")
+		# TODO: [CLEANUP] Debug print leftover - remove or convert to logging.debug(). This project
+		#  has ~30 stray print() calls in production paths (access.py, bans.py, tasks.py,
+		#  punishments.py, etc.); they bypass the logging config (level/handlers/formatting) and can't
+		#  be silenced. Sweep them into the logging module.
 		print(ids)
 		self.guild = interaction.guild
 		self.user = interaction.client.get_user(int(ids[1]))
@@ -112,28 +116,10 @@ class BanOptionButtons(SecureView) :
 		wait_id = Bans().create_ban_id(user.id, guild.id)
 		checkListCheckType: str|None
 		checkListResult: str|None
-		# checkListCheckType, checkListResult = await self.checkFlaggedTerms(ban.reason.lower())
-
-		# if isinstance(checkListCheckType, list):
-		# 	# Turn the array of words into a string
-		# 	checkListResult = ", ".join(checkListResult)
-		#
-		#
-
-		#
-		#
-		# if user.bot and not checkListCheckType :
-		# 	checkListResult = "Member is a bot"
-		# 	checkListCheckType = 'review'
-		# word_count = len(ban.reason.split(" ")) < 4
-		# if word_count and ("spam" not in ban.reason.lower() or "bot" not in ban.reason.lower()) and not checkListCheckType :
-		# 	checkListResult = "Short ban reason"
-		# 	checkListCheckType = 'review'
-		#
-		# if AccessControl().access_all(user.id) and not checkListCheckType :
-		# 	checkListResult = "Banwatch Staff Member"
-		# 	checkListCheckType = 'review'
-
+		# TODO: [DEAD CODE / remove] This ~20-line commented-out block is the pre-BanChecker inline
+		#  vetting logic. It has been fully replaced by the BanChecker call directly below (lines
+		#  ~137-143). Keeping it invites confusion and accidental partial edits. Delete it - git history
+		#  preserves it if ever needed.
 		ban_checker = BanChecker(
 			interaction.client,
 			ban,
