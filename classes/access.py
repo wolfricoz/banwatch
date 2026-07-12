@@ -19,7 +19,6 @@ class AccessControl(metaclass=Singleton) :
 	def __init__(self) :
 		self.add_staff_to_dict()
 		self.add_premium_to_dict()
-		print(self.premium)
 
 	def reload(self) :
 		self.add_staff_to_dict()
