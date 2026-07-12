@@ -1,11 +1,11 @@
 import logging
-import re
 
 import discord
 from discord.ext import commands
 from discord_py_utilities.messages import send_message
 
 from classes.access import AccessControl
+from classes.ban.BanChecker import BanChecker, BanCheckerStatus
 from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.queue import queue
@@ -40,42 +40,37 @@ class BanEvents(commands.Cog) :
 		ban_entry = BanTransactions().get(user.id + guild.id, override=True)
 		if ban_entry is not None :
 			BanTransactions().delete_permanent(ban_entry)
+
+		# fetch ban entry
 		ban: discord.BanEntry = await guild.fetch_ban(user)
 		mod_channel = bot.get_channel(ConfigData().get_key_or_none(guild.id, "modchannel" ))
+
 		# Check if modchannel is set, else just log it.
 		if mod_channel is None:
 			logging.warning(f"{guild.name}({guild.id}) doesn't have modchannel set.")
 			queue().add(send_message(guild.owner, f"{guild.name}({guild.id}) doesn't have modchannel set. Please set it using the /Config change command."), priority=2)
 			return
 
-		# check if ban has to be hidden
-		if ban.reason is None or ban.reason.lower() in ["", "none", "account has no avatar.", "no reason given.",
-		                                                "breaking server rules"] or str(ban.reason).lower().startswith(
-				'[hidden]') :
-			logging.info("Hiding ban: Reason doesn't provide valuable information or has hidden tag.")
-			await Bans().add_ban(user.id, guild.id, ban.reason, "Unknown", hidden=True, status="autoHidden")
-			if mod_channel is None :
-				logging.error(f"{guild.name}({guild.id}) doesn't have modchannel set.")
-				return
-			await send_message(mod_channel, f"Hidden ban for {user}({user.id}).")
-			return
-		# Check if the server is hidden
+		# Hidden server: record the ban but never broadcast or prompt.
 		if ServerTransactions().is_hidden(guild.id):
 			await Bans().add_ban(user.id, guild.id, ban.reason, "Unknown")
 			return
 
-		# Check if the ban is a cross-ban
-		match = re.match(r"Cross-ban from (?P<guild_name>.+?) with ban id: (?P<ban_id>\d+)", ban.reason)
-		if match or str(ban.reason).lower() in ['crossban', 'cross-ban'] :
-			logging.info("Cross-ban with no additional info, this ban has been hidden")
-			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name, hidden=True, status="crossban")
-			return
-		# Check if the ban is a migrated ban
-		if str(ban.reason).lower().startswith('[Migrated'):
-			logging.info("Migrated ban, not prompting")
-			await Bans().add_ban(user.id, guild.id, ban.reason, guild.owner.name, status="Migrated")
-		# PREMIUM: bans the users from other servers automatically
+		# Lightweight PRE-CHECK only: short_run() runs just the cheap, string-only auto-hide rules
+		# (cross-ban, low-value, migrated) - no flagged-term DB lookups or staff/PII scans, so we don't
+		# burn resources on every ban. The action buttons below do the REAL, full check when a
+		# moderator acts. BanChecker is the single source of truth; this path keeps no rules of its own.
+		ban_checker = BanChecker(bot, ban)
+		await ban_checker.short_run()
 
+		# Only a definitive auto-hide verdict (cross-ban, low-value, migrated -> HIDE) short-circuits
+		# here: evaluate_ban records it as hidden and we stop. Everything else falls through to the
+		# buttons.
+		if ban_checker.get_status() == BanCheckerStatus.HIDE :
+			await ban_checker.evaluate_ban(guild, server_only=False)
+			return
+
+		# PREMIUM: automatically mirror a shareable ban into the owner's other servers.
 		logging.info(ConfigData().get_key(guild.id, "cross_ban", False))
 		if ConfigData().get_key(guild.id, "cross_ban", False) is True and AccessControl().is_premium(guild.id):
 			logging.info("Cross-ban with premium")
@@ -87,28 +82,10 @@ class BanEvents(commands.Cog) :
 				server_names.append(server.name)
 			queue().add(send_message(mod_channel, f"Cross-banned user {user}({user.id}) in servers: {', '.join(server_names)}"), priority=0)
 
-
+		# Not auto-hidden: always show the review buttons. They run the REAL check and persist the ban
+		# when a moderator acts, so nothing is written here.
 		logging.info("starting to update banlist and informing other servers")
-		view = BanOptionButtons()
-		if mod_channel is None :
-			logging.error(f"{guild.name}({guild.id}) doesn't have modchannel set.")
-			try :
-				await guild.owner.send(
-					"No moderation channel set, please setup your moderation channel using the /Config commands. Your ban has not been broadcasted but has been recorded")
-			except :
-				for channel in guild.channels :
-					try :
-						await channel.send(
-							"No moderation channel set, please setup your moderation channel using the /Config commands. Your ban has not been broadcasted but has been recorded")
-					except discord.NotFound or discord.Forbidden :
-						continue
-					return
-			return
-
-		embed = discord.Embed(title=f"Do you want to share {user}'s ({user.id}) ban with other servers?",
-		                      description=f"{ban.reason}")
-		embed.set_footer(text=f"{guild.id}-{user.id}")
-		queue().add(mod_channel.send(embed=embed, view=view), priority=2)
+		await ban_checker.send_review_prompt(guild)
 
 
 	async def cross_ban(self, server: Servers, guild, user) :

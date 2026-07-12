@@ -4,6 +4,7 @@ from collections.abc import Coroutine
 from enum import StrEnum
 
 import discord
+from discord import Forbidden
 from discord.ext import commands
 
 from classes.TermsChecker import TermsChecker
@@ -64,6 +65,20 @@ class BanChecker() :
 
 		# await self.perform_action(self.check_ascii_alphanumeric())
 		# logging.info("[BanChecker] Alphanumeric check: " + self.status)
+
+		return self
+
+	async def short_run(self) :
+		"""Lightweight PRE-CHECK for the live on-ban event. Runs ONLY the cheap, string-only auto-hide
+		rules - cross-ban, low-value and migrated - so we can decide 'auto-hide vs show buttons'
+		without the expensive parts of the full check (flagged-term DB lookups, staff/PII scans).
+		Leaves status at PROMPT unless the ban is a definitive auto-hide (HIDE). The full run() is
+		still performed later by the review buttons, which do the REAL check."""
+		await self.auto_hide()
+		logging.info("[BanChecker] short-run hide check: " + self.status)
+
+		await self.perform_action(self.migrated_ban())
+		logging.info("[BanChecker] short-run migrated check: " + self.status)
 
 		return self
 
@@ -231,6 +246,32 @@ class BanChecker() :
 		logging.info(f"returning reason for {self.ban.user} with reason: {self.ban.reason}, current status: {self.reason}")
 		return self.reason
 
+	async def send_review_prompt(self, guild) :
+		"""Queues the 'share this ban?' prompt (embed + action buttons) to the guild's mod channel.
+		This is the interactive path: the buttons run the full check again when a moderator acts, so
+		callers use this for any ban that is not a definitive auto-hide. Does nothing if there is no
+		mod channel configured."""
+		from view.buttons.banoptionbuttons import BanOptionButtons
+		mod_channel = await ConfigData().get_channel(guild)
+		if mod_channel is None :
+			try :
+				await guild.owner.send(
+					"No moderation channel set, please setup your moderation channel using the /Config commands. Your ban has not been broadcasted but has been recorded")
+			except discord.Forbidden:
+				for channel in guild.channels :
+					try :
+						await channel.send(
+							"No moderation channel set, please setup your moderation channel using the /Config commands. Your ban has not been broadcasted but has been recorded")
+					except discord.NotFound or discord.Forbidden :
+						continue
+					return
+			return
+		user = self.ban.user
+		embed = discord.Embed(title=f"Do you want to share {user}'s ({user.id}) ban with other servers?",
+		                      description=f"{self.ban.reason}")
+		embed.set_footer(text=f"{guild.id}-{self.ban.user.id}")
+		queue().add(mod_channel.send(embed=embed, view=BanOptionButtons()), priority=2)
+
 	async def evaluate_ban(self, guild, server_only=False) :
 		"""this function decides the verdict"""
 		logging.info(
@@ -302,16 +343,7 @@ class BanChecker() :
 						Bans().check_guilds(None, bot, guild, self.ban.user, embed, guild.id + self.ban.user.id, silent=True),
 						priority=0)
 					return
-				from view.buttons.banoptionbuttons import BanOptionButtons
-				view = BanOptionButtons()
-				mod_channel = await ConfigData().get_channel(guild)
-				if mod_channel is None :
-					logging.warning(f"{guild.name}({guild.id}) doesn't have modchannel set, cannot prompt for review.")
-				user = self.ban.user
-				embed = discord.Embed(title=f"Do you want to share {user}'s ({user.id}) ban with other servers?",
-				                      description=f"{self.ban.reason}")
-				embed.set_footer(text=f"{guild.id}-{self.ban.user.id}")
-				queue().add(mod_channel.send(embed=embed, view=view), priority=2)
+				await self.send_review_prompt(guild)
 				return
 
 			case BanCheckerStatus.SHORT :
