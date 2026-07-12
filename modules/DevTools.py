@@ -416,10 +416,10 @@ class DevTools(commands.GroupCog, name="dev") :
 			user = await self.bot.fetch_user(474365489670389771)
 			await interaction.guild.ban(user,
 			                            reason=f"{'Test Ban that is longer than four words' if checklist else 'dev ban that is longer than four words'}")
-		if checklist :
-			ui = EvidenceUI(user, interaction.guild, interaction.guild.id + user.id,
-			                reason="Test Ban that is longer than four words")
-			await ui.send_embed(interaction.channel)
+		# if checklist :
+		# 	ui = EvidenceUI(user, interaction.guild, interaction.guild.id + user.id,
+		# 	                reason="Test Ban that is longer than four words")
+		# 	await ui.send_embed(interaction.channel)
 
 		await send_response(interaction, "Test ban complete", ephemeral=True)
 

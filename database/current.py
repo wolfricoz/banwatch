@@ -175,8 +175,7 @@ class BanMessages(Timestamps,Base) :
 
 class Warnings(Timestamps, Base) :
 	__tablename__ = "warnings"
-
-	id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+	id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
 	user_id: Mapped[int] = mapped_column(BigInteger, unique=False)
 	guild_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("servers.id", ondelete="CASCADE"), unique=False)
 	reason: Mapped[str] = mapped_column(String(4048), unique=False)
