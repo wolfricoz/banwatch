@@ -11,6 +11,8 @@ from classes.access import AccessControl
 from classes.configdata import ConfigData
 from classes.queue import queue
 from database.transactions.ServerTransactions import ServerTransactions
+
+from resources.bans.BanCheckVariables import BAN_STARTS_WITH, IGNORED_REASONS
 from view.v2.EvidenceSubmission import EvidenceUI
 
 
@@ -24,6 +26,12 @@ class BanCheckerStatus(StrEnum) :
 	SHORT = "short"
 
 
+# BanChecker is the single source of truth for ban vetting. All paths route through it:
+#  - live bans:  listeners/on_member_ban.py  (run() + evaluate_ban(server_only=False))
+#  - mass review: classes/bans.py, modules/Staff.py, view/buttons/banoptionbuttons.py
+# Keep the rules (cross-ban, low-value, migrated, flagged terms, PII, short) here only - do not
+# reintroduce a copy in the listeners, or the two will drift and a ban can be hidden by one path
+# and broadcast by another.
 class BanChecker() :
 	def __init__(self, bot: commands.AutoShardedBot | commands.Bot, ban: discord.BanEntry) :
 		self.bot = bot
@@ -35,6 +43,9 @@ class BanChecker() :
 		"""Checks if the ban follows the guidelines of banwatch, and if the ban has damaging claims."""
 		await self.auto_hide()
 		logging.info("[BanChecker] Hide check: " + self.status)
+
+		await self.perform_action(self.check_flagged_terms(self.ban.reason))
+		logging.info("[BanChecker] Final check: " + self.status)
 
 		await self.perform_action(self.migrated_ban())
 		logging.info("[BanChecker] Check: " + self.status)
@@ -48,14 +59,11 @@ class BanChecker() :
 		await self.perform_action(self.check_word_count())
 		logging.info("[BanChecker] count check: " + self.status)
 
-		await self.perform_action(self.check_flagged_terms(self.ban.reason))
-		logging.info("[BanChecker] Final check: " + self.status)
-
 		await self.perform_action(self.check_pii())
 		logging.info("[BanChecker] PII check: " + self.status)
 
-		await self.perform_action(self.check_ascii_alphanumeric())
-		logging.info("[BanChecker] Alphanumeric check: " + self.status)
+		# await self.perform_action(self.check_ascii_alphanumeric())
+		# logging.info("[BanChecker] Alphanumeric check: " + self.status)
 
 		return self
 
@@ -81,14 +89,21 @@ class BanChecker() :
 
 	async def check_cross_ban(self) :
 		"""Checks if the ban is a cross-ban, and if it is, hides it and adds it to the database."""
-		if self.ban.reason is None :
-			self.status = BanCheckerStatus.HIDE
-			self.reason = "Cross ban"
-			return
-
-		match = re.match(r"Cross-ban from (?P<guild_name>.+?) with ban id: (?P<ban_id>\d+)", str(self.ban.reason))
-		if match or str(self.ban.reason).lower() in ['crossban', 'cross-ban'] :
-			logging.info("Cross-ban with no additional info, this ban has been hidden")
+		# A ban is a cross-ban if its reason starts with "cross-ban from <server>", in any of the
+		# formats used across the codebase:
+		#   - "Cross-ban from <server> with ban id: <n>"                    (auto: on_member_ban / selectban / baninform)
+		#   - "Cross-ban from <server> with ban id: <n> with reason: ..."   (auto, with appended reason)
+		#   - "Cross-ban from <server>: <reason>"                           (manual, per view/buttons/lookup.py:58)
+		# Match is case-insensitive, tolerates "cross ban"/"crossban", and does NOT require the
+		# "with ban id" suffix. Anchored at the start so it won't false-positive on reasons that merely
+		# mention a cross-ban. Keep this identical to listeners/on_member_ban.py.
+		reason = str(self.ban.reason).strip()
+		is_cross_ban = (
+				re.match(r"cross[-\s]?ban from\s+\S", reason, re.IGNORECASE) is not None
+				or reason.lower() in ("crossban", "cross-ban", "cross ban")
+		)
+		if is_cross_ban :
+			logging.info("Cross-ban detected, this ban has been hidden")
 			self.status = BanCheckerStatus.HIDE
 			self.reason = "Cross ban"
 			return
@@ -96,17 +111,11 @@ class BanChecker() :
 	async def assess_value(self) :
 		"""Checks if the ban is worth broadcasting, if the ban has no reason or a reason that doesn't provide valuable information, it'll be hidden."""
 		raw_reason = str(self.ban.reason or "").lower().strip()
-		ignored_reasons = {
-			"",
-			"none",
-			"account has no avatar.",
-			"no reason given.",
-			"breaking server rules"
-		}
+		ignored_reasons = IGNORED_REASONS
 		if (
 				not raw_reason
 				or raw_reason in ignored_reasons
-				or raw_reason.startswith(("[hidden]", "no pfp", "account has no avatar"))
+				or raw_reason.startswith(BAN_STARTS_WITH)
 				or "no reason specified" in raw_reason
 		) :
 			logging.info("Hiding ban: Reason doesn't provide valuable information or has hidden tag.")
@@ -129,39 +138,70 @@ class BanChecker() :
 			self.reason = "Short ban reason"
 			self.status = BanCheckerStatus.SHORT
 			return
-		word_count = len(self.ban.reason.split(" ")) < 4
-		if word_count and "spam" not in self.ban.reason.lower() and "bot" not in self.ban.reason.lower() :
+
+		is_short = len(self.ban.reason.split()) < 4
+
+		# Checks if its a common reason such as spam or bot.
+		mentions_spam_or_bot = re.search(r"\b(?:spam|bot)\b", self.ban.reason.lower()) is not None
+		if is_short and not mentions_spam_or_bot :
 			self.reason = "Short ban reason"
 			self.status = BanCheckerStatus.SHORT
 
+	@staticmethod
+	def _normalise_found(found) -> str :
+		"""getResults() returns the raw `found` matches (a list, possibly of regex-group tuples).
+		Flatten to a readable, de-duplicated comma-separated string so every downstream path (which
+		concatenates self.reason with a str) always receives a str."""
+		if isinstance(found, str) :
+			return found
+		terms = []
+		for item in found or () :
+			# re.findall with capture groups yields tuples; flatten and drop empty groups.
+			parts = item if isinstance(item, tuple) else (item,)
+			for part in parts :
+				text = str(part).strip()
+				if text and text not in terms :
+					terms.append(text)
+		return ", ".join(terms)
+
 	async def check_flagged_terms(self, target) :
+		# "block" (HIDE) always outranks "review" (REVIEW). We therefore return immediately on the
+		# first block, and only fall back to a review verdict if no block was found - so a later
+		# review check can never downgrade a block. self.reason is normalised to a str here so the
+		# HIDE/REVIEW branches of evaluate_ban never try to concatenate a list.
 		checks = {
 			"reviewCheck"      : TermsChecker("review", target),
 			"countReviewCheck" : TermsChecker("countreview", target),
 			"blockCheck"       : TermsChecker("block", target),
 			"blockReviewCheck" : TermsChecker("countblock", target),
 		}
+		review_reason: str | None = None
 		for key, val in checks.items() :
 			val: TermsChecker
 			if val.getReviewStatus() == "" :
 				continue
-			result, reason = val.getResults()
-			match result :
-				case "review" :
-					self.reason = reason
-					self.status = BanCheckerStatus.REVIEW
+			result, found = val.getResults()
+			reason_text = self._normalise_found(found)
+			if result == "block" :
+				self.reason = reason_text
+				self.status = BanCheckerStatus.HIDE
+				return None, None
+			if result == "review" and review_reason is None :
+				review_reason = reason_text
 
-				case "block" :
-					self.reason = reason
-					self.status = BanCheckerStatus.HIDE
+		if review_reason is not None :
+			self.reason = review_reason
+			self.status = BanCheckerStatus.REVIEW
 		return None, None
 
 	async def check_pii(self) :
 		"""This function does its best to detect personally identifiable information such as date of births, phone numbers, addresses, and emails."""
 		# This is a very basic check, and can be easily bypassed, but it's better than nothing.
-		email_regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
+		email_regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"
 		phone_regex = r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b"
 		dob_regex = r"\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b"
+		if self.ban.reason is None :
+			return
 
 		if re.search(email_regex, self.ban.reason) or re.search(phone_regex, self.ban.reason) or re.search(
 				dob_regex, self.ban.reason) :
@@ -170,7 +210,7 @@ class BanChecker() :
 
 	async def check_ascii_alphanumeric(self) :
 		# Ensure we have a string to work with
-		return # TODO: Disabled because too many false positives. Fix in the future
+		return
 
 
 		reason_str = str(self.ban.reason or "")
@@ -180,7 +220,6 @@ class BanChecker() :
 		if re.search(r'[^\x20-\x7E]', reason_str) :
 			self.reason = "Ban reason contains unsupported special characters or emojis."
 			self.status = BanCheckerStatus.REVIEW
-
 
 	def get_status(self) -> str :
 		"""Returns the status of the ban check."""
@@ -224,13 +263,15 @@ class BanChecker() :
 
 					return
 
-				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=False, status=self.status)
+				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=False,
+				                     status=self.status)
 				return
 
 			case BanCheckerStatus.APPROVE :
 				self.reason = "Ban approved without prompting: " + self.reason
-				ban = await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=True, status=self.status)
-				if not ban:
+				ban = await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=True,
+				                           status=self.status)
+				if not ban :
 					return
 				embed = discord.Embed(title=f"{self.ban.user} ({self.ban.user.id}) was banned in {guild}({guild.owner})",
 				                      description=f"{ban.reason}")
@@ -245,7 +286,11 @@ class BanChecker() :
 
 			case BanCheckerStatus.PROMPT :
 				if server_only :
-					ban = await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=True, status=self.status)
+					ban = await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=True,
+					                           status=self.status)
+					if not ban:
+						return
+
 					embed = discord.Embed(title=f"{self.ban.user} ({self.ban.user.id}) was banned in {guild}({guild.owner})",
 					                      description=f"{ban.reason}")
 					guild_db = ServerTransactions().get(guild.id)
@@ -270,9 +315,11 @@ class BanChecker() :
 				return
 
 			case BanCheckerStatus.SHORT :
-				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=False, status=self.status)
+				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=False,
+				                     status=self.status)
 
 			case _ :
 				logging.info("Ban is pending review, adding to database with pending tag.")
 				self.reason = "Ban pending review: " + self.reason
-				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=False, status=self.status)
+				await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=False,
+				                     status=self.status)
