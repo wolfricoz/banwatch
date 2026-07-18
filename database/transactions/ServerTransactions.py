@@ -35,7 +35,7 @@ class ServerTransactions(DatabaseTransactions) :
 		"""
 		with self.createsession() as session :
 
-			logging.info(f"Adding entry to server table with data: {guild_id}, {owner}, {name}, {member_count}, {invite}")
+			logging.debug(f"Adding entry to server table with data: {guild_id}, {owner}, {name}, {member_count}, {invite}")
 			if self.exists(guild_id) :
 				# Call the update function
 				self.update(guild_id, owner, name, member_count, invite, delete=False)
