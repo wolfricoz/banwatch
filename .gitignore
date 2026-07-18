@@ -4,6 +4,9 @@
 /database.log
 /discord.log
 /main.env
+# env files anywhere (the tests/ copies were previously tracked - untracked via git rm --cached)
+**/main.env
+*.env
 /plans.text
 /test.json
 /test.text

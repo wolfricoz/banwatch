@@ -75,8 +75,8 @@ class ServerTransactions(DatabaseTransactions) :
 				if value is not None :
 					setattr(guild, field, value)
 			self.commit(session)
-			logging.info(f"Updated {guild_id} with:")
-			logging.info(updates)
+			logging.debug(f"Updated {guild_id} with:")
+			logging.debug(updates)
 			return guild
 
 	def get(self, guild_id: int, current_session = None) -> Type[Servers] | None :

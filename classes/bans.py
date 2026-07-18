@@ -36,7 +36,6 @@ class Bans(metaclass=Singleton) :
 		known_guilds = ServerTransactions().get_all()
 		count = 0
 		for guild in bot.guilds :
-			logging.info(f"Updating guild {guild.id}...")
 			if count % 10 == 0 :
 				logging.info(f"Updating guilds... {count}/{len(bot.guilds)}")
 				await asyncio.sleep(0)

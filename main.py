@@ -184,7 +184,6 @@ async def on_guild_remove(guild) :
 	log = bot.get_channel(DEV)
 	await log.send(f"left `{guild}({guild.id})` :(. Ban watch is now in {len(bot.guilds)}")
 	logging.info(f"{guild} left, refreshing ban list")
-	await Bans().update(bot)
 	ServerTransactions().update(guild.id, active=False)
 
 

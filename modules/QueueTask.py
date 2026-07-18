@@ -32,6 +32,12 @@ class QueueTask(commands.Cog) :
 	async def queue(self) :
 		await queue().start()
 
+	@tasks.loop(minutes=15)
+	async def restart_queue_task(self):
+		queue().task_finished = True
+		self.queue.restart()
+
+
 	@tasks.loop(seconds=3)
 	async def display_status(self) :
 		await self.bot.wait_until_ready()

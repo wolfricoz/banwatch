@@ -1,3 +1,4 @@
+import hmac
 import ipaddress
 import os
 
@@ -57,7 +58,7 @@ class Auth():
 		if not self._TOKEN:
 			raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED)
 
-		if self._user_token == self._TOKEN:
+		if hmac.compare_digest(self._user_token, self._TOKEN) :
 			return True
 		raise HTTPException(status_code=403)
 
