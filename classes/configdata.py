@@ -140,7 +140,10 @@ class ConfigData(metaclass=Singleton) :
 			                   f"No `{channel_type}` channel set for {guild.name}, please set it up using the /Config command")
 			return None
 		channel = guild.get_channel(channel_id)
-		if channel is None:
+
+		if isinstance(channel_id, str) and not channel_id.isnumeric() :
+			channel_id = None
+		if channel is None and channel_id is not None :
 			# NOTE: this was previously a `while attempts < 3` loop whose counter was never
 			# incremented, and whose NotFound handler did a bare `continue`. A configured channel
 			# that had been deleted therefore looped forever, re-issuing the same doomed fetch and
