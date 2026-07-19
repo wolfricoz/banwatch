@@ -30,7 +30,7 @@ from view.buttons.baninform import BanInform
 # Per-step timing for the ban sweep. Deliberately verbose - it exists to find which step in a
 # guild's processing stalls, since the sweep is otherwise silent for long stretches. Flip to False
 # to silence it once the sweep behaves; every timing line is prefixed [timing] so it greps cleanly.
-STEP_TIMING = True
+STEP_TIMING = False
 
 
 @contextmanager
@@ -82,7 +82,7 @@ class Bans(metaclass=Singleton) :
 						with _timed("  ServerTransactions.add") :
 							ServerTransactions().add(guild.id, guild.owner.name if guild.owner else 'unknown', guild.name,
 							                         len(guild.members), None)
-						# await Bans().check_guild_invites(bot, guild)
+						await Bans().check_guild_invites(bot, guild)
 					except Exception as e :
 						logging.error(f"Error processing guild {guild.id}: {e}")
 					with _timed("  check_guild_bans") :

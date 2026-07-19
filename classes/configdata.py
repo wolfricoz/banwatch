@@ -1,4 +1,5 @@
 """This class is for the guild's Config data, which is stored in the database. It is used to store and retrieve data from the database."""
+import asyncio
 import json
 import logging
 import os
@@ -140,14 +141,33 @@ class ConfigData(metaclass=Singleton) :
 			return None
 		channel = guild.get_channel(channel_id)
 		if channel is None:
-			attempts = 0
-			while attempts < 3 and channel is None:
+			# NOTE: this was previously a `while attempts < 3` loop whose counter was never
+			# incremented, and whose NotFound handler did a bare `continue`. A configured channel
+			# that had been deleted therefore looped forever, re-issuing the same doomed fetch and
+			# hanging the entire ban sweep on that one guild. Retry only what retrying can fix.
+			for attempt in range(3):
 				try:
 					channel = await guild.fetch_channel(channel_id)
+					break
 				except discord.NotFound:
-					continue
-				except discord.HTTPException:
-					return None
+					# The channel genuinely does not exist - retrying cannot bring it back.
+					logging.info(
+						f"Configured `{channel_type}` channel {channel_id} no longer exists in "
+						f"{guild.name}({guild.id})")
+					break
+				except discord.Forbidden:
+					# We can see it but not access it; also not something a retry resolves.
+					logging.info(
+						f"No access to `{channel_type}` channel {channel_id} in {guild.name}({guild.id})")
+					break
+				except discord.HTTPException as e:
+					# Transient (5xx, rate limit, connection reset) - worth one more try.
+					logging.warning(
+						f"Failed to fetch `{channel_type}` channel {channel_id} in "
+						f"{guild.name}({guild.id}) (attempt {attempt + 1}/3): {e}")
+					if attempt == 2:
+						return None
+					await asyncio.sleep(1)
 		if channel is None :
 			if optional:
 				return None
