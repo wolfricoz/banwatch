@@ -49,7 +49,7 @@ class Bans(metaclass=Singleton) :
 					await Bans().check_guild_invites(bot, guild)
 				except Exception as e :
 					logging.error(f"Error processing guild {guild.id}: {e}")
-				asyncio.to_thread(Bans().check_guild_bans, bot, guild)
+				await asyncio.to_thread(Bans().check_guild_bans, bot, guild)
 			except Exception as e :
 				logging.warning(f"Error processing guild {guild.id}: {e}")
 		logging.info(f"Finished updating {count}/{len(bot.guilds)} guilds. {len(known_guilds)} guilds no longer known, removing...")
