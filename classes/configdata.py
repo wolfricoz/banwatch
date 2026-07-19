@@ -123,8 +123,11 @@ class ConfigData(metaclass=Singleton) :
 	async def get_channel(self, guild: discord.Guild, channel_type: str = "modchannel", optional: bool = False) -> None | VoiceChannel | StageChannel | ForumChannel | TextChannel | CategoryChannel | Thread :
 		"""Gets the channel from the Config"""
 		channel_id = self.get_key_or_none(guild.id, channel_type)
-		if not isinstance(channel_id, int) :
-
+		# bool is a subclass of int, so `isinstance(channel_id, int)` is True for True/False and a
+		# bare int check would let them straight through as a channel id. get_key coerces stored
+		# "false"/"0"/"disabled" values to the boolean False, so an unset channel arrives here as
+		# False, not None - which Discord then rejects with 'Value "False" is not snowflake'.
+		if isinstance(channel_id, bool) or not isinstance(channel_id, int) :
 			if isinstance(channel_id, str) and channel_id.isnumeric() :
 				channel_id = int(channel_id)
 			else :
@@ -141,9 +144,7 @@ class ConfigData(metaclass=Singleton) :
 			return None
 		channel = guild.get_channel(channel_id)
 
-		if isinstance(channel_id, str) and not channel_id.isnumeric() :
-			channel_id = None
-		if channel is None and channel_id is not None :
+		if channel is None :
 			# NOTE: this was previously a `while attempts < 3` loop whose counter was never
 			# incremented, and whose NotFound handler did a bare `continue`. A configured channel
 			# that had been deleted therefore looped forever, re-issuing the same doomed fetch and
@@ -164,11 +165,15 @@ class ConfigData(metaclass=Singleton) :
 						f"No access to `{channel_type}` channel {channel_id} in {guild.name}({guild.id})")
 					break
 				except discord.HTTPException as e:
-					# Transient (5xx, rate limit, connection reset) - worth one more try.
+					# Only 5xx and rate limits are worth retrying. A 4xx means the request itself is
+					# wrong (a malformed id, say) and will fail identically every time - retrying it
+					# just burns three API calls and two seconds per guild, per sweep.
+					retryable = e.status >= 500 or e.status == 429
 					logging.warning(
 						f"Failed to fetch `{channel_type}` channel {channel_id} in "
-						f"{guild.name}({guild.id}) (attempt {attempt + 1}/3): {e}")
-					if attempt == 2:
+						f"{guild.name}({guild.id}) (attempt {attempt + 1}/3, status {e.status}, "
+						f"{'retrying' if retryable and attempt < 2 else 'giving up'}): {e}")
+					if not retryable or attempt == 2:
 						return None
 					await asyncio.sleep(1)
 		if channel is None :

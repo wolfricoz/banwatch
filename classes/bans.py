@@ -4,7 +4,6 @@ import logging
 import os
 import re
 import time
-from contextlib import contextmanager
 from datetime import datetime, timezone
 
 import discord
@@ -27,37 +26,6 @@ from database.transactions.ServerTransactions import ServerTransactions
 from view.buttons.baninform import BanInform
 
 
-# Per-step timing for the ban sweep. Deliberately verbose - it exists to find which step in a
-# guild's processing stalls, since the sweep is otherwise silent for long stretches. Flip to False
-# to silence it once the sweep behaves; every timing line is prefixed [timing] so it greps cleanly.
-STEP_TIMING = False
-
-
-@contextmanager
-def _timed(label: str, threshold_ms: float = 0.0) :
-	"""Logs a step's start and its elapsed time.
-
-	The log formatter already stamps wall-clock time on every line, so the entry log gives the
-	absolute timestamp and the exit log gives the duration - a step that hangs prints its '->' line
-	and nothing after it, which is what names the culprit.
-
-	:param threshold_ms: only log if the step took at least this long. Used for the per-ban steps,
-	                     where logging all of them would bury the signal.
-	"""
-	if not STEP_TIMING :
-		yield
-		return
-	start = time.perf_counter()
-	if threshold_ms <= 0 :
-		logging.info(f"[timing] -> {label}")
-	try :
-		yield
-	finally :
-		elapsed = (time.perf_counter() - start) * 1000
-		if elapsed >= threshold_ms :
-			logging.info(f"[timing] <- {label} took {elapsed:.0f}ms")
-
-
 class Bans(metaclass=Singleton) :
 
 	def __init__(self) :
@@ -74,19 +42,17 @@ class Bans(metaclass=Singleton) :
 					logging.info(f"Updating guilds... {count}/{len(bot.guilds)}")
 					await asyncio.sleep(0)
 				count+=1
-				# Timed per guild, not per 10: if a guild stalls, the last '->' line printed names it.
-				with _timed(f"guild {count}/{len(bot.guilds)} {guild.name}({guild.id})") :
-					if guild.id in known_guilds :
-						known_guilds.remove(guild.id)
-					try :
-						with _timed("  ServerTransactions.add") :
-							ServerTransactions().add(guild.id, guild.owner.name if guild.owner else 'unknown', guild.name,
-							                         len(guild.members), None)
-						await Bans().check_guild_invites(bot, guild)
-					except Exception as e :
-						logging.error(f"Error processing guild {guild.id}: {e}")
-					with _timed("  check_guild_bans") :
-						await Bans().check_guild_bans(bot, guild)
+				# Logged per guild, not per 10: if a guild stalls, the last line printed names it.
+				logging.debug(f"[{count}/{len(bot.guilds)}] Processing {guild.name}({guild.id})")
+				if guild.id in known_guilds :
+					known_guilds.remove(guild.id)
+				try :
+					ServerTransactions().add(guild.id, guild.owner.name if guild.owner else 'unknown', guild.name,
+					                         len(guild.members), None)
+					await Bans().check_guild_invites(bot, guild)
+				except Exception as e :
+					logging.error(f"Error processing guild {guild.id}: {e}")
+				await Bans().check_guild_bans(bot, guild)
 			except Exception as e :
 				logging.warning(f"Error processing guild {guild.id}: {e}")
 		logging.info(f"Finished updating {count}/{len(bot.guilds)} guilds. {len(known_guilds)} guilds no longer known, removing...")
@@ -285,8 +251,7 @@ class Bans(metaclass=Singleton) :
 		me = guild.me
 		if me is None :
 			try :
-				with _timed("    fetch_member(self)") :
-					me = await guild.fetch_member(bot.user.id)
+				me = await guild.fetch_member(bot.user.id)
 			except (discord.NotFound, discord.HTTPException) as e :
 				logging.warning(f"Could not resolve bot member in {guild.name}({guild.id}), skipping: {e}")
 				return
@@ -299,13 +264,11 @@ class Bans(metaclass=Singleton) :
 				f"No ban_members permission in {guild.name}({guild.id}), skipping guild (bans left untouched)")
 			return
 
-		with _timed("    ServerTransactions.get") :
-			db_server = ServerTransactions().get(guild.id)
+		db_server = ServerTransactions().get(guild.id)
 		if db_server and db_server.hidden is True :
 			return
 
-		with _timed("    ConfigData.get_channel") :
-			modchannel = await ConfigData().get_channel(guild, optional=True)
+		modchannel = await ConfigData().get_channel(guild, optional=True)
 		if not modchannel :
 			logging.info(f"No modchannel set for {guild.name}({guild.id}), skipping bans")
 			return
@@ -313,31 +276,20 @@ class Bans(metaclass=Singleton) :
 		# Server(...) issues a full ban query for the guild, so it is built only after every
 		# early-out above has had its chance to skip.
 		count = 0
-		with _timed("    Server(guild.id) [loads known ban ids]") :
-			server = Server(guild.id)
-		logging.info(f"[timing]    {guild.name}({guild.id}) has {len(server.banned_ids)} known bans, starting scan")
+		server = Server(guild.id)
 
-		# Timing for the scan itself. scanned counts every entry Discord returns (so it advances even
-		# when nothing is new, unlike count), letting us tell "paginating a huge ban list" apart from
-		# "grinding through BanChecker". checker_ms/evaluate_ms accumulate the two per-ban costs.
+		# scanned counts every entry Discord returns, unlike count which only advances on new bans.
+		# A guild whose bans are all already known would otherwise log nothing for the entire scan -
+		# that silence is what made a hang here indistinguishable from slow progress.
 		scanned = 0
-		checker_ms = 0.0
-		evaluate_ms = 0.0
 		scan_start = time.perf_counter()
-		last_report = scan_start
 
 		async for banentry in guild.bans(limit=None) :
 			scanned += 1
-			# Report on entries SCANNED, not new bans found - a guild whose bans are all known would
-			# otherwise produce no output at all for the entire scan. This is the silence that made
-			# the sweep look hung.
 			if scanned % 250 == 0 :
-				now = time.perf_counter()
 				logging.info(
-					f"[timing]    {guild.name}({guild.id}) scanned {scanned} entries "
-					f"({(now - last_report) * 1000:.0f}ms for last 250, {now - scan_start:.1f}s total, "
-					f"{count} new, checker {checker_ms:.0f}ms, evaluate {evaluate_ms:.0f}ms)")
-				last_report = now
+					f"Scanned {scanned} bans in {guild.name}({guild.id}) "
+					f"({time.perf_counter() - scan_start:.1f}s, {count} new)")
 				await asyncio.sleep(0)
 
 			# Bots are skipped BEFORE check_ban, and deliberately never marked as checked. Policy is
@@ -353,37 +305,20 @@ class Bans(metaclass=Singleton) :
 				continue
 			from classes.ban.BanChecker import BanChecker
 			ban_checker = BanChecker(bot, banentry)
-
-			# Only logged when a single ban is unexpectedly slow (>250ms), so the common case stays
-			# quiet while an outlier still names itself. The totals go into the scan report above.
-			step_start = time.perf_counter()
-			with _timed(f"    BanChecker.run for {banentry.user.id} in {guild.id}", threshold_ms=250) :
-				await ban_checker.run()
-			checker_ms += (time.perf_counter() - step_start) * 1000
-
-			step_start = time.perf_counter()
-			with _timed(f"    evaluate_ban for {banentry.user.id} in {guild.id}", threshold_ms=250) :
-				await ban_checker.evaluate_ban(guild, server_only=True)
-			evaluate_ms += (time.perf_counter() - step_start) * 1000
+			await ban_checker.run()
+			await ban_checker.evaluate_ban(guild, server_only=True)
 
 			count += 1
 			if count % 25 == 0 :
 				logging.info(f"Found {count} new bans so far in {guild.name}({guild.id})")
 				await asyncio.sleep(0)
-		scan_elapsed = time.perf_counter() - scan_start
-		logging.info(
-			f"[timing]    {guild.name}({guild.id}) scan finished: {scanned} entries in {scan_elapsed:.1f}s "
-			f"({count} new, checker {checker_ms:.0f}ms, evaluate {evaluate_ms:.0f}ms, "
-			f"pagination/other {(scan_elapsed * 1000) - checker_ms - evaluate_ms:.0f}ms)")
 
-		with _timed("    check_missed_ids") :
-			missed_targets = server.check_missed_ids()
-		with _timed("    remove_missing_ids") :
-			removed = server.remove_missing_ids(missed_targets)
+		missed_targets = server.check_missed_ids()
+		removed = server.remove_missing_ids(missed_targets)
 
 		logging.info(
-			f"Found {count} new bans in {guild.name}({guild.id}). "
-			f"Removed {removed}/{len(missed_targets)} stale bans.")
+			f"Found {count} new bans in {guild.name}({guild.id}) after scanning {scanned} in "
+			f"{time.perf_counter() - scan_start:.1f}s. Removed {removed}/{len(missed_targets)} stale bans.")
 
 	# Wall-clock budget for resolving one guild's invite. Invite creation is heavily rate limited
 	# and discord.py absorbs 429s by sleeping silently, so without a ceiling a single guild can
