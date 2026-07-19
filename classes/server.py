@@ -10,17 +10,17 @@ from database.transactions.ServerTransactions import ServerTransactions
 
 class Server :
 	def __init__(self, guild_id: int) :
-		# FIX: Define inside __init__ so they are unique to each guild instance
 		self.guild_id = guild_id
-		self.banned_ids = self.get_banned_ids(guild_id)
+		self.banned_ids = set(self.get_banned_ids(guild_id))
 
 		# Performance/Accuracy Fix: Using a set prevents O(N^2) lookups
 		# and isolates tracking to this instance alone.
 		self.checked_ids = set()
 
-	def get_banned_ids(self, guild_id: int) -> list[type[Bans]] | list[int] | list[ColumnElement] :
+	def get_banned_ids(self, guild_id: int) -> list[int]  :
 		"""
 
+		:return:
 		:param guild_id:
 		:return:
 		"""
