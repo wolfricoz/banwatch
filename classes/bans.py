@@ -36,19 +36,22 @@ class Bans(metaclass=Singleton) :
 		known_guilds = ServerTransactions().get_all()
 		count = 0
 		for guild in bot.guilds :
-			if count % 10 == 0 :
-				logging.info(f"Updating guilds... {count}/{len(bot.guilds)}")
-				await asyncio.sleep(0)
-			count+=1
-			if guild.id in known_guilds :
-				known_guilds.remove(guild.id)
-			try :
-				ServerTransactions().add(guild.id, guild.owner.name if guild.owner else 'unknown', guild.name,
-				                         len(guild.members), None)
-				await Bans().check_guild_invites(bot, guild)
+			try:
+				if count % 10 == 0 :
+					logging.info(f"Updating guilds... {count}/{len(bot.guilds)}")
+					await asyncio.sleep(0)
+				count+=1
+				if guild.id in known_guilds :
+					known_guilds.remove(guild.id)
+				try :
+					ServerTransactions().add(guild.id, guild.owner.name if guild.owner else 'unknown', guild.name,
+					                         len(guild.members), None)
+					await Bans().check_guild_invites(bot, guild)
+				except Exception as e :
+					logging.error(f"Error processing guild {guild.id}: {e}")
+				await Bans().check_guild_bans(bot, guild)
 			except Exception as e :
-				logging.error(f"Error processing guild {guild.id}: {e}")
-			await Bans().check_guild_bans(bot, guild)
+				logging.warning(f"Error processing guild {guild.id}: {e}")
 		logging.info(f"Finished updating {count}/{len(bot.guilds)} guilds. {len(known_guilds)} guilds no longer known, removing...")
 
 		count = 0
@@ -234,6 +237,9 @@ class Bans(metaclass=Singleton) :
 
 
 	async def check_guild_bans(self, bot: commands.AutoShardedBot, guild: discord.Guild) :
+		if not guild.me.guild_permissions.ban_members :
+			logging.warning(f"Guild {guild.name} does not have ban permissions")
+			return
 		count = 0
 		server = Server(guild.id)
 		db_server = ServerTransactions().get(guild.id)
