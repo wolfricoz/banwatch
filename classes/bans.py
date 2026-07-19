@@ -48,7 +48,7 @@ class Bans(metaclass=Singleton) :
 				await Bans().check_guild_invites(bot, guild)
 			except Exception as e :
 				logging.error(f"Error processing guild {guild.id}: {e}")
-			queue().add(Bans().check_guild_bans(bot, guild), priority=0)
+			await Bans().check_guild_bans(bot, guild)
 		logging.info(f"Finished updating {count}/{len(bot.guilds)} guilds. {len(known_guilds)} guilds no longer known, removing...")
 
 		count = 0

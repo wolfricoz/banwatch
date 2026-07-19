@@ -104,13 +104,11 @@ async def on_ready() :
 	# LOOPS THROUGH ALL THE GUILD / SERVERS THAT THE BOT IS ASSOCIATED WITH.
 	await Configer.create_bot_config()
 	logging.info("Finished creating configs")
-	queue().add(Bans().update(bot))
 	# await ConfigData().migrate()
 	logging.info("Configs and cache created")
 	for guild in bot.guilds :
 		# add invites
 		# logging.info THE SERVER'S ID AND NAME.
-		ConfigData().load_guild(guild.id)
 		guilds.append(f"- {guild.id} (name: {guild.name}, owner: {guild.owner}({guild.owner.id}))")
 		if await blacklist_check(guild, devroom) :
 			continue
