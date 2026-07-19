@@ -237,23 +237,51 @@ class Bans(metaclass=Singleton) :
 
 
 	async def check_guild_bans(self, bot: commands.AutoShardedBot, guild: discord.Guild) :
-		if not guild.me.guild_permissions.ban_members :
-			logging.warning(f"Guild {guild.name} does not have ban permissions")
+		if not guild :
+			logging.error("check_guild_bans called without a guild")
 			return
+
+		# guild.me is None whenever the bot's own member object is not cached. Reading
+		# .guild_permissions off it then raises AttributeError, which the except in update()
+		# swallows - the guild gets skipped with a message that blames the wrong thing. Resolve
+		# it explicitly so a genuine failure is reported as itself.
+		me = guild.me
+		if me is None :
+			try :
+				me = await guild.fetch_member(bot.user.id)
+			except (discord.NotFound, discord.HTTPException) as e :
+				logging.warning(f"Could not resolve bot member in {guild.name}({guild.id}), skipping: {e}")
+				return
+
+		if not me.guild_permissions.ban_members :
+			# Deliberate: without ban_members the ban list is unreadable, so every ban would look
+			# missing to the reconciliation at the end of this function and be soft-deleted. Leaving
+			# stale rows in place is the safer failure - do not "fix" this by falling through.
+			logging.warning(
+				f"No ban_members permission in {guild.name}({guild.id}), skipping guild (bans left untouched)")
+			return
+
+		db_server = ServerTransactions().get(guild.id)
+		if db_server and db_server.hidden is True :
+			return
+
+		if not await ConfigData().get_channel(guild, optional=True) :
+			logging.info(f"No modchannel set for {guild.name}({guild.id}), skipping bans")
+			return
+
+		# Server(...) issues a full ban query for the guild, so it is built only after every
+		# early-out above has had its chance to skip.
 		count = 0
 		server = Server(guild.id)
-		db_server = ServerTransactions().get(guild.id)
-		if db_server and db_server.hidden is True:
-			return
-
-		if not guild :
-			logging.error(f"Guild {guild.id} not found")
-			return
-		if not await ConfigData().get_channel(guild, optional=True) :
-			logging.info('No modchannel set, skipping bans')
-			return
 
 		async for banentry in guild.bans(limit=None) :
+			# Bots are skipped BEFORE check_ban, and deliberately never marked as checked. Policy is
+			# that bots are not stored at all (see listeners/on_member_ban.py, which refuses to
+			# store them), so leaving a bot unmarked is what lets the reconciliation below purge
+			# any legacy bot rows. This is a one-time cleanup, not a cycle: nothing re-adds the row
+			# because this loop skips bots, and once soft-deleted it drops out of banned_ids since
+			# ServerTransactions.get_bans filters on deleted_at. Do not "fix" this by marking bots
+			# checked - that would pin the stale rows in place permanently.
 			if banentry.user.bot :
 				continue
 			if server.check_ban(banentry.user.id) :
@@ -267,11 +295,11 @@ class Bans(metaclass=Singleton) :
 				logging.info(f"Found {count} new bans so far in {guild.name}({guild.id})")
 				await asyncio.sleep(0)
 		missed_targets = server.check_missed_ids()
-		server.remove_missing_ids(missed_targets)
+		removed = server.remove_missing_ids(missed_targets)
 
 		logging.info(
-			f"Found {count} new bans in {guild.name}({guild.id}). Queued {len(missed_targets)} old bans for deletion.")
-		logging.info(f"Found {count} new bans in {guild.name}({guild.id})")
+			f"Found {count} new bans in {guild.name}({guild.id}). "
+			f"Removed {removed}/{len(missed_targets)} stale bans.")
 
 	async def check_guild_invites(self, bot: commands.AutoShardedBot, guild: discord.Guild) :
 		guild_record = ServerTransactions().get(guild.id)

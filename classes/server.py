@@ -1,9 +1,5 @@
 import logging
 
-from sqlalchemy import ColumnElement
-
-from classes.queue import queue
-from database.current import Bans
 from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ServerTransactions import ServerTransactions
 
@@ -42,11 +38,24 @@ class Server :
 				missed_ids.append(user_id)
 		return missed_ids
 
-	# FIX: Changed to regular 'def' because it just pushes tasks to the queue
-	def remove_missing_ids(self, missing_ids: list[int]) -> None :
-		for user_id in missing_ids :
-			queue().add(self.soft_delete(user_id))
+	def remove_missing_ids(self, missing_ids: list[int]) -> int :
+		"""Soft-removes bans that are in our database but no longer on the guild.
 
-	async def soft_delete(self, user_id: int) -> None :
-		logging.info(f"Soft removing missing ban for {user_id} in {self.guild_id}")
-		BanTransactions().delete_soft(user_id + self.guild_id)
+		This writes directly rather than going through queue(). The reconciliation runs inside
+		check_guild_bans, which is itself awaited inside a queued Bans().update() - so anything
+		queued from here would sit unprocessed until the entire multi-guild sweep finished, and
+		would be dropped outright if the queue were cleared or the bot restarted first.
+
+		:return: number of bans actually removed.
+		"""
+		if not missing_ids :
+			return 0
+		ban_ids = [user_id + self.guild_id for user_id in missing_ids]
+		removed = BanTransactions().delete_soft_bulk(ban_ids)
+		if removed != len(ban_ids) :
+			logging.warning(
+				f"Soft-removed {removed}/{len(ban_ids)} missing bans in {self.guild_id}; "
+				f"{len(ban_ids) - removed} were already removed or could not be found.")
+		else :
+			logging.info(f"Soft-removed {removed} missing bans in {self.guild_id}")
+		return removed

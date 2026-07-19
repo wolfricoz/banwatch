@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from typing import Any, Type
 
-from sqlalchemy import Select, and_, or_, select, text
+from sqlalchemy import Select, and_, or_, select, text, update
 from sqlalchemy.orm import contains_eager, joinedload
 
 from classes.singleton import Singleton
@@ -180,14 +180,41 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 
 	def delete_soft(self, ban_id: int) -> bool :
 		with self.createsession() as session :
-			logging.info(f"Ban soft removed {ban_id}.")
-			ban = self.get(ban_id, session)
+			# override=True: this is a maintenance path, so it must find hidden bans and bans in
+			# hidden/deleted servers too. The filtered lookup silently returns None for those.
+			ban = self.get(ban_id, session, override=True)
 			if not ban or ban.deleted_at :
+				logging.info(f"Ban {ban_id} not found or already removed, skipping.")
 				return False
 			ban.deleted_at = datetime.now()
-			session.add(ban)
 			self.commit(session)
+			logging.info(f"Ban soft removed {ban_id}.")
 			return True
+
+	def delete_soft_bulk(self, ban_ids: list[int], chunk_size: int = 500) -> int :
+		"""Soft-removes many bans in one statement per chunk instead of one round-trip each.
+
+		Used by the reconciliation sweep, which can flag thousands of stale bans per guild.
+		Like delete_soft this deliberately ignores hidden/visibility filters - a ban that is gone
+		from Discord must be recorded as gone regardless of whether it is broadcastable.
+
+		:return: number of rows actually updated.
+		"""
+		if not ban_ids :
+			return 0
+		removed = 0
+		for start in range(0, len(ban_ids), chunk_size) :
+			chunk = ban_ids[start :start + chunk_size]
+			with self.createsession() as session :
+				result = session.execute(
+					update(Bans)
+					.where(and_(Bans.ban_id.in_(chunk), Bans.deleted_at.is_(None)))
+					.values(deleted_at=datetime.now())
+				)
+				# Read rowcount before commit() - it closes the session in its finally block.
+				removed += result.rowcount
+				self.commit(session)
+		return removed
 
 	def delete_permanent(self, ban: int | Type[Bans]) -> bool :
 		with self.createsession() as session :
