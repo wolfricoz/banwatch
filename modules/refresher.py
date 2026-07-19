@@ -18,8 +18,6 @@ class Refresher(commands.Cog):
     @tasks.loop(hours=2)
     async def ban_update_task(self):
         """Updates banlist when user is unbanned"""
-        if self.ban_update_task.current_loop == 0:
-            return
         logging.info(f"[auto refresh]refreshing banlist")
         bot = self.bot
         await Bans().update(bot)
