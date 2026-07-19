@@ -46,7 +46,7 @@ class Bans(metaclass=Singleton) :
 				try :
 					ServerTransactions().add(guild.id, guild.owner.name if guild.owner else 'unknown', guild.name,
 					                         len(guild.members), None)
-					await Bans().check_guild_invites(bot, guild)
+					# await Bans().check_guild_invites(bot, guild)
 				except Exception as e :
 					logging.error(f"Error processing guild {guild.id}: {e}")
 				await Bans().check_guild_bans(bot, guild)
