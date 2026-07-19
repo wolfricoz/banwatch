@@ -185,6 +185,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			if not ban or ban.deleted_at :
 				return False
 			ban.deleted_at = datetime.now()
+			session.add(ban)
 			self.commit(session)
 			return True
 
