@@ -29,11 +29,13 @@ class BanInform(SecureView) :
 			self.evidence.disabled = True
 
 
+	# ============================================================
 	async def get_ban_id(self, interaction: discord.Interaction) :
 		embed = interaction.message.embeds[0]
 		match = re.search(r'ban ID: (\w+)', embed.footer.text)
 		return match.group(1) if match else None
 
+	# ============================================================
 	@discord.ui.button(label="Ban with Reason", style=discord.ButtonStyle.success, custom_id="ban_user")
 	async def ban_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		if not interaction.user.guild_permissions.ban_members:
@@ -55,6 +57,7 @@ class BanInform(SecureView) :
 		reason_modal = await send_modal(interaction, "Thank you for submitting your reason!", "Ban Reason")
 		await ban_user(interaction, user, "", f"Cross-ban from {guild.name} with ban id: {ban_id} with reason: {reason_modal}", self.ban_class, clean=False)
 
+	# ============================================================
 	@discord.ui.button(label="Cross-Ban", style=discord.ButtonStyle.success, custom_id="cross_ban_user")
 	async def cross_ban_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		if not interaction.user.guild_permissions.ban_members:
@@ -76,12 +79,14 @@ class BanInform(SecureView) :
 		await ban_member(self.ban_class, interaction, user, reason, days=0)
 		await send_response(interaction, f"Banning user")
 
+	# ============================================================
 	@discord.ui.button(label="view evidence", style=discord.ButtonStyle.primary, custom_id="evidence")
 	async def evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		ban_id = await self.get_ban_id(interaction)
 		entries = ProofTransactions().get(ban_id=ban_id)
 		await self.send_proof(interaction, entries, ban_id)
 
+	# ============================================================
 	async def retrieve_proof(self, evidence: Proof) :
 		"""Gets image from discord CDN and then creates a discord.File"""
 		if len(evidence.get_attachments()) <= 0 :
@@ -96,6 +101,7 @@ class BanInform(SecureView) :
 			attachments.append(discord.File(image_data, filename=f"image_{i}.jpg"))
 		return attachments
 
+	# ============================================================
 	async def send_proof(self, interaction: discord.Interaction, entries: list, ban_id: int) :
 
 

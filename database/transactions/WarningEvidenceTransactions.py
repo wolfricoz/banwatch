@@ -14,6 +14,7 @@ class WarningEvidenceTransactions(DatabaseTransactions) :
 			session.add(entry)
 			self.commit(session)
 
+	# ============================================================
 	def get_warning(self, warning_id: int) -> Warning :
 		with self.createsession() as session:
 			return session.scalars(select(WarningEvidence).where(WarningEvidence.warning_id == warning_id)).all()

@@ -14,6 +14,7 @@ class ChannelSelect(discord.ui.ChannelSelect):
             max_values=max_values
         )
 
+    # ============================================================
     async def callback(self, interaction: discord.Interaction):
         channel = self.values[0]
         ConfigTransactions().config_unique_add(interaction.guild.id, "modchannel", channel.id)

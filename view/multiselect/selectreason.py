@@ -25,6 +25,7 @@ class ReasonSelect(discord.ui.Select) :
 			max_values=1
 		)
 
+	# ============================================================
 	async def callback(self, interaction: discord.Interaction) :
 		selected_value = self.values[0]
 		self.view.reason = selected_value
@@ -302,6 +303,7 @@ class SelectReason(SecureView) :
 
 		self._update_page()
 
+	# ============================================================
 	def _update_page(self) :
 		# Clear existing items
 		self.clear_items()
@@ -351,16 +353,19 @@ class SelectReason(SecureView) :
 			next_button.callback = self._next_page
 			self.add_item(next_button)
 
+	# ============================================================
 	async def _previous_page(self, interaction: discord.Interaction) :
 		self.current_page = max(0, self.current_page - 1)
 		self._update_page()
 		await interaction.response.edit_message(view=self)
 
+	# ============================================================
 	async def _next_page(self, interaction: discord.Interaction) :
 		self.current_page = min(self.total_pages - 1, self.current_page + 1)
 		self._update_page()
 		await interaction.response.edit_message(view=self)
 
+	# ============================================================
 	def _remove_duplicates(self):
 		default_names = [reason['reason'].lower() for reason in self.reasons]
 		custom_names = [reason['reason'].lower() for reason in self.custom_reasons]
@@ -369,6 +374,7 @@ class SelectReason(SecureView) :
 				index = default_names.index(custom_name)
 				self.reasons.pop(index)
 
+	# ============================================================
 	def get_reason(self) :
 		for reason in self.all_reasons :
 			if reason.get('reason', "custom").lower() == self.reason.lower() :

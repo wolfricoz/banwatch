@@ -36,6 +36,7 @@ class BanReasonCreateModal(discord.ui.Modal):
         required=True,
     )
 
+    # ============================================================
     async def on_submit(self, interaction: discord.Interaction) -> None:
         # capture submitted values for the caller
         self.values = {
@@ -50,6 +51,7 @@ class BanReasonCreateModal(discord.ui.Modal):
         finally:
             self.stop()
 
+    # ============================================================
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         logging.exception(error)
         try:

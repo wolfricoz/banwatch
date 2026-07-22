@@ -26,6 +26,7 @@ class AppealButtons(SecureView) :
 		if response :
 			self.change_status.disabled = True
 
+	# ============================================================
 	@discord.ui.button(label="Change Status", style=discord.ButtonStyle.success, custom_id="ChangeStatus")
 	async def change_status(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		if interaction.user.guild_permissions.ban_members is False:
@@ -36,6 +37,7 @@ class AppealButtons(SecureView) :
 
 	# await self.disable_buttons(interaction)
 
+	# ============================================================
 	@discord.ui.button(label="Respond", style=discord.ButtonStyle.success, custom_id="Respond")
 	async def respond(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		if not self.dmChannel and interaction.user.guild_permissions.ban_members is False:
@@ -55,6 +57,7 @@ class AppealButtons(SecureView) :
 		if self.response :
 			await self.disable_buttons(interaction)
 
+	# ============================================================
 	@discord.ui.button(label="Report", style=discord.ButtonStyle.danger, custom_id="Report")
 	async def report(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		if interaction.user.guild_permissions.ban_members is False:
@@ -68,6 +71,7 @@ class AppealButtons(SecureView) :
 		AppealsDbTransactions().change_status(self.ban_id, "denied")
 		await self.disable_buttons(interaction)
 
+	# ============================================================
 	@discord.ui.button(label="Hide Ban", style=discord.ButtonStyle.danger, custom_id="deny_silent")
 	async def silent(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		if interaction.user.guild_permissions.ban_members is False:
@@ -85,11 +89,13 @@ class AppealButtons(SecureView) :
 		await send_message(self.user, f"Your ban with ban id `{self.ban_id}` has been hidden.\n-# Hidden bans can not be viewed by other servers, but the ban remains in the server.(only nam")
 
 
+	# ============================================================
 	async def disable_buttons(self, interaction: discord.Interaction) :
 		for child in self.children :
 			child.disabled = True
 		await interaction.message.edit(view=self)
 
+	# ============================================================
 	async def send_embed(self, interaction: discord.Interaction, content) :
 		title = await self.create_title(interaction)
 		embed = discord.Embed(title=title, color=discord.Color.green(), description=content)
@@ -103,17 +109,20 @@ class AppealButtons(SecureView) :
 		except discord.Forbidden :
 			await send_message(interaction.channel, f"Unable to send message to {self.user.name}, DMs are closed.")
 
+	# ============================================================
 	async def create_title(self, interaction: discord.Interaction) :
 		if self.dmChannel:
 			return f"Response from {interaction.user.name} for ban id: {self.ban_id}"
 		return f"Response from {interaction.guild.name} for ban id: {self.ban_id}"
 
+	# ============================================================
 	async def create_record(self, interaction, message, appeal):
 		if self.dmChannel:
 			return AppealMsgTransactions().add(message, self.user.id, self.ban.gid, appeal.id)
 		return AppealMsgTransactions().add(message, self.ban.gid, self.user.id,  appeal.id)
 
 
+	# ============================================================
 	async def load_data(self, interaction: discord.Interaction) :
 		self.bot = interaction.client
 		self.dmChannel = isinstance(interaction.channel, discord.DMChannel)

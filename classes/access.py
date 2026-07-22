@@ -20,10 +20,12 @@ class AccessControl(metaclass=Singleton) :
 		self.add_staff_to_dict()
 		self.add_premium_to_dict()
 
+	# ============================================================
 	def reload(self) :
 		self.add_staff_to_dict()
 		self.add_premium_to_dict()
 
+	# ============================================================
 	def add_staff_to_dict(self) :
 		self.staff = {}
 		staff_members = StaffTransactions().get_all()
@@ -36,21 +38,27 @@ class AccessControl(metaclass=Singleton) :
 		logging.info("Staff information has been reloaded:")
 		logging.info(self.staff)
 
+	# ============================================================
 	def add_premium_to_dict(self) :
 		self.premium = ServerTransactions().get_premium_ids()
 
+	# ============================================================
 	def reload_premium(self) :
 		self.add_premium_to_dict()
 
+	# ============================================================
 	def access_owner(self, user_id: int) -> bool :
 		return True if user_id == int(os.getenv('OWNER')) else False
 
+	# ============================================================
 	def access_all(self, user_id: int) -> bool :
 		return True if user_id in self.staff.get('dev', []) or user_id in self.staff.get('rep', []) else False
 
+	# ============================================================
 	def access_dev(self, user_id: int) -> bool :
 		return True if user_id in self.staff.get('dev', []) else False
 
+	# ============================================================
 	def check_access(self, role="") :
 		def pred(interaction: discord.Interaction) -> bool:
 			match role.lower() :
@@ -62,6 +70,7 @@ class AccessControl(metaclass=Singleton) :
 					return self.access_all(interaction.user.id)
 		return app_commands.check(pred)
 
+	# ============================================================
 	def check_blacklist(self):
 		async def pred(interaction: discord.Interaction) -> bool:
 			if await Configer.is_user_blacklisted(interaction.user.id):
@@ -70,6 +79,7 @@ class AccessControl(metaclass=Singleton) :
 
 		return app_commands.check(pred)
 
+	# ============================================================
 	def check_premium(self):
 		async def pred(interaction: discord.Interaction) -> bool:
 			result = self.is_premium(interaction.guild.id)
@@ -82,6 +92,7 @@ class AccessControl(metaclass=Singleton) :
 
 		return app_commands.check(pred)
 
+	# ============================================================
 	def is_premium(self, guild_id: int) -> bool :
 		"""Check if a guild has premium access."""
 		return guild_id in self.premium

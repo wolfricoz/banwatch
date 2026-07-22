@@ -1,3 +1,5 @@
+import logging
+
 import discord
 from discord.ext.commands import Bot, Cog
 from discord_py_utilities.messages import send_message
@@ -11,6 +13,7 @@ class on_reaction_add(Cog) :
 	def __init__(self, bot: Bot) :
 		self.bot = bot
 
+	# ============================================================
 	@Cog.listener("on_raw_reaction_add")
 	async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent) :
 		# Ignore reactions from the bot itself
@@ -47,13 +50,17 @@ class on_reaction_add(Cog) :
 		if not embed.footer or embed.footer.text.lower() != "bot trap button" :
 			return
 
+		logging.info(f"Bot trap triggered by {user} ({user.id}) in {guild.name} ({guild.id})")
 		modchannel_id = ConfigData().get_key(guild.id, "modchannel")
 		if modchannel_id :
 			modchannel = guild.get_channel(modchannel_id)
 			if modchannel :
 				await send_message(modchannel, f"Bottrap triggered by {user.name} ({user.id})")
 
-		await guild.ban(user, reason="Member pressed the bot trap buttons.")
+		try :
+			await guild.ban(user, reason="Member pressed the bot trap buttons.")
+		except discord.Forbidden :
+			logging.warning(f"Bot trap: missing permission to ban {user} ({user.id}) in {guild.name} ({guild.id})")
 
 
 async def setup(bot: Bot) :

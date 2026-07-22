@@ -16,9 +16,11 @@ class Confirm(SecureView):
 		await self.wait()
 		return self.value
 
+	# ============================================================
 	def __init__(self):
 		super().__init__(timeout=None)
 
+	# ============================================================
 	@discord.ui.button(label="Confirm", style=discord.ButtonStyle.green, custom_id="confirm")
 	async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
 		"""confirm the action"""
@@ -26,6 +28,7 @@ class Confirm(SecureView):
 		await interaction.response.send_message("Confirmed", ephemeral=True)
 		self.stop()
 
+	# ============================================================
 	@discord.ui.button(label="Cancel", style=discord.ButtonStyle.red, custom_id="cancel")
 	async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
 		"""cancel the action"""

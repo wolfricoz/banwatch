@@ -22,6 +22,7 @@ async def autocomplete_appeal(interaction: discord.Interaction, text: str) -> ty
 	return data
 
 
+# ============================================================
 async def autocomplete_guild(interaction: discord.Interaction, current: str) -> typing.List[
 	app_commands.Choice[str]] :
 	"""generates the options for autocomplete."""

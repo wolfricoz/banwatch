@@ -40,6 +40,7 @@ class BanChecker() :
 		self.status: str = BanCheckerStatus.PROMPT
 		self.reason = ""
 
+	# ============================================================
 	async def run(self) :
 		"""Checks if the ban follows the guidelines of banwatch, and if the ban has damaging claims."""
 		await self.auto_hide()
@@ -68,6 +69,7 @@ class BanChecker() :
 
 		return self
 
+	# ============================================================
 	async def short_run(self) :
 		"""Lightweight PRE-CHECK for the live on-ban event. Runs ONLY the cheap, string-only auto-hide
 		rules - cross-ban, low-value and migrated - so we can decide 'auto-hide vs show buttons'
@@ -82,6 +84,7 @@ class BanChecker() :
 
 		return self
 
+	# ============================================================
 	async def perform_action(self, action: Coroutine) :
 		"""Performs actions, if the status is incorrect it'll skip the action to prevent overriding the current action."""
 		if self.status != BanCheckerStatus.PROMPT :
@@ -89,11 +92,13 @@ class BanChecker() :
 			return
 		await action
 
+	# ============================================================
 	async def auto_hide(self) :
 		"""Automatically hides the ban if it meets the criteria for hiding."""
 		await self.check_cross_ban()
 		await self.perform_action(self.assess_value())
 
+	# ============================================================
 	async def migrated_ban(self) :
 		"""Checks if the ban is a migrated ban, and if it is, approves it without prompting."""
 		if str(self.ban.reason).lower().startswith('[migrated') :
@@ -102,6 +107,7 @@ class BanChecker() :
 			self.reason = "Migrated ban"
 			return
 
+	# ============================================================
 	async def check_cross_ban(self) :
 		"""Checks if the ban is a cross-ban, and if it is, hides it and adds it to the database."""
 		# A ban is a cross-ban if its reason starts with "cross-ban from <server>", in any of the
@@ -123,6 +129,7 @@ class BanChecker() :
 			self.reason = "Cross ban"
 			return
 
+	# ============================================================
 	async def assess_value(self) :
 		"""Checks if the ban is worth broadcasting, if the ban has no reason or a reason that doesn't provide valuable information, it'll be hidden."""
 		raw_reason = str(self.ban.reason or "").lower().strip()
@@ -138,16 +145,19 @@ class BanChecker() :
 			self.reason = "Low Value Ban"
 			return
 
+	# ============================================================
 	async def check_staff(self) :
 		if AccessControl().access_all(self.ban.user.id) :
 			self.reason = "Banwatch Staff Member"
 			self.status = BanCheckerStatus.REVIEW
 
+	# ============================================================
 	async def check_bot(self) :
 		if self.ban.user.bot :
 			self.reason = "Member is a bot"
 			self.status = BanCheckerStatus.REVIEW
 
+	# ============================================================
 	async def check_word_count(self) :
 		if self.ban.reason is None :
 			self.reason = "Short ban reason"
@@ -162,6 +172,7 @@ class BanChecker() :
 			self.reason = "Short ban reason"
 			self.status = BanCheckerStatus.SHORT
 
+	# ============================================================
 	@staticmethod
 	def _normalise_found(found) -> str :
 		"""getResults() returns the raw `found` matches (a list, possibly of regex-group tuples).
@@ -179,6 +190,7 @@ class BanChecker() :
 					terms.append(text)
 		return ", ".join(terms)
 
+	# ============================================================
 	async def check_flagged_terms(self, target) :
 		# "block" (HIDE) always outranks "review" (REVIEW). We therefore return immediately on the
 		# first block, and only fall back to a review verdict if no block was found - so a later
@@ -209,6 +221,7 @@ class BanChecker() :
 			self.status = BanCheckerStatus.REVIEW
 		return None, None
 
+	# ============================================================
 	async def check_pii(self) :
 		"""This function does its best to detect personally identifiable information such as date of births, phone numbers, addresses, and emails."""
 		# This is a very basic check, and can be easily bypassed, but it's better than nothing.
@@ -223,6 +236,7 @@ class BanChecker() :
 			self.reason = "Ban reason may contain personally identifiable information."
 			self.status = BanCheckerStatus.REVIEW
 
+	# ============================================================
 	async def check_ascii_alphanumeric(self) :
 		# Ensure we have a string to work with
 		return
@@ -236,16 +250,19 @@ class BanChecker() :
 			self.reason = "Ban reason contains unsupported special characters or emojis."
 			self.status = BanCheckerStatus.REVIEW
 
+	# ============================================================
 	def get_status(self) -> str :
 		"""Returns the status of the ban check."""
 		logging.info(f"returning status for {self.ban.user} with reason: {self.ban.reason}, current status: {self.status}")
 		return self.status
 
+	# ============================================================
 	def get_reason(self) -> str :
 		"""Returns the reason for the ban check."""
 		logging.info(f"returning reason for {self.ban.user} with reason: {self.ban.reason}, current status: {self.reason}")
 		return self.reason
 
+	# ============================================================
 	async def send_review_prompt(self, guild) :
 		"""Queues the 'share this ban?' prompt (embed + action buttons) to the guild's mod channel.
 		This is the interactive path: the buttons run the full check again when a moderator acts, so
@@ -272,6 +289,7 @@ class BanChecker() :
 		embed.set_footer(text=f"{guild.id}-{self.ban.user.id}")
 		queue().add(mod_channel.send(embed=embed, view=BanOptionButtons()), priority=2)
 
+	# ============================================================
 	async def evaluate_ban(self, guild, server_only=False) :
 		"""this function decides the verdict"""
 		logging.info(

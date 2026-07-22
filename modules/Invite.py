@@ -18,6 +18,7 @@ class Invite(GroupCog, name="invite", description="Manage your servers invites!"
 	def __init__(self, bot: Bot) :
 		self.bot = bot
 
+	# ============================================================
 	@app_commands.command(name="set_channel", description="Sets the channel where the invite gets created.")
 	@app_commands.guild_only()
 	@app_commands.checks.has_permissions(manage_channels=True)
@@ -34,6 +35,7 @@ class Invite(GroupCog, name="invite", description="Manage your servers invites!"
 		ServerTransactions().update(interaction.guild.id, invite=invite)
 		await send_response(interaction, f"You've changed your invite channel to {channel.mention}, here's your new invite: {invite}")
 
+	# ============================================================
 	@app_commands.command(name="regenerate", description="Generates a new invite!")
 	@app_commands.guild_only()
 	@app_commands.checks.has_permissions(manage_channels=True)

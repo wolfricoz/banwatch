@@ -27,6 +27,11 @@
 #
 # 	return ''.join(new_string)
 
+import logging
+
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+
 def shift(number, reverse=False) :
 	"""Shift digits of an integer within range."""
 
@@ -42,5 +47,5 @@ def shift(number, reverse=False) :
 
 	return int(''.join(map(str, new_digits)))
 result = shift(188647277181665280)
-print(result)
-print(shift(result, reverse=True))
+logging.info(result)
+logging.info(shift(result, reverse=True))

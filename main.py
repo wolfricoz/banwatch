@@ -7,6 +7,7 @@ from random import randint
 
 import discord
 import sentry_sdk
+from sentry_sdk.integrations.logging import LoggingIntegration
 from discord.ext import commands
 from discord_py_utilities.messages import send_message
 from discord_py_utilities.permissions import find_first_accessible_text_channel
@@ -50,6 +51,13 @@ sentry_sdk.init(
 	# Add data like request headers and IP for users,
 	# see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
 	send_default_pii=True,
+	environment="development" if os.getenv('DEBUG') == "TRUE" else "production",
+	release=VERSION,
+	traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.0")),
+	profiles_sample_rate=float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "0.0")),
+	integrations=[
+		LoggingIntegration(level=logging.INFO, event_level=logging.ERROR),
+	],
 )
 
 # declares the bots intent
@@ -94,6 +102,7 @@ bot.DEV = DEV
 
 # EVENT LISTENER FOR WHEN THE BOT HAS SWITCHED FROM OFFLINE TO ONLINE.
 
+# ============================================================
 @bot.event
 async def on_ready() :
 	logging.info("Bot is starting")
@@ -139,6 +148,7 @@ async def on_ready() :
 	logging.info("Loaded routers: " + ", ".join(routers))
 
 
+# ============================================================
 @bot.event
 async def on_guild_join(guild: discord.Guild) -> None :
 	"""When the bot it creates a Config and sends a DM to the owner with instructions."""
@@ -177,6 +187,7 @@ async def on_guild_join(guild: discord.Guild) -> None :
 	queue().add(ServerInfo().send(approval_channel, guild, new=True), priority=2)
 
 
+# ============================================================
 @bot.event
 async def on_guild_remove(guild) :
 	log = bot.get_channel(DEV)
@@ -188,6 +199,7 @@ async def on_guild_remove(guild) :
 # cogloader
 
 
+# ============================================================
 @bot.event
 async def setup_hook() :
 	loaded = []
@@ -207,6 +219,7 @@ async def setup_hook() :
 	logging.info(f"Loaded Modules: {loaded}")
 
 
+# ============================================================
 @bot.command(aliases=["cr", "reload"])
 @commands.is_owner()
 async def cogreload(ctx) :
@@ -219,6 +232,7 @@ async def cogreload(ctx) :
 	await ctx.send(f"Modules loaded: {fp}")
 
 
+# ============================================================
 # EXECUTES THE BOT WITH THE SPECIFIED TOKEN.
 async def run() :
 	try :

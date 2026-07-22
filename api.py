@@ -20,6 +20,7 @@ class BanRequest(BaseModel):
 async def root():
 	return {'message': "Welcome!"}
 
+# ============================================================
 @app.post("/bans/get/", )
 async def bans_get(ban_request: BanRequest):
 	if ban_request.token != os.getenv("RPSECSECRET"):

@@ -83,6 +83,7 @@ class Proof(Timestamps,Base) :
 	def get_attachments(self) :
 		return json.loads(self.attachments)
 
+	# ============================================================
 	def __int__(self) :
 		return self.id
 
@@ -204,6 +205,7 @@ def create_bot_database() :
 	Base.metadata.create_all(engine)
 
 
+# ============================================================
 def drop_bot_database() :
 	if os.getenv('DISCORD_TOKEN') is not None :
 		raise Exception("You cannot drop the database while the bot is in production")

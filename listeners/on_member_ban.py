@@ -23,6 +23,7 @@ class BanEvents(commands.Cog) :
 		self.bot.add_view(BanOptionButtons())
 		self.bot.add_view(BanInform(Bans()))
 
+	# ============================================================
 	@commands.Cog.listener()
 	async def on_member_ban(self, guild, user) :
 		"""informs other servers an user is banned and updates banlist"""
@@ -88,6 +89,7 @@ class BanEvents(commands.Cog) :
 		await ban_checker.send_review_prompt(guild)
 
 
+	# ============================================================
 	async def cross_ban(self, server: Servers, guild, user) :
 		if server.id == guild.id :
 			return

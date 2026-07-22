@@ -14,9 +14,11 @@ class TestDatabaseOperations(unittest.TestCase) :
 	def setUp(self) :
 		create_bot_database()
 
+	# ============================================================
 	def tearDown(self) :
 		drop_bot_database()
 
+	# ============================================================
 	# Testing the bans table
 	def test_add_ban(self) :
 		guild_id = self.guild_id
@@ -34,6 +36,7 @@ class TestDatabaseOperations(unittest.TestCase) :
 		self.assertFalse(ban)
 		
 
+	# ============================================================
 	def test_get_ban(self) :
 		guild_id = self.guild_id
 		user_id = self.user_id
@@ -50,6 +53,7 @@ class TestDatabaseOperations(unittest.TestCase) :
 		self.assertEqual(assert_entry.ban_id, user_id + guild_id)
 		
 
+	# ============================================================
 	def test_delete_ban(self) :
 		guild_id = self.guild_id
 		user_id = self.user_id
@@ -65,6 +69,7 @@ class TestDatabaseOperations(unittest.TestCase) :
 		self.assertIsNone(ban_controller.get(ban.ban_id))
 		
 
+	# ============================================================
 	def test_get_guild_status_from_ban(self) :
 		guild_id = self.guild_id
 		user_id = self.user_id
@@ -82,6 +87,7 @@ class TestDatabaseOperations(unittest.TestCase) :
 		server_controller.update(guild.id, delete=True)
 		self.assertIsNone(ban_controller.get(ban.ban_id))
 
+	# ============================================================
 	def test_update_ban(self) :
 		guild_id = self.guild_id
 		user_id = self.user_id
@@ -101,6 +107,7 @@ class TestDatabaseOperations(unittest.TestCase) :
 
 		
 
+	# ============================================================
 	# proof table
 	#
 	def test_add_proof(self) :

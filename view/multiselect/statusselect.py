@@ -28,6 +28,7 @@ class StatusSelect(discord.ui.Select) :
 			max_values=1
 		)
 
+	# ============================================================
 	async def callback(self, interaction: discord.Interaction) :
 		selected_value = self.values[0]
 		AppealsDbTransactions().change_status(self.ban_id, selected_value)

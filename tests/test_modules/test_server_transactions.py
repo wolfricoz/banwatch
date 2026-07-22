@@ -14,9 +14,11 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 		self.server_controller = ServerTransactions()
 		self.ban_controller = BanTransactions()
 
+	# ============================================================
 	def tearDown(self) :
 		drop_bot_database()
 
+	# ============================================================
 	def test_add_server_positive_and_negative(self) :
 		# Positive: Add a new server
 		server_success = self.server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
@@ -27,6 +29,7 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 		server_failed = self.server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
 		self.assertFalse(server_failed)
 
+	# ============================================================
 	def test_server_exists_positive_and_negative(self) :
 		# Positive: Check for an existing server
 		self.server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
@@ -35,6 +38,7 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 		# Negative: Check for a non-existent server
 		self.assertFalse(self.server_controller.exists(12345))
 
+	# ============================================================
 	def test_update_server_positive_and_negative(self) :
 		# Positive: Update an existing server
 		self.server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
@@ -45,6 +49,7 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 		# Negative: Update a non-existent server
 		self.assertFalse(self.server_controller.update(12345, owner="new_owner"))
 
+	# ============================================================
 	def test_server_get_positive_and_negative(self) :
 		# Positive: Get an existing server
 		self.server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
@@ -54,6 +59,7 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 		# Negative: Get a non-existent server
 		self.assertIsNone(self.server_controller.get(12345))
 
+	# ============================================================
 	def test_delete_permanent_positive_and_negative(self) :
 		# Positive: Permanently delete a server
 		self.server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
@@ -63,6 +69,7 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 		# Negative: Delete a non-existent server
 		self.assertFalse(self.server_controller.delete_permanent(12345))
 
+	# ============================================================
 	def test_soft_delete_server_positive_and_negative(self) :
 		# Positive: Soft delete and restore a server
 		self.server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
@@ -74,6 +81,7 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 		# Negative: Soft delete a non-existent server
 		self.assertFalse(self.server_controller.delete_soft(12345))
 
+	# ============================================================
 	def test_get_bans_positive_and_negative(self) :
 		# Positive: Get bans from a server
 		self.server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
@@ -87,6 +95,7 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 		bans_empty = self.server_controller.get_bans(self.guild_id + 1)
 		self.assertEqual(len(bans_empty), 0)
 
+	# ============================================================
 	def test_get_all_servers_positive_and_negative(self) :
 		# Positive: Get all active servers
 		self.server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
@@ -99,6 +108,7 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 		self.setUp()
 		self.assertEqual(len(self.server_controller.get_all()), 0)
 
+	# ============================================================
 	def test_get_deleted_servers_positive_and_negative(self) :
 		# Positive: Get soft-deleted servers
 		self.server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
@@ -112,6 +122,7 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 		self.server_controller.update(self.guild_id, delete=False)
 		self.assertEqual(len(self.server_controller.get_deleted()), 0)
 
+	# ============================================================
 	def test_count_servers_positive_and_negative(self) :
 		# Positive: Count servers
 		self.server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")
@@ -123,6 +134,7 @@ class TestServerDatabaseOperations(unittest.TestCase) :
 		self.setUp()
 		self.assertEqual(self.server_controller.count(), 0)
 
+	# ============================================================
 	def test_hidden_server_positive_and_negative(self) :
 		# Positive: Hide and unhide a server
 		self.server_controller.add(self.guild_id, "owner", "server_name", 100, "invite")

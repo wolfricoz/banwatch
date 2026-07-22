@@ -22,6 +22,7 @@ class Tasks(commands.Cog) :
 		self.purge_bot_roles.start()
 		self.clean_convict_bans.start()
 
+	# ============================================================
 	def cog_unload(self) :
 		self.check_blacklist.cancel()
 		self.check_active_servers.cancel()
@@ -30,11 +31,12 @@ class Tasks(commands.Cog) :
 		self.clean_convict_bans.cancel()
 
 
+	# ============================================================
 	@tasks.loop(hours=1)
 	async def check_blacklist(self) :
 		if self.check_blacklist.current_loop == 0 :
 			return
-		print(f"[blacklist check]Checking for blacklisted servers")
+		logging.info("[blacklist check] Checking for blacklisted servers")
 		dev = self.bot.get_channel(int(self.bot.DEV))
 		for guild in self.bot.guilds :
 			if guild.id == self.bot.SUPPORTGUILD :
@@ -42,20 +44,24 @@ class Tasks(commands.Cog) :
 			if await blacklist_check(guild, dev) :
 				continue
 
+	# ============================================================
 	@tasks.loop(hours=24)
 	async def check_pending_bans(self) :
 		if self.check_pending_bans.current_loop == 0 :
 			return
 		await pending_bans(self.bot, limit=100)
 
+	# ============================================================
 	@check_pending_bans.before_loop
 	async def before_check_pending_bans(self) :
 		await self.bot.wait_until_ready()
 
+	# ============================================================
 	@check_blacklist.before_loop
 	async def before_check_blacklist(self) :
 		await self.bot.wait_until_ready()
 
+	# ============================================================
 	@tasks.loop(hours=12)
 	async def check_active_servers(self) :
 		logging.info(f"Checking active servers")
@@ -84,6 +90,7 @@ class Tasks(commands.Cog) :
 			guild_list.clear()
 		AccessControl().reload_premium()
 
+	# ============================================================
 	@tasks.loop(hours=1)
 	async def purge_bot_roles(self) :
 		# if self.purge_bot_roles.current_loop == 0 :
@@ -110,6 +117,7 @@ class Tasks(commands.Cog) :
 				except Exception as e :
 					logging.warning(f"Failed to remove bot {member} from trap role in {g.name}({g.id}): {e}", exc_info=True)
 
+	# ============================================================
 	@tasks.loop(hours=24)
 	async def clean_convict_bans(self):
 		logging.info(f"Cleaning convict bans from servers")
@@ -126,14 +134,17 @@ class Tasks(commands.Cog) :
 		logging.info(f"Cleaned up {current}/{total_bans} criminal bans from servers")
 
 
+	# ============================================================
 	@check_active_servers.before_loop
 	async def before_check_active_servers(self) :
 		await self.bot.wait_until_ready()
 
+	# ============================================================
 	@purge_bot_roles.before_loop
 	async def before_purge_bot_roles(self) :
 		await self.bot.wait_until_ready()
 
+	# ============================================================
 	@clean_convict_bans.before_loop
 	async def before_clean_convict_bans(self) :
 		await self.bot.wait_until_ready()

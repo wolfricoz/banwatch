@@ -23,6 +23,7 @@ class Appeals(commands.GroupCog, name="appeal") :
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
 
+	# ============================================================
 	@app_commands.command(description="Appeal a ban from a server. You must not be blacklisted.")
 	@app_commands.autocomplete(guild=autocomplete_appeal)
 	@AccessControl().check_blacklist()
@@ -57,6 +58,7 @@ class Appeals(commands.GroupCog, name="appeal") :
 		await modchannel.send(embed=embed, view=AppealButtons())
 		await interaction.followup.send(f"Ban appeal sent to moderators of {guild.name}", ephemeral=True)
 
+	# ============================================================
 	@app_commands.command(description="Report a potentially harmful or unjust ban to Banwatch staff.")
 	@app_commands.autocomplete(guild=autocomplete_appeal)
 	@AccessControl().check_blacklist()

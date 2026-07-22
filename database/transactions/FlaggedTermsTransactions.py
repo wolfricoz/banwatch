@@ -25,6 +25,7 @@ class FlaggedTermsTransactions(DatabaseTransactions) :
 
 	
 	
+	# ============================================================
 	def delete(self, term: str) :
 		"""Deletes a term from the database"""
 		with self.createsession() as session :
@@ -38,13 +39,14 @@ class FlaggedTermsTransactions(DatabaseTransactions) :
 
 	
 	
+	# ============================================================
 	def update(self, term: str, action: str, regex: bool = False) -> bool :
 		"""Updates a term from the database"""
 		with self.createsession() as session :
 
 			term = self.exists(term, session)
 			if not term :
-				print("Term does not exist")
+				logging.warning(f"Cannot set action: flagged term does not exist")
 				return False
 			term.action = action
 			term.regex = regex
@@ -53,6 +55,7 @@ class FlaggedTermsTransactions(DatabaseTransactions) :
 
 	
 	
+	# ============================================================
 	def get(self, term: str) :
 		"""Gets a term from the database"""
 		with self.createsession() as session :
@@ -61,6 +64,7 @@ class FlaggedTermsTransactions(DatabaseTransactions) :
 
 	
 	
+	# ============================================================
 	def exists(self, term: str, session = None) -> FlaggedTerms | None :
 		"""Checks if a term exists in the database"""
 		if session:
@@ -71,6 +75,7 @@ class FlaggedTermsTransactions(DatabaseTransactions) :
 
 	
 	
+	# ============================================================
 	def get_all(self, action: str | None = None) :
 		"""Gets all term from the database"""
 		with self.createsession() as session :

@@ -41,11 +41,13 @@ class DevTools(commands.GroupCog, name="dev") :
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
 
+	# ============================================================
 	async def inform_server(self, guild, banembed) :
 		config = ConfigData().get_key(guild.id, "modchannel")
 		modchannel = self.bot.get_channel(int(config))
 		await modchannel.send(embed=banembed)
 
+	# ============================================================
 	@app_commands.command(name="stats", description="[DEV] View Banwatch's operational statistics.")
 	async def dev_stats(self, interaction: discord.Interaction) :
 		"""
@@ -73,6 +75,7 @@ class DevTools(commands.GroupCog, name="dev") :
 			embed.add_field(name=i, value=v, inline=False)
 		await send_response(interaction, "Here are the stats!", embed=embed, ephemeral=True)
 
+	# ============================================================
 	@app_commands.command(name="loadflaggedterms",
 	                      description="[DEV] Loads the old watchlist config into the new flagged terms table.")
 	@AccessControl().check_access("dev")
@@ -93,6 +96,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await send_response(interaction,
 		                    f"Old watchlist flagged terms have been successfully loaded. loaded: ||{', '.join(checklist)}||")
 
+	# ============================================================
 	@app_commands.command(name="announce", description="[DEV] Sends an announcement to the mod channel of all servers.")
 	@AccessControl().check_access("dev")
 	async def announce(self, interaction: discord.Interaction) :
@@ -127,6 +131,7 @@ class DevTools(commands.GroupCog, name="dev") :
 				except Exception as e :
 					await interaction.channel.send(f"Error sending to {guild}({guild.owner}): {e}")
 
+	# ============================================================
 	@app_commands.command(name="leave_server", description="[DEV] Forces the bot to leave a specified server.")
 	@AccessControl().check_access("dev")
 	async def leave_server(self, interaction: discord.Interaction, guildid: int) :
@@ -142,6 +147,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await guild.leave()
 		await send_response(interaction, f"Left {guild}")
 
+	# ============================================================
 	@app_commands.command(name="blacklist_server", description="[DEV] Adds a server to the blacklist and leaves it.")
 	@AccessControl().check_access("dev")
 	async def blacklist_server(self, interaction: discord.Interaction, guildid: str) :
@@ -157,6 +163,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await guild.leave()
 		await send_response(interaction, f"Blacklisted {guild}")
 
+	# ============================================================
 	@app_commands.command(name="unblacklist_server", description="[DEV] Removes a server from the blacklist.")
 	@AccessControl().check_access("dev")
 	async def unblacklist_server(self, interaction: discord.Interaction, guildid: str) :
@@ -170,6 +177,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await Configer.remove_from_blacklist(guildid)
 		await send_response(interaction, f"Unblacklisted {guildid}")
 
+	# ============================================================
 	# blacklist user goes here
 	@app_commands.command(name="blacklist_user",
 	                      description="[DEV] Adds a user to the blacklist, blocking bot interaction.")
@@ -185,6 +193,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await Configer.add_to_user_blacklist(userid)
 		await send_response(interaction, f"Blacklisted {userid}")
 
+	# ============================================================
 	@app_commands.command(name="unblacklist_user", description="[DEV] Removes a user from the blacklist.")
 	@AccessControl().check_access("dev")
 	async def unblacklist_user(self, interaction: discord.Interaction, userid: str) :
@@ -198,6 +207,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await Configer.remove_from_user_blacklist(userid)
 		await send_response(interaction, f"Unblacklisted {userid}")
 
+	# ============================================================
 	@app_commands.command(name="checklist",
 	                      description="[DEV] Manage flagged terms for content moderation.")
 	@app_commands.choices(operation=[
@@ -244,6 +254,7 @@ class DevTools(commands.GroupCog, name="dev") :
 			                          files=[discord.File(file.name)])
 		return None
 
+	# ============================================================
 	@app_commands.command(name="backup", description="[DEV] Backs up ban and evidence channels to the backup server.")
 	@AccessControl().check_access("dev")
 	async def copy(self, interaction: discord.Interaction, evidence_only: bool = False) :
@@ -291,6 +302,7 @@ class DevTools(commands.GroupCog, name="dev") :
 				queue().add(
 					self.backup_message(backupbans, message), 0)
 
+	# ============================================================
 	@app_commands.command(name="rebuild_evidence",
 	                      description="[DEV] Rebuilds the evidence database from a channel's history.")
 	@AccessControl().check_access("dev")
@@ -325,6 +337,7 @@ class DevTools(commands.GroupCog, name="dev") :
 				priority=0)
 		queue().add(send_message(interaction.channel, "Rebuilding evidence complete"), priority=0)
 
+	# ============================================================
 	@app_commands.command(name="rebuild_bans", description="[DEV] Rebuilds ban database entries from channel history.")
 	@AccessControl().check_access("dev")
 	async def rebuild_bans(self, interaction: discord.Interaction, channel: discord.TextChannel = None,
@@ -347,6 +360,7 @@ class DevTools(commands.GroupCog, name="dev") :
 
 		await interaction.followup.send(f"Rebuilding bans channel complete", ephemeral=True)
 
+	# ============================================================
 	async def inspect_guild_messages(self, g: discord.Guild) :
 		logging.info(f"Rebuilding ban messages from guild: {g.name}")
 		modchannel = await ConfigData().get_channel(g, "modchannel")
@@ -388,6 +402,7 @@ class DevTools(commands.GroupCog, name="dev") :
 				logging.warning(f"Error processing message {message.id} in guild {g.name}: {e}", exc_info=True)
 		logging.info(f"Rebuilt {count} ban messages for guild {g.name}")
 
+	# ============================================================
 	@app_commands.command(name="testban", description="[DEV] Unbans and re-bans the test account in the current server.")
 	@AccessControl().check_access("dev")
 	async def testban(self, interaction: discord.Interaction, checklist: bool = True) :
@@ -423,6 +438,7 @@ class DevTools(commands.GroupCog, name="dev") :
 
 		await send_response(interaction, "Test ban complete", ephemeral=True)
 
+	# ============================================================
 	@app_commands.command(name="pendingbans", description="[DEV] Manually triggers a check for all pending bans.")
 	@AccessControl().check_access("dev")
 	async def pendingbans(self, interaction: discord.Interaction, limit: int = None) :
@@ -435,6 +451,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await pending_bans(self.bot, limit=limit)
 		await send_response(interaction, "Checking for pending bans", ephemeral=True)
 
+	# ============================================================
 	@app_commands.command(name="refreshbans",
 	                      description="[DEV] Manually triggers a refresh of all bans from all servers.")
 	@AccessControl().check_access("dev")
@@ -448,6 +465,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await Bans().update(self.bot, override=True)
 		await send_response(interaction, "Bans refresh queued", ephemeral=True)
 
+	# ============================================================
 	@app_commands.command(name="add_staff", description="[DEV] Adds a user to the Banwatch staff team.")
 	@app_commands.choices(role=[Choice(name=x, value=x.lower()) for x in ["Dev", "Rep"]])
 	async def add_staff(self, interaction: discord.Interaction, user: discord.User, role: Choice[str]) :
@@ -463,6 +481,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await send_response(interaction, f"Staff member {user.mention} successfully added as a `{role.name}`!")
 		AccessControl().reload()
 
+	# ============================================================
 	@app_commands.command(name="stop", description="[DEV] Shuts down the bot. Only the bot owner can use this.")
 	async def quit(self, interaction: discord.Interaction) :
 		"""
@@ -477,6 +496,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await self.bot.close()
 		quit(0)
 
+	# ============================================================
 	@app_commands.command(name="remove_staff", description="[DEV] Removes a staff member from the Banwatch team.")
 	@AccessControl().check_access("dev")
 	async def remove_staff(self, interaction: discord.Interaction, user: discord.User) :
@@ -490,6 +510,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await send_response(interaction, f"Staff member {user.mention} successfully removed!")
 		AccessControl().reload()
 
+	# ============================================================
 	@app_commands.command(name="test_config",
 	                      description="[DEV] Tests if the configuration and channel retrieval are working.")
 	@AccessControl().check_access("dev")
@@ -511,6 +532,7 @@ class DevTools(commands.GroupCog, name="dev") :
 			return
 		await send_message(interaction.channel, "successfully tested Config, no errors found")
 
+	# ============================================================
 	@app_commands.command(name="reload_access", description="[DEV] Reloads the access control lists from the database.")
 	@AccessControl().check_access("dev")
 	async def reload_access(self, interaction: discord.Interaction) :
@@ -523,6 +545,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		AccessControl().reload()
 		await send_response(interaction, "Access control reloaded.", ephemeral=True)
 
+	# ============================================================
 	@app_commands.command(name="inspect_queue",
 	                      description="[DEV] Looks at the current state of the task queue for debugging purposes.")
 	@AccessControl().check_access("dev")
@@ -593,6 +616,7 @@ class DevTools(commands.GroupCog, name="dev") :
 	# 	await interaction.edit_original_response(
 	# 		content=f"Finished! Scanned {processed_count} messages and updated {updated_count} bans.")
 
+	# ============================================================
 	@app_commands.command(name="sync",
 	                      description="[DEV] Syncs the bans")
 	@AccessControl().check_access("dev")
@@ -635,6 +659,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		await send_message(interaction.channel, f"Finished ban sync of {count} bans.")
 
 
+	# ============================================================
 	async def backup_message(self, channel, message):
 			"""
 				Sends the message to the designated channel.

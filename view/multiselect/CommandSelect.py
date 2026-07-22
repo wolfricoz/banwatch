@@ -12,6 +12,7 @@ class CommandSelect(discord.ui.Select) :
 		)
 		self.parent_view = view
 
+	# ============================================================
 	async def callback(self, interaction: discord.Interaction) :
 		# 'interaction.view' is the HelpLayout instance
 		# 'self.values[0]' is the selected command name (the label of the SelectOption)

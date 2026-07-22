@@ -16,9 +16,11 @@ class TestProofDatabaseOperations(unittest.TestCase) :
 		self.ban_controller = BanTransactions()
 		self.proof_controller = ProofTransactions()
 
+	# ============================================================
 	def tearDown(self) :
 		drop_bot_database()
 
+	# ============================================================
 	def test_add_proof_positive(self) :
 		ban = BanFactory().create()
 		attachments = ["http://example.com/img1.png", "http://example.com/img2.png"]
@@ -29,6 +31,7 @@ class TestProofDatabaseOperations(unittest.TestCase) :
 		self.assertEqual(proof.proof, "some proof text")
 		self.assertEqual(proof.get_attachments(), attachments)
 
+	# ============================================================
 	def test_exists_positive_and_negative(self) :
 		evidence = EvidenceFactory().create()
 		# Positive: Check that existing proof is found
@@ -36,6 +39,7 @@ class TestProofDatabaseOperations(unittest.TestCase) :
 		# Negative: Check that non-existent proof is not found
 		self.assertIsNone(self.proof_controller.exists(0))
 
+	# ============================================================
 	def test_get_proof_positive_and_negative(self) :
 		evidence = EvidenceFactory().create()
 		# Positive: Get by user_id and ban_id
@@ -46,6 +50,7 @@ class TestProofDatabaseOperations(unittest.TestCase) :
 		self.assertEqual(self.proof_controller.get(user_id=0), [])
 		self.assertEqual(self.proof_controller.get(ban_id=0), [])
 
+	# ============================================================
 	def test_delete_proof_positive_and_negative(self) :
 		evidence = EvidenceFactory().create()
 		# Positive: Deleting an existing proof entry returns True

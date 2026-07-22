@@ -19,6 +19,7 @@ class Server(commands.GroupCog, name="server", description="Commands for server 
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
 
+	# ============================================================
 	@app_commands.command(name="message")
 	@app_commands.checks.has_permissions(moderate_members=True)
 	async def send(self, interaction: discord.Interaction, ban_id: str ) :

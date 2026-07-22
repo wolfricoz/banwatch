@@ -14,9 +14,11 @@ class TestAppealMessageDatabaseTransactions(unittest.TestCase) :
 		create_bot_database()
 		self.appealMsgController = AppealMsgTransactions()
 
+	# ============================================================
 	def tearDown(self) :
 		drop_bot_database()
 
+	# ============================================================
 	def test_create_message(self) :
 		ban = BanFactory().create()
 		appeal = AppealsDbTransactions().add(ban.ban_id, "Test")
@@ -24,6 +26,7 @@ class TestAppealMessageDatabaseTransactions(unittest.TestCase) :
 		self.assertIsInstance(appealmsg, AppealMsgs)
 		self.assertEqual(appealmsg.message, "This is a test")
 
+	# ============================================================
 	def test_get_all_messages_of_appeal(self) :
 		ban = BanFactory().create()
 		appeal = AppealsDbTransactions().add(ban.ban_id, "Test")

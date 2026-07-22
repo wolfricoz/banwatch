@@ -17,6 +17,7 @@ class CommunicationButtons(SecureView) :
 		super().__init__(timeout=None)
 
 
+	# ============================================================
 	@discord.ui.button(label="Respond", style=discord.ButtonStyle.success, custom_id="Respond_comms")
 	async def respond(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		await self.load_data(interaction)
@@ -24,6 +25,7 @@ class CommunicationButtons(SecureView) :
 		await self.send_embed(interaction, message)
 		await self.disable_buttons(interaction)
 
+	# ============================================================
 	@discord.ui.button(label="Report", style=discord.ButtonStyle.danger, custom_id="Report_comms")
 	async def report(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		await self.load_data(interaction)
@@ -35,11 +37,13 @@ class CommunicationButtons(SecureView) :
 
 
 
+	# ============================================================
 	async def disable_buttons(self, interaction: discord.Interaction) :
 		for child in self.children :
 			child.disabled = True
 		await interaction.message.edit(view=self)
 
+	# ============================================================
 	async def send_embed(self, interaction: discord.Interaction, content) :
 		title = await self.create_title(interaction)
 		embed = discord.Embed(title=title, color=discord.Color.green(), description=content)
@@ -58,11 +62,13 @@ class CommunicationButtons(SecureView) :
 			await send_message(interaction.channel, f"Unable to send message to {self.recipient.name}, DMs are closed.")
 		await self.disable_buttons(interaction)
 
+	# ============================================================
 	async def create_title(self, interaction: discord.Interaction) :
 		return f"Response from {interaction.guild.name} for ban id: {self.ban_id}"
 
 
 
+	# ============================================================
 	async def load_data(self, interaction: discord.Interaction) :
 		self.bot = interaction.client
 		footer_list = interaction.message.embeds[0].footer.text.split('-')

@@ -56,6 +56,7 @@ class EvidenceController() :
 			thread = await ban_entry.create_thread(name=f"Evidence for {user.name}({user.id})")
 		queue().add(thread.send(f"Ban ID {ban_id} has been updated with new evidence:\n{result.proof}", files=attachments))
 
+	# ============================================================
 	@staticmethod
 	async def add_evidence_standalone(interaction: discord.Interaction, ban_id: int, user: discord.User, text: str, attachments: list[discord.Attachment]) :
 		ban = BanTransactions().get(ban_id, override=True)
@@ -97,6 +98,7 @@ class EvidenceController() :
 			thread = await ban_entry.create_thread(name=f"Evidence for {user.name}({user.id})")
 		queue().add(thread.send(f"Ban ID {ban_id} has been updated with new evidence:\n{result.proof}", files=attachments))
 
+	# ============================================================
 	@staticmethod
 	async def create_evidence_entry_standalone(ban_id, interaction: discord.Interaction, user_id:int, text: str, attachments: list[discord.Attachment]) :
 		snapshot_message = None
@@ -111,6 +113,7 @@ class EvidenceController() :
 		return attachments, result
 
 
+	# ============================================================
 	@staticmethod
 	async def create_evidence_entry(ban_id, evidence: discord.Message, interaction: discord.Interaction, user_id:int, log_evidence:bool=True) :
 		snapshot_message = None
@@ -153,6 +156,7 @@ class EvidenceController() :
 	# 		attachments.append(discord.File(image_data, filename=f"image_{i}.jpg"))
 	# 	return attachments
 
+	# ============================================================
 	async def send_proof(self, interaction: discord.Interaction, entries: list, ban_id: int) :
 		if not entries :
 			await send_response(interaction, f"No proof available for ban id: {ban_id}! Please reach out to the server where the user is banned. ")

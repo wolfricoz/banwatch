@@ -115,11 +115,13 @@ class BanInfo(discord.ui.LayoutView) :
 
 	# === For users with bans ===
 
+	# ============================================================
 	async def reban(self, interaction: discord.Interaction) :
 		if not self.check_perms(interaction) :
 			return await send_response(interaction, f"You don't have permission for this action", ephemeral=True)
 		await self._ban(interaction)
 
+	# ============================================================
 	async def evidence(self, interaction: discord.Interaction) :
 		if not self.check_perms(interaction) :
 			return await send_response(interaction, f"You don't have permission for this action", ephemeral=True)
@@ -132,12 +134,14 @@ class BanInfo(discord.ui.LayoutView) :
 		            priority=2)
 		return None
 
+	# ============================================================
 	async def unban(self, interaction: discord.Interaction) :
 		if not self.check_perms(interaction) :
 			return await send_response(interaction, f"You don't have permission for this action", ephemeral=True)
 		await interaction.guild.unban(self.user, reason=f"Unbanned by {interaction.user.name}")
 		await send_response(interaction, f"{self.user.mention} unbanned by {interaction.user.mention}")
 
+	# ============================================================
 	async def hide(self, interaction: discord.Interaction) :
 		if not self.check_perms(interaction) :
 			return await send_response(interaction, f"You don't have permission for this action", ephemeral=True)
@@ -146,12 +150,14 @@ class BanInfo(discord.ui.LayoutView) :
 		                              "Ban has been hidden by the server.")
 		await send_response(interaction, f"{self.user.mention}'s ban has been hidden by {interaction.user.name}")
 
+	# ============================================================
 	# === For users without bans ===
 	async def ban_button(self, interaction: discord.Interaction) :
 		if not self.check_perms(interaction) :
 			return await send_response(interaction, f"You don't have permission for this action", ephemeral=True)
 		await self._ban(interaction)
 
+	# ============================================================
 	async def history(self, interaction: discord.Interaction) :
 		if not self.check_perms(interaction) :
 			return await send_response(interaction, f"You don't have permission for this action", ephemeral=True)
@@ -174,6 +180,7 @@ class BanInfo(discord.ui.LayoutView) :
 		                        override=override)
 		return None
 
+	# ============================================================
 	# === support functions ===
 	async def _ban(self, interaction: discord.Interaction) :
 		view = SelectReason()
@@ -192,11 +199,13 @@ class BanInfo(discord.ui.LayoutView) :
 		except discord.Forbidden :
 			await send_response(interaction, "I don't have permission to ban this user")
 
+	# ============================================================
 	def check_perms(self, interaction: discord.Interaction) :
 		if interaction.user.guild_permissions.ban_members :
 			return True
 		return False
 
+	# ============================================================
 	def add_support_guild_button(self) :
 		support_server = ServerTransactions().get(int(os.getenv("GUILD")))
 		links = discord.ui.ActionRow()

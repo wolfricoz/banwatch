@@ -34,6 +34,7 @@ class Configer(ABC) :
 		#     outfile.write(json_object)
 		# logging.info(f"Config created for {guildid}")
 
+	# ============================================================
 	@staticmethod
 	@abstractmethod
 	async def create_bot_config() :
@@ -62,6 +63,7 @@ class Configer(ABC) :
 			outfile.write(json_object)
 			logging.info(f"universal Config created")
 
+	# ============================================================
 	@staticmethod
 	@abstractmethod
 	async def create_appeals() :
@@ -78,6 +80,7 @@ class Configer(ABC) :
 			outfile.write(json_object)
 			logging.info(f"universal appeals created")
 
+	# ============================================================
 	@staticmethod
 	@abstractmethod
 	async def add_appeal(userid, guildid, reason) :
@@ -95,6 +98,7 @@ class Configer(ABC) :
 			json.dump(data, f, indent=4)
 			logging.info(f"{guildid} added to appeals")
 
+	# ============================================================
 	# appeals start here
 	@staticmethod
 	@abstractmethod
@@ -105,6 +109,7 @@ class Configer(ABC) :
 				data = json.load(f)
 				return data
 
+	# ============================================================
 	@staticmethod
 	@abstractmethod
 	async def get_user_appeals(userid) :
@@ -117,6 +122,7 @@ class Configer(ABC) :
 				return None
 			return data[str(userid)]
 
+	# ============================================================
 	@staticmethod
 	@abstractmethod
 	async def update_appeal_status(userid, guildid, status) :
@@ -133,6 +139,7 @@ class Configer(ABC) :
 			json.dump(data, f, indent=4)
 			logging.info(f"{guildid} changed to {status}")
 
+	# ============================================================
 	# Config editing starts hee
 	@staticmethod
 	@abstractmethod
@@ -146,6 +153,7 @@ class Configer(ABC) :
 				json.dump(data, f.name, indent=4)
 			await interaction.followup.send(f"Config key **{key}** changed to **{value}**")
 
+	# ============================================================
 	async def get(guildid, key) :
 		"""Gets a value from the Config"""
 		if os.path.exists(f"configs/{guildid}.json") :
@@ -153,6 +161,7 @@ class Configer(ABC) :
 				data = json.load(f)
 				return data.get(key, None)
 
+	# ============================================================
 	# blacklist starts here
 	@staticmethod
 	@abstractmethod
@@ -168,6 +177,7 @@ class Configer(ABC) :
 		else :
 			logging.warning("No blacklist found")
 
+	# ============================================================
 	@staticmethod
 	@abstractmethod
 	async def remove_from_blacklist(guildid) :
@@ -182,6 +192,7 @@ class Configer(ABC) :
 		else :
 			logging.warning("No blacklist found")
 
+	# ============================================================
 	@staticmethod
 	@abstractmethod
 	async def is_blacklisted(guildid) :
@@ -192,6 +203,7 @@ class Configer(ABC) :
 				if guildid in data["blacklist"] :
 					return True
 
+	# ============================================================
 	# user blacklist starts here
 	@staticmethod
 	@abstractmethod
@@ -207,6 +219,7 @@ class Configer(ABC) :
 		else :
 			logging.warning("No blacklist found")
 
+	# ============================================================
 	@staticmethod
 	@abstractmethod
 	async def remove_from_user_blacklist(userid) :
@@ -221,6 +234,7 @@ class Configer(ABC) :
 		else :
 			logging.warning("No blacklist found")
 
+	# ============================================================
 	@staticmethod
 	@abstractmethod
 	async def is_user_blacklisted(userid) :
@@ -235,6 +249,7 @@ class Configer(ABC) :
 
 		return False
 
+	# ============================================================
 	# Checklist starts here
 	@staticmethod
 	@abstractmethod
@@ -252,6 +267,7 @@ class Configer(ABC) :
 		else :
 			await Configer.create_bot_config()
 
+	# ============================================================
 	@staticmethod
 	@abstractmethod
 	async def remove_checklist(word: str) :
@@ -266,6 +282,7 @@ class Configer(ABC) :
 		else :
 			await Configer.create_bot_config()
 
+	# ============================================================
 	@staticmethod
 	@abstractmethod
 	async def get_checklist() :

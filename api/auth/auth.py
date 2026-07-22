@@ -21,6 +21,7 @@ class Auth():
 	def __init__(self, request: Request):
 		self._request = request
 
+	# ============================================================
 	async def verify(self) :
 		"""
 		This is the main authentication method, it will call all other methods and verify the user's login.
@@ -43,12 +44,14 @@ class Auth():
 
 	# Support functions
 
+	# ============================================================
 	async def get_auth_token(self) -> None:
 		"""
 		Gets the auth token from the header
 		"""
 		self._user_token = self._request.headers.get("X-Auth-Token")
 
+	# ============================================================
 	async def validate_auth_token(self) -> bool:
 		"""
 		We check if the user's token matches the application's token.
@@ -63,6 +66,7 @@ class Auth():
 		raise HTTPException(status_code=403)
 
 
+	# ============================================================
 	async def check_ip_whitelist(self) -> bool:
 		"""
 		We check if the user's IP address matches the application's IP whitelist.
@@ -90,6 +94,7 @@ class Auth():
 
 
 
+	# ============================================================
 	async def clear_data(self):
 		"""
 		Clears the data from the class to prevent it being used in other instances.

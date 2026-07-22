@@ -99,10 +99,12 @@ class EvidenceUI(discord.ui.LayoutView) :
 	custom_id = "EvidenceUI"
 
 
+	# ============================================================
 	async def send_embed(self, channel: discord.TextChannel ):
 
 		await channel.send(view=self)
 
+	# ============================================================
 	async def submit_evidence(self, interaction: discord.Interaction) :
 		if not self.check_perms(interaction) :
 			return await send_response(interaction, f"You don't have permission for this action", ephemeral=True)
@@ -119,6 +121,7 @@ class EvidenceUI(discord.ui.LayoutView) :
 		            priority=2)
 		return None
 
+	# ============================================================
 	async def hide(self, interaction: discord.Interaction) :
 		from classes.bans import Bans as BansClass
 		if not self.check_perms(interaction) :
@@ -136,6 +139,7 @@ class EvidenceUI(discord.ui.LayoutView) :
 
 
 
+	# ============================================================
 	async def load_data(self, interaction: discord.Interaction) -> bool :
 		for item in interaction.message.components :
 			for component in getattr(item, "children", []) :
@@ -175,6 +179,7 @@ class EvidenceUI(discord.ui.LayoutView) :
 
 		return True
 
+	# ============================================================
 	def check_perms(self, interaction: discord.Interaction) :
 		if interaction.user.guild_permissions.ban_members :
 			return True

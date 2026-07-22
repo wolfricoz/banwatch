@@ -21,5 +21,6 @@ def upgrade() -> None:
     op.add_column('servers', sa.Column('active', sa.Boolean(), nullable=True, default=False))
 
 
+# ============================================================
 def downgrade() -> None:
     op.drop_column('servers', 'active')

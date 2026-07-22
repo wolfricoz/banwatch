@@ -15,6 +15,7 @@ class RolesSelect(discord.ui.RoleSelect):
             max_values=max_values
         )
 
+    # ============================================================
     async def callback(self, interaction: discord.Interaction):
         self.values.append(interaction.guild.default_role)
         self.values.append(interaction.guild.me)

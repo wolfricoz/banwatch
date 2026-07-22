@@ -20,6 +20,7 @@ class Pagination(SecureView):
         self.data = data
         self.pages = len(data)
 
+    # ============================================================
     async def send_view(self):
         if self.pages <= 0:
             return await send_response(self.interaction, f"This user does not have any evidence")
@@ -28,6 +29,7 @@ class Pagination(SecureView):
         self.message = await self.interaction.channel.send(embed=embed, view=self)
         await send_response(self.interaction, "Success!")
 
+    # ============================================================
     async def create_embed(self) -> discord.Embed:
         data: Proof = self.data[self.current_page]
         embed = discord.Embed(title=f"Evidence for ban entry: {data.ban_id}",
@@ -36,6 +38,7 @@ class Pagination(SecureView):
             embed.add_field(name="", value=attachment)
         return embed
 
+    # ============================================================
     async def delete_item(self, interaction):
         self.data.pop(self.current_page)
         self.pages = len(self.data)
@@ -45,6 +48,7 @@ class Pagination(SecureView):
         self.update_buttons()
         await self.load_page(self.current_page - 1)
 
+    # ============================================================
     async def load_page(self, page_number: int):
         if page_number + 1 > self.pages:
             page_number = 0
@@ -53,12 +57,14 @@ class Pagination(SecureView):
         self.update_buttons()
         await self.message.edit(embed=embed, view=self)
 
+    # ============================================================
     @button(label="Previous", custom_id="Previous", style=discord.ButtonStyle.success)
     async def previous(self, interaction: discord.Interaction, button: button):
         await interaction.response.defer()
         self.interaction = interaction
         await self.load_page(self.current_page - 1)
 
+    # ============================================================
     @button(label="Delete", custom_id="Delete", style=discord.ButtonStyle.danger, emoji="🗑️")
     async def delete(self, interaction: discord.Interaction, button: button):
         await interaction.response.defer()
@@ -75,12 +81,14 @@ class Pagination(SecureView):
         await self.delete_item(interaction)
         pass
 
+    # ============================================================
     @button(label="Next", custom_id="Next", style=discord.ButtonStyle.success)
     async def next(self, interaction: discord.Interaction, button: button):
         await interaction.response.defer()
         self.interaction = interaction
         await self.load_page(self.current_page + 1)
 
+    # ============================================================
     def update_buttons(self):
         if self.current_page == 0:
             self.previous.disabled = True

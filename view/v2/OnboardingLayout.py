@@ -1,3 +1,4 @@
+import logging
 import os
 
 import discord
@@ -15,7 +16,8 @@ class OnboardingLayout(discord.ui.LayoutView) :
 	custom_id = "onboarding_layout"
 	try:
 		support_server = ServerTransactions().get(int(os.getenv("GUILD")))
-	except Exception:
+	except Exception as e:
+		logging.warning(f"OnboardingLayout: could not load support server: {e}")
 		support_server = None
 
 
@@ -43,6 +45,7 @@ Please select one of the setup methods below to begin.
 
 	actions = discord.ui.ActionRow()
 
+	# ============================================================
 	@actions.button(label="Automatic Setup", style=discord.ButtonStyle.primary, custom_id="onboarding_automatic_setup")
 	async def onboarding_automatic_setup(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		if not interaction.user.guild_permissions.manage_guild:
@@ -50,6 +53,7 @@ Please select one of the setup methods below to begin.
 			return
 		await ConfigSetup().automated_setup(interaction)
 
+	# ============================================================
 	@actions.button(label="Manual Setup", style=discord.ButtonStyle.primary, custom_id="onboarding_manual_setup")
 	async def onboarding_manual_setup(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		if not interaction.user.guild_permissions.manage_guild:

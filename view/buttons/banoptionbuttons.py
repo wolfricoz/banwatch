@@ -31,6 +31,7 @@ class BanOptionButtons(SecureView) :
 		self.guild = None
 		self.ban = None
 
+	# ============================================================
 	async def get_data(self, interaction: discord.Interaction) :
 		"""Gets the user data from the embed"""
 		ids = interaction.message.embeds[0].footer.text.split("-")
@@ -42,12 +43,14 @@ class BanOptionButtons(SecureView) :
 		self.wait_id = self.guild.id + self.user.id
 		return self.guild, self.user, self.ban
 
+	# ============================================================
 	@button(label="Broadcast", custom_id="share", style=discord.ButtonStyle.success)
 	async def share(self, interaction: discord.Interaction, button: button) :
 		await self.disable_buttons(interaction)
 		await send_response(interaction, f"Your ban has been queued for broadcasting, please wait...", ephemeral=True)
 		await self.process(interaction)
 
+	# ============================================================
 	@button(label="Broadcast with proof", custom_id="share_with_proof", style=discord.ButtonStyle.success)
 	async def share_with_proof(self, interaction: discord.Interaction, button: button) :
 		guild, user, ban = await self.get_data(interaction)
@@ -59,12 +62,14 @@ class BanOptionButtons(SecureView) :
 		await send_response(interaction, f"Your ban has been queued for broadcasting, please wait...", ephemeral=True)
 		queue().add(self.process(interaction, evidence), priority=2)
 
+	# ============================================================
 	@button(label="Log only", custom_id="silent", style=discord.ButtonStyle.primary)
 	async def silent(self, interaction: discord.Interaction, button: button) :
 		await self.disable_buttons(interaction)
 		await send_response(interaction, f"Your ban has been silently stored, servers will still see this ban when the user joins or if they look up the user.", ephemeral=True)
 		await self.process(interaction, silent=True)
 
+	# ============================================================
 	@button(label="Log with Proof", custom_id="silent_with_proof", style=discord.ButtonStyle.primary)
 	async def silent_with_proof(self, interaction: discord.Interaction, button: button) :
 		guild, user, ban = await self.get_data(interaction)
@@ -75,18 +80,21 @@ class BanOptionButtons(SecureView) :
 		await send_response(interaction, f"Your ban has been silently stored, servers will still see this ban when the user joins or if they look up the user.", ephemeral=True)
 		queue().add(self.process(interaction, evidence, silent=True), priority=2)
 
+	# ============================================================
 	@button(label="Hide Ban", custom_id="hide", style=discord.ButtonStyle.danger)
 	async def hidden(self, interaction: discord.Interaction, button: button) :
 		await self.disable_buttons(interaction)
 		await send_response(interaction, f"Your ban has been hidden, other servers can't view the ban.", ephemeral=True)
 		await self.process(interaction, hidden=True)
 
+	# ============================================================
 	@button(label="reactivate buttons", custom_id="reactivate_buttons", style=discord.ButtonStyle.secondary)
 	async def reactivate_buttons(self, interaction: discord.Interaction, button: button) :
 		for child in self.children :
 			child.disabled = False
 		await interaction.message.edit(view=self)
 
+	# ============================================================
 	async def disable_buttons(self, interaction: discord.Interaction) :
 		for child in self.children :
 			if child.custom_id == "reactivate_buttons" :
@@ -94,6 +102,7 @@ class BanOptionButtons(SecureView) :
 			child.disabled = True
 		await interaction.message.edit(view=self)
 
+	# ============================================================
 	async def process(self, interaction, evidence=None, hidden=False, silent=False) :
 		guild, user, ban = await self.get_data(interaction)
 		guild_db = ServerTransactions().get(guild.id)
@@ -165,12 +174,14 @@ class BanOptionButtons(SecureView) :
 		queue().add(self.status(interaction.client, guild, user), priority=0)
 
 
+	# ============================================================
 	async def provide_proof(self, interaction, evidence) :
 		if not evidence :
 			return
 		channel = interaction.client.get_channel(int(os.getenv("BANS")))
 		queue().add(EvidenceController.add_evidence(interaction, evidence, self.wait_id, self.user), priority=2)
 
+	# ============================================================
 	async def check_checklisted_words(self, ban) :
 		found = None
 		checklist: list = await Configer.get_checklist()
@@ -180,6 +191,7 @@ class BanOptionButtons(SecureView) :
 					found = word
 		return found
 
+	# ============================================================
 	async def get_staff_member(self, guild, user) :
 		async for entry in guild.audit_logs(limit=100, action=discord.AuditLogAction.ban) :
 			if entry.target.id == user.id :
@@ -187,6 +199,7 @@ class BanOptionButtons(SecureView) :
 					return guild.owner
 				return entry.user
 
+	# ============================================================
 	async def verification_notification(self, banreason, bot, guild, user, word, message: discord.Message = None,
 	                                    silent=False) :
 		modchannel_id = ConfigData().get_key(guild.id, "modchannel")
@@ -213,6 +226,7 @@ class BanOptionButtons(SecureView) :
 		await send_message(modchannel, f"-# You can join our support server by [clicking here to join]({support_invite}).",
 		                   embed=verembed)
 
+	# ============================================================
 	async def status(self, bot, guild, user: discord.User, status="queued", banreason=None, word=None, message=None,
 	                 silent=False) :
 		"""informs user is the ban has been approved or is in queue"""
@@ -226,6 +240,7 @@ class BanOptionButtons(SecureView) :
 			message.edit(content=f"Your ban for {user.mention} has been successfully broadcasted to other servers."))
 
 
+	# ============================================================
 	async def sendDeniedEmbed(self, interaction, ban: discord.BanEntry, checkListResult: str):
 		embed = discord.Embed(
 			title=f"Your ban for {ban.user.name}({ban.user.id}) has been denied.)",
@@ -236,6 +251,7 @@ class BanOptionButtons(SecureView) :
 		await send_message(interaction.channel, embed=embed)
 
 
+	# ============================================================
 	async def checkFlaggedTerms(self, target):
 		checks = {
 			"reviewCheck"      : TermsChecker("review", target),
@@ -250,5 +266,7 @@ class BanOptionButtons(SecureView) :
 			return val.getResults()
 		return None, None
 
+	# ============================================================
 	async def on_error(self, interaction: Interaction, error: Exception, item: Item[Any], /) -> None:
+		logging.error(f"BanOptionButtons error on {getattr(item, 'custom_id', item)}: {error}", exc_info=error)
 		await send_response(interaction, f"An error has occurred: {error}")

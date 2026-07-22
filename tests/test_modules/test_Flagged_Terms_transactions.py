@@ -36,9 +36,11 @@ class TestTermsDatabaseOperations(unittest.TestCase) :
 	def setUp(self) :
 		create_bot_database()
 
+	# ============================================================
 	def tearDown(self) :
 		drop_bot_database()
 
+	# ============================================================
 	def test_add_term(self) :
 		terms = self.termsToAdd
 
@@ -51,6 +53,7 @@ class TestTermsDatabaseOperations(unittest.TestCase) :
 			self.assertEqual(term_data.regex, terms[term]["regex"], f"Term {term} has wrong regex value")
 
 
+	# ============================================================
 	def test_delete_term(self) :
 		terms = self.termsToAdd
 		for term in terms :
@@ -59,6 +62,7 @@ class TestTermsDatabaseOperations(unittest.TestCase) :
 			term_data = self.Terms_controller.get(term)
 			self.assertIsNone(term_data, f"Term {term} was not removed from database")
 
+	# ============================================================
 	def test_get_all_terms(self) :
 		terms = self.termsToAdd
 		for term in terms :
@@ -68,6 +72,7 @@ class TestTermsDatabaseOperations(unittest.TestCase) :
 		for term in all_terms :
 			self.assertIn(term.term, [terms[t]["term"] for t in terms], f"Term {term.term} not found in added terms")
 
+	# ============================================================
 	def test_get_term(self) :
 		terms = self.termsToAdd
 		for term in terms :
@@ -78,6 +83,7 @@ class TestTermsDatabaseOperations(unittest.TestCase) :
 			self.assertEqual(term_data.action, terms[term]["action"], f"Term {terms[term]['term']} has wrong action")
 			self.assertEqual(term_data.regex, terms[term]["regex"], f"Term {terms[term]['term']} has wrong regex value")
 
+	# ============================================================
 	def test_update_term(self) :
 		terms = self.termsToAdd
 		for term in terms :
@@ -93,6 +99,7 @@ class TestTermsDatabaseOperations(unittest.TestCase) :
 
 
 
+	# ============================================================
 	def test_perform_action(self) :
 		terms = self.termsToAdd
 		for term in terms :

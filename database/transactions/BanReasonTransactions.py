@@ -14,12 +14,14 @@ class BanReasonsTransactions(DatabaseTransactions) :
 			return session.scalar(Select(BanReasons).where(BanReasons.name == name))
 
 
+	# ============================================================
 	def exists(self, reason: str) -> bool :
 		with self.createsession() as session :
 
 			return session.scalar(Select(BanReasons).where(BanReasons.reason == reason)) is not None
 
 
+	# ============================================================
 	def get_by_server(self, server_id: int, active_only: bool = False) -> list[BanReasons] :
 		with self.createsession() as session :
 
@@ -29,6 +31,7 @@ class BanReasonsTransactions(DatabaseTransactions) :
 			return session.scalars(stmt).all()
 
 
+	# ============================================================
 	def get_all(self, active_only: bool = False) -> list[BanReasons] :
 		with self.createsession() as session :
 
@@ -38,6 +41,7 @@ class BanReasonsTransactions(DatabaseTransactions) :
 			return session.scalars(stmt).all()
 
 
+	# ============================================================
 	def add(self, server_id: int, name: str, description: str, reason: str, active: bool = True) -> BanReasons | bool :
 		with self.createsession() as session :
 
@@ -49,6 +53,7 @@ class BanReasonsTransactions(DatabaseTransactions) :
 			DatabaseTransactions().commit(session)
 			return entry
 
+	# ============================================================
 	def update(self, reason_id: int | BanReasons, name: str = None, description: str = None, reason: str = None,
 	           active: bool = None) -> BanReasons | bool :
 		with self.createsession() as session :
@@ -72,6 +77,7 @@ class BanReasonsTransactions(DatabaseTransactions) :
 			return entry
 
 
+	# ============================================================
 	def delete(self, reason_id: int | BanReasons) -> bool :
 		with self.createsession() as session :
 
@@ -85,6 +91,7 @@ class BanReasonsTransactions(DatabaseTransactions) :
 			DatabaseTransactions().commit(session)
 			return True
 
+	# ============================================================
 	def toggle_active(self, reason_id: int | BanReasons, value: bool) -> bool :
 		with self.createsession() as session :
 

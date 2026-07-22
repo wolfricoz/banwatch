@@ -51,6 +51,7 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
+# ============================================================
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
 

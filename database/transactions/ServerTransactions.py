@@ -22,6 +22,7 @@ class ServerTransactions(DatabaseTransactions) :
 
 			return session.query(exists().where(Servers.id == guild_id)).scalar()
 
+	# ============================================================
 	def add(self, guild_id: int, owner: str, name: str, member_count: int, invite: str | None,
 	        active: bool = True, owner_id=None) -> Servers | bool :
 		"""
@@ -46,6 +47,7 @@ class ServerTransactions(DatabaseTransactions) :
 			self.commit(session)
 			return guild
 
+	# ============================================================
 	def update(self, guild_id: int, owner: str = None, name: str = None, member_count: int = None, invite: str = None,
 	           delete: bool = None, hidden: bool = None, active: bool = None, owner_id: int = None,
 	           premium: datetime = None) -> Servers | bool :
@@ -79,6 +81,7 @@ class ServerTransactions(DatabaseTransactions) :
 			logging.debug(updates)
 			return guild
 
+	# ============================================================
 	def get(self, guild_id: int, current_session = None) -> Type[Servers] | None :
 		if current_session :
 			return current_session.scalar(Select(Servers).where(Servers.id == guild_id))
@@ -86,6 +89,7 @@ class ServerTransactions(DatabaseTransactions) :
 
 			return session.scalar(Select(Servers).where(Servers.id == guild_id))
 
+	# ============================================================
 	def delete_soft(self, guildid: int) :
 		with self.createsession() as session :
 
@@ -97,6 +101,7 @@ class ServerTransactions(DatabaseTransactions) :
 			self.commit(session)
 			return True
 
+	# ============================================================
 	def delete_permanent(self, server: int | Type[Servers]) -> bool :
 		with self.createsession() as session :
 
@@ -111,6 +116,7 @@ class ServerTransactions(DatabaseTransactions) :
 			self.commit(session)
 			return True
 
+	# ============================================================
 	def get_bans(self, guild_id: int, uid_only: bool = False) -> list[type[Bans]] | list[int] | list[ColumnElement] :
 		with self.createsession() as session :
 
@@ -120,6 +126,7 @@ class ServerTransactions(DatabaseTransactions) :
 			return session.query(Bans).join(Servers).filter(
 				and_(Bans.gid == guild_id, Bans.hidden == False, Bans.deleted_at.is_(None), Servers.deleted_at.is_(None))).all()
 
+	# ============================================================
 	def get_all(self, id_only: bool = True) :
 		with self.createsession() as session :
 
@@ -127,6 +134,7 @@ class ServerTransactions(DatabaseTransactions) :
 				return session.scalars(Select(Servers).where(Servers.deleted_at.is_(None))).all()
 			return [sid[0] for sid in session.query(Servers.id).filter(and_(Servers.deleted_at.is_(None))).all()]
 
+	# ============================================================
 	def get_premium_ids(self) :
 		"""
 		"""
@@ -135,22 +143,26 @@ class ServerTransactions(DatabaseTransactions) :
 			return [sid[0] for sid in
 			        session.query(Servers.id).filter(and_(Servers.premium.isnot(None), Servers.deleted_at.is_(None))).all()]
 
+	# ============================================================
 	def get_deleted(self) :
 		with self.createsession() as session :
 
 			return session.query(Servers).filter(Servers.deleted_at.isnot(None)).all()
 
+	# ============================================================
 	def count(self) :
 		with self.createsession() as session :
 
 			return session.execute(text("SELECT count(*) FROM servers")).scalar()
 
+	# ============================================================
 	def is_hidden(self, guild_id: int) :
 		with self.createsession() as session :
 
 			return session.scalar(Select(Servers).where(Servers.id == guild_id)).hidden
 
 
+	# ============================================================
 	def get_owners_servers(self, owner_id) :
 		with self.createsession() as session :
 

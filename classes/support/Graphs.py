@@ -44,6 +44,7 @@ def calculate_explode(values, wedge = 0.1):
 	return result
 
 
+# ============================================================
 def create_pie(guild_id: int, values: list[int], labels: list[str], title="Placeholder title") :
 	filtered_data = [(v, l) for v, l in zip(values, labels) if v > 0]
 	if not filtered_data :
@@ -83,6 +84,7 @@ def create_pie(guild_id: int, values: list[int], labels: list[str], title="Place
 	return DIRECTORY + filename
 
 
+# ============================================================
 def create_ban_trend_chart(guild_id: int, data: dict) :
 	filename = f'{guild_id}_ban_trend.png'
 
@@ -131,6 +133,7 @@ def create_ban_trend_chart(guild_id: int, data: dict) :
 
 	return DIRECTORY + filename
 
+# ============================================================
 def clean_pie(guild_id: int):
 	try:
 		filename = f'{guild_id}_ban_status.png'
@@ -141,6 +144,7 @@ def clean_pie(guild_id: int):
 		logging.warning(f'Failed to clean the pie file: {e}')
 	return True
 
+# ============================================================
 def clean_trend(guild_id: int):
 	try:
 		filename = f'{guild_id}_ban_trend.png'

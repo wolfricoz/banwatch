@@ -10,6 +10,7 @@ class Security(commands.Cog) :
 		self.bot = bot
 		bot.tree.interaction_check = self.interaction_check
 
+	# ============================================================
 	async def interaction_check(self, interaction: discord.Interaction) :
 		"""This function is a global check performed by every / command, to apply security checks to all commands."""
 		if await Configer.is_user_blacklisted(interaction.user.id) :

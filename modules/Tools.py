@@ -19,6 +19,7 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
 
+	# ============================================================
 	@app_commands.command(name="ban", description="Ban a user with an optional reason and notification.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	@app_commands.choices(ban_type=[
@@ -45,6 +46,7 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 			reason = await send_modal(view.interaction, "What is the reason for the ban?", "Ban Reason")
 		await ban_user(interaction, user, ban_type, reason, inform=inform, clean=clean, ban_class=Bans())
 
+	# ============================================================
 	@app_commands.command(name="mass_ban", description="Ban multiple users with an optional reason.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	@app_commands.choices(ban_type=[
@@ -84,6 +86,7 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 				continue
 			await ban_user(interaction, user, ban_type, reason, inform=inform, clean=clean, ban_class=Bans())
 
+	# ============================================================
 	@app_commands.command(name="unban", description="Unban a user from the server.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	async def unban(self, interaction: discord.Interaction, user: discord.User) :
@@ -101,6 +104,7 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 		embed = discord.Embed(title=f"{user.name} unbanned", color=discord.Color.green())
 		await interaction.channel.send(embed=embed)
 
+	# ============================================================
 	@app_commands.command(name="mass_unban", description="Unban multiple users from the server.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	async def mass_unban(self, interaction: discord.Interaction, users: str) :
@@ -131,6 +135,7 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 			embed = discord.Embed(title=f"{user.name} unbanned", color=discord.Color.green())
 			await interaction.channel.send(embed=embed)
 
+	# ============================================================
 	@app_commands.command(name="ban_status", description="View the status of a user's ban and manage it.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	async def ban_status(self, interaction: discord.Interaction, user: discord.User) :
@@ -148,6 +153,7 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 		await send_response(interaction, " ", view=view, ephemeral=True)
 
 
+	# ============================================================
 	@app_commands.command(name="reban", description="Unban and reban a user to update the reason.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	@app_commands.choices(ban_type=[
@@ -176,6 +182,7 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 		except discord.Forbidden :
 			await send_response(interaction, "I don't have permission to ban this user")
 
+	# ============================================================
 	@app_commands.command(name="kick", description="Kick a user with an optional reinvite link.")
 	@app_commands.checks.has_permissions(kick_members=True)
 	async def kick(self, interaction: discord.Interaction, user: discord.User, reinvite: bool = False) :
@@ -197,6 +204,7 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 		embed = discord.Embed(title=f"{user.name} kicked", description=reason, color=discord.Color.green())
 		await interaction.channel.send(embed=embed)
 
+	# ============================================================
 	@app_commands.command(name="export_bans", description="Export all guild bans to a text file.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	async def export_bans(self, interaction: discord.Interaction) :

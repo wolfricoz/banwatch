@@ -23,6 +23,7 @@ class ConfigTransactions(DatabaseTransactions) :
 
 	
 	
+	# ============================================================
 	def config_unique_add(self, guildid: int, key: str, value, overwrite=False) :
 		# This function should check if the item already exists, if so it will override it or throw an error.
 		with self.createsession() as session :
@@ -58,6 +59,7 @@ class ConfigTransactions(DatabaseTransactions) :
 
 
 	
+	# ============================================================
 	def toggle_welcome(self, guildid: int, key: str, value) :
 		# This function should check if the item already exists, if so it will override it or throw an error.
 		with self.createsession() as session :
@@ -74,6 +76,7 @@ class ConfigTransactions(DatabaseTransactions) :
 
 	
 	
+	# ============================================================
 	def config_unique_get(self, guildid: int, key: str) :
 		with self.createsession() as session :
 
@@ -84,6 +87,7 @@ class ConfigTransactions(DatabaseTransactions) :
 
 	
 	
+	# ============================================================
 	def config_key_add(self, guildid: int, key: str, value, overwrite) :
 		with self.createsession() as session :
 
@@ -98,6 +102,7 @@ class ConfigTransactions(DatabaseTransactions) :
 
 	
 	
+	# ============================================================
 	def key_multiple_exists_check(self, guildid: int, key: str, value) :
 		with self.createsession() as session :
 
@@ -110,6 +115,7 @@ class ConfigTransactions(DatabaseTransactions) :
 
 	
 	
+	# ============================================================
 	def config_key_remove(self, guildid: int, key: str, value) :
 		with self.createsession() as session :
 
@@ -122,6 +128,7 @@ class ConfigTransactions(DatabaseTransactions) :
 
 	
 	
+	# ============================================================
 	def config_unique_remove(self, guild_id: int, key: str) :
 		with self.createsession() as session :
 
@@ -134,6 +141,7 @@ class ConfigTransactions(DatabaseTransactions) :
 
 	
 	
+	# ============================================================
 	def key_exists_check(self, guildid: int, key: str) :
 		with self.createsession() as session :
 
@@ -146,6 +154,7 @@ class ConfigTransactions(DatabaseTransactions) :
 
 	
 	
+	# ============================================================
 	def toggle_add(self, guildid, key, value=False) :
 		with self.createsession() as session :
 
@@ -167,6 +176,7 @@ class ConfigTransactions(DatabaseTransactions) :
 
 	
 	
+	# ============================================================
 	def server_config_get(self, guildid) :
 		with self.createsession() as session :
 

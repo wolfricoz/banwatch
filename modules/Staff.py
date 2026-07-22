@@ -32,6 +32,7 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
 
+	# ============================================================
 	@app_commands.command(name="servers", description="[staff] View all servers banwatch is in")
 	@app_commands.guilds(GUILD)
 	@AccessControl().check_access()
@@ -55,6 +56,7 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 		await send_message(interaction.channel, "Here is a file with all the servers", files=[discord.File(file.name)])
 		os.remove(file.name)
 
+	# ============================================================
 	@app_commands.command(name="serverinfo", description="[staff] View server info of a specific server")
 	@app_commands.guilds(GUILD)
 	@app_commands.autocomplete(server=autocomplete_guild)
@@ -92,6 +94,7 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 		embed.set_footer(text=f"This data should not be shared outside of the support server.")
 		await send_message(interaction.channel, embed=embed)
 
+	# ============================================================
 	@app_commands.command(name="userinfo", description="[Staff] View user information")
 	@AccessControl().check_access()
 	@app_commands.guilds(GUILD)
@@ -123,6 +126,7 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 			text=f"This data may only be used for investigations, and may never be used for non-banwatch related actions.")
 		await send_message(interaction.channel, embed=embed)
 
+	# ============================================================
 	@app_commands.command(name="banverification", description="[Staff] change the status of a ban's verification")
 	@AccessControl().check_access()
 	@app_commands.guilds(GUILD)
@@ -149,6 +153,7 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 		BanTransactions().update(ban, verified=status)
 		await send_response(interaction, f"{ban_id} verified status changed to {status} by {interaction.user.mention}")
 
+	# ============================================================
 	@app_commands.command(name="banvisibility", description="[staff] Change if a ban is hidden or not.")
 	@AccessControl().check_access()
 	@app_commands.guilds(GUILD)
@@ -165,6 +170,7 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 		BanTransactions().update(ban, hidden=hide)
 		await send_response(interaction, f"{ban_id} hidden status changed to {hide} by {interaction.user.mention}")
 
+	# ============================================================
 	@app_commands.command(name="rpsecsearch",
 	                      description="[DEV] Searches the rp security threads for a specific entry")
 	@AccessControl().check_access()
@@ -182,6 +188,7 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 			await send_response(interaction, "No Roleplay Security Bot entry found")
 		await send_response(interaction, f"Roleplay Security Bot entry: {record.mention}")
 
+	# ============================================================
 	@app_commands.command(name="revokeban", description="[DEV] Revokes a ban message. This does not unban the user.")
 	@AccessControl().check_access()
 	async def revokeban(self, interaction: discord.Interaction, banid: str, reason: str) :
@@ -198,6 +205,7 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 			await Bans().revoke_bans(self.bot, ban_id, reason, staff=True)
 		queue().add(pending_bans(self.bot, True, limit=50))
 
+	# ============================================================
 	@app_commands.command(name="amistaff", description="[DEV] check if you're a banwatch staff member.")
 	async def amistaff(self, interaction: discord.Interaction) :
 		"""
@@ -209,6 +217,7 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 		return await send_response(interaction, "You are a staff member" if AccessControl().access_all(
 			interaction.user.id) else "You are not a staff member")
 
+	# ============================================================
 	@app_commands.command(name="calculate_banid", description="Calculates the ban id with user id and guild id")
 	@AccessControl().check_access()
 	@app_commands.autocomplete(guild=autocomplete_guild)
@@ -221,6 +230,7 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 		"""
 		await send_response(interaction, f"The ban_id would be: {user.id + int(guild)}")
 
+	# ============================================================
 	@app_commands.command(name="visibility", description="[Staff command] Set the visibility of a server")
 	@app_commands.autocomplete(server=autocomplete_guild)
 	@app_commands.checks.has_permissions(manage_guild=True)
@@ -237,6 +247,7 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 		                    f"Your bans may temporarily still be available in the checkall cache, which is reloaded every 10 minutes")
 
 
+	# ============================================================
 	@app_commands.command(name="audit_bans", description="[Staff command] Audits all or unsent bans to ensure they follow our guidelines")
 	@AccessControl().check_access()
 	async def audit_bans(self, interaction: discord.Interaction, all_bans: bool = False, maximum: int = 1000) :
@@ -269,6 +280,7 @@ async def setup(bot: commands.Bot) :
 	await bot.add_cog(Staff(bot))
 
 
+# ============================================================
 async def audit_ban(bot: commands.AutoShardedBot | commands.Bot, ban: BanTable):
 	guild = bot.get_guild(ban.gid)
 	if not guild :

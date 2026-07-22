@@ -20,6 +20,7 @@ class BanCheck(ABC) :
 			return
 		return len(guild.members) >= 50
 
+	# ============================================================
 	async def checkerall(self, interaction, bot) :
 		bcount = 0
 		cache = BanTransactions().local_cache
@@ -53,6 +54,7 @@ class MemberLookup(commands.GroupCog, name="user") :
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
 
+	# ============================================================
 	@app_commands.command(name="lookup", description="Looks up a user's ban history by user or ban ID.")
 	@app_commands.checks.has_permissions(ban_members=True)  # Ensure the user has the 'ban_members' permission
 	async def lookup(self, interaction: discord.Interaction, user: discord.User = None, ban_id: str = None,
@@ -110,6 +112,7 @@ class MemberLookup(commands.GroupCog, name="user") :
 		await view.send_message(interaction.client, interaction.channel, sr, user, interaction=interaction,
 		                        override=override)
 
+	# ============================================================
 	@app_commands.command(name="checkall", description="Checks all members in the server against the global ban database.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	async def checkall(self, interaction: discord.Interaction) :

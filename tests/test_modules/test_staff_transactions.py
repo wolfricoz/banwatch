@@ -11,9 +11,11 @@ class TestStaffDatabaseOperations(unittest.TestCase) :
 		create_bot_database()
 		self.staff_controller = StaffTransactions()
 
+	# ============================================================
 	def tearDown(self) :
 		drop_bot_database()
 
+	# ============================================================
 	def test_add_staff_positive_and_negative(self) :
 		# Positive: Add a new staff member
 		staff = self.staff_controller.add(self.user_id, "rep")
@@ -25,6 +27,7 @@ class TestStaffDatabaseOperations(unittest.TestCase) :
 		duplicate_staff = self.staff_controller.add(self.user_id, "admin")
 		self.assertIsNone(duplicate_staff)
 
+	# ============================================================
 	def test_get_staff_positive_and_negative(self) :
 		# Positive: Get an existing staff member
 		self.staff_controller.add(self.user_id, "rep")
@@ -36,6 +39,7 @@ class TestStaffDatabaseOperations(unittest.TestCase) :
 		non_existent_staff = self.staff_controller.get(12345)
 		self.assertIsNone(non_existent_staff)
 
+	# ============================================================
 	def test_get_all_staff_positive_and_negative(self) :
 		# Positive: Get all staff members
 		self.staff_controller.add(self.user_id, "rep")
@@ -48,6 +52,7 @@ class TestStaffDatabaseOperations(unittest.TestCase) :
 		self.setUp()
 		self.assertEqual(len(self.staff_controller.get_all()), 0)
 
+	# ============================================================
 	def test_delete_staff_positive_and_negative(self) :
 		# Positive: Delete an existing staff member
 		self.staff_controller.add(self.user_id, "rep")

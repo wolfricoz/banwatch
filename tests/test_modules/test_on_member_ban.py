@@ -24,6 +24,7 @@ class FakeUser :
 		self.bot = is_bot
 		self.name = name
 
+	# ============================================================
 	def __str__(self) :
 		return self.name
 
@@ -89,21 +90,25 @@ class OnMemberBan(unittest.IsolatedAsyncioTestCase) :
 		self.cog.bot = self.bot
 		self.cog.cross_ban = MagicMock()  # avoid creating un-awaited coroutines in the premium path
 
+	# ============================================================
 	def tearDown(self) :
 		self.stack.close()
 
+	# ============================================================
 	async def test_ignores_the_bot_itself(self) :
 		self.bot.user = self.user  # user == bot.user
 		await self.cog.on_member_ban(self.guild, self.user)
 		self.BanChecker.assert_not_called()
 		self.Bans.return_value.add_ban.assert_not_awaited()
 
+	# ============================================================
 	async def test_ignores_bot_users(self) :
 		bot_user = FakeUser(is_bot=True)
 		await self.cog.on_member_ban(self.guild, bot_user)
 		self.BanChecker.assert_not_called()
 		self.Bans.return_value.add_ban.assert_not_awaited()
 
+	# ============================================================
 	async def test_missing_mod_channel_dms_owner_and_stops(self) :
 		self.bot.get_channel.return_value = None
 		await self.cog.on_member_ban(self.guild, self.user)
@@ -111,6 +116,7 @@ class OnMemberBan(unittest.IsolatedAsyncioTestCase) :
 		self.assertIs(self.send_message.call_args.args[0], self.guild.owner)
 		self.BanChecker.assert_not_called()
 
+	# ============================================================
 	async def test_hidden_server_records_silently_and_stops(self) :
 		self.ServerTransactions.return_value.is_hidden.return_value = True
 		await self.cog.on_member_ban(self.guild, self.user)
@@ -120,6 +126,7 @@ class OnMemberBan(unittest.IsolatedAsyncioTestCase) :
 		self.assertEqual(args[3], "Unknown")   # staff attribution for hidden-server bans
 		self.BanChecker.assert_not_called()    # no vetting / no prompt
 
+	# ============================================================
 	async def test_hide_verdict_auto_hides_without_prompt(self) :
 		self.checker.get_status.return_value = HIDE
 		await self.cog.on_member_ban(self.guild, self.user)
@@ -127,6 +134,7 @@ class OnMemberBan(unittest.IsolatedAsyncioTestCase) :
 		self.checker.evaluate_ban.assert_awaited_once_with(self.guild, server_only=False)
 		self.checker.send_review_prompt.assert_not_awaited()
 
+	# ============================================================
 	async def test_non_hide_verdict_shows_review_buttons(self) :
 		self.checker.get_status.return_value = PROMPT
 		await self.cog.on_member_ban(self.guild, self.user)
@@ -134,6 +142,7 @@ class OnMemberBan(unittest.IsolatedAsyncioTestCase) :
 		self.checker.evaluate_ban.assert_not_awaited()
 		self.cog.cross_ban.assert_not_called()   # premium off by default
 
+	# ============================================================
 	async def test_premium_cross_ban_mirrors_to_owner_servers(self) :
 		self.checker.get_status.return_value = PROMPT
 		self.ConfigData.return_value.get_key.return_value = True

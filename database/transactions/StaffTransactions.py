@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy import Select
 from sqlalchemy.util import to_list
 
@@ -12,27 +14,34 @@ class StaffTransactions(DatabaseTransactions) :
 
 			return session.scalar(Select(Staff).where(Staff.uid == uid))
 
+	# ============================================================
 	def add(self, uid: int, role: str) -> Staff | None :
 		with self.createsession() as session :
 
 			if self.get(uid) :
+				logging.info(f"Staff add skipped: {uid} already exists")
 				return None
 			new_staff = Staff(uid=uid, role=role.lower())
 			session.add(new_staff)
 			self.commit(session)
+			logging.info(f"Staff added: {uid} as {role.lower()}")
 			return new_staff
 
+	# ============================================================
 	def get_all(self) -> list[Staff] :
 		with self.createsession() as session :
 
 			return to_list(session.scalars(Select(Staff)).all())
 
+	# ============================================================
 	def delete(self, uid: int) -> bool :
 		with self.createsession() as session :
 
 			staff = self.get(uid)
 			if not staff :
+				logging.info(f"Staff delete skipped: {uid} not found")
 				return False
 			session.delete(staff)
 			self.commit(session)
+			logging.info(f"Staff removed: {uid}")
 			return True

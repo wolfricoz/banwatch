@@ -33,6 +33,7 @@ class Premium(GroupCog, name="premium") :
 		self.DELETED_USER_RE = re.compile(r"^deleted_user_[0-9a-f]{11,14}$", re.IGNORECASE)
 		self.bot.add_view(bottrap())
 
+	# ============================================================
 	async def check_deleted(self, banned_user: discord.User | discord.Member) -> bool :
 		"""[skip]"""
 		if banned_user.bot :
@@ -47,6 +48,7 @@ class Premium(GroupCog, name="premium") :
 			return False
 		return True
 
+	# ============================================================
 	@app_commands.command(name="remove_deleted", description="[PREMIUM] Removes deleted user accounts from your server and ban list.")
 	@app_commands.checks.has_permissions(manage_guild=True)
 	@AccessControl().check_premium()
@@ -103,6 +105,7 @@ class Premium(GroupCog, name="premium") :
 		os.remove(banlist_file.name)
 
 
+	# ============================================================
 	@app_commands.command(name="bot_trap_button", description="[PREMIUM] Creates a button that bans any user who clicks it.")
 	@app_commands.checks.has_permissions(manage_guild=True)
 	@AccessControl().check_premium()
@@ -125,6 +128,7 @@ class Premium(GroupCog, name="premium") :
 		msg = await send_message(interaction.channel, "-# gain access, for bots!",embed=embed, view=view)
 		await msg.add_reaction("✅")
 
+	# ============================================================
 	@app_commands.command(name="bot_trap_role", description="[PREMIUM] Designates a role that will ban a user upon receiving it.")
 	@app_commands.checks.has_permissions(manage_guild=True)
 	@AccessControl().check_premium()
@@ -141,6 +145,7 @@ class Premium(GroupCog, name="premium") :
 		ConfigTransactions().config_unique_add(interaction.guild.id, "TRAP_ROLE", role.id)
 		await send_response(interaction, f"Set the bot trap role to {role.mention}", ephemeral=True)
 
+	# ============================================================
 	@app_commands.command(name="toggle_feature", description="[PREMIUM] Toggles a specific premium feature on or off for your server.")
 	@app_commands.choices(feature_name=[
 		app_commands.Choice(name=feature, value=feature) for feature in toggles.keys()
@@ -160,6 +165,7 @@ class Premium(GroupCog, name="premium") :
 
 
 
+	# ============================================================
 	@app_commands.command(name="ban_presets", description="[PREMIUM] Manage preset ban reasons for quick and consistent moderation.")
 	@app_commands.checks.has_permissions(manage_guild=True)
 	@app_commands.choices(operation=[
@@ -200,6 +206,7 @@ class Premium(GroupCog, name="premium") :
 			ConfigTransactions().config_unique_remove(interaction.guild.id, "BAN_PRESET", name)
 			await send_response(interaction, f"Removed ban preset `{name}`.", ephemeral=True)
 
+	# ============================================================
 	@app_commands.command(name="search_bans", description="Search bans for specific words.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	@AccessControl().check_premium()
@@ -221,6 +228,7 @@ class Premium(GroupCog, name="premium") :
 		# Send the file to the channel
 		await interaction.followup.send(f"Here are all your bans with `{word}`!", file=discord.File("bans.txt"))
 
+	# ============================================================
 	@app_commands.command(name="copy_bans", description="Copy bans from one server to another.")
 	@app_commands.checks.has_permissions(ban_members=True)
 	@app_commands.autocomplete(guild=autocomplete_guild)

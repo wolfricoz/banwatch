@@ -19,6 +19,7 @@ class WarningEvidence():
 
 
 
+	# ============================================================
 	async def create_evidence(self,  message: discord.Message, evidence_channel: discord.TextChannel) -> bool:
 		# We check if the warning exists
 		if not WarningTransactions().exists(self.warning.id):
@@ -32,6 +33,7 @@ class WarningEvidence():
 		return True
 
 
+	# ============================================================
 	async def fetch_evidence(self, evidence_channel: discord.TextChannel,  target_channel: discord.TextChannel) -> bool:
 		# fetch evidence
 		evidence_list = WarningEvidenceTransactions().get_warning(self.warning.id)
@@ -46,6 +48,7 @@ class WarningEvidence():
 		return True
 
 
+	# ============================================================
 	async def create_message(self, message: discord.Message, evidence_channel: discord.TextChannel) -> discord.Message :
 		"""
 		Clones a message (or a forwarded message snapshot) into the target evidence channel.
@@ -84,6 +87,7 @@ class WarningEvidence():
 
 		return cloned_message
 
+	# ============================================================
 	async def _prepare_attachments(self, attachments: List[discord.Attachment]) -> List[discord.File] :
 		"""Downloads attachments into memory bytes so they can be re-uploaded."""
 		files = []
@@ -95,6 +99,7 @@ class WarningEvidence():
 			files.append(discord.File(file_io, filename=attachment.filename))
 		return files
 
+	# ============================================================
 	def _prepare_embeds(self, embeds: List[discord.Embed]) -> List[discord.Embed] :
 		"""Ensures embeds are deep-copied properly to avoid mutation issues."""
 		cleaned_embeds = []

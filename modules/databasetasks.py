@@ -13,9 +13,11 @@ class DatabaseTasks(commands.Cog):
         self.bot = bot
         self.delete_old_bans.start()
 
+    # ============================================================
     def cog_unload(self):
         self.delete_old_bans.cancel()
 
+    # ============================================================
     @tasks.loop(hours=2)
     async def delete_old_bans(self):
         bans = BanTransactions().get_deleted_bans()
@@ -34,6 +36,7 @@ class DatabaseTasks(commands.Cog):
                 except Exception as e:
                     logging.error(f"Failed to delete permanent for {server}", exc_info=True)
 
+    # ============================================================
     @delete_old_bans.before_loop
     async def before_queue(self):
         await self.bot.wait_until_ready()

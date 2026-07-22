@@ -17,24 +17,27 @@ class DatabaseTransactions(metaclass=Singleton) :
 		from classes.configdata import ConfigData
 		ConfigData().load_guild(guild_id)
 
+	# ============================================================
 	def createsession(self) :
 
 		return self.sessionmanager(expire_on_commit=False)
 
+	# ============================================================
 	def commit(self, session) :
 		try :
 			session.commit()
 		except pymysql.err.InternalError as e :
-			logging.warning(e)
+			logging.warning(f"DB commit failed (InternalError), rolling back: {e}", exc_info=True)
 			session.rollback()
 			raise CommitError()
 		except SQLAlchemyError as e :
-			logging.warning(e)
+			logging.warning(f"DB commit failed (SQLAlchemyError), rolling back: {e}", exc_info=True)
 			session.rollback()
 			raise CommitError()
 		finally :
 			session.close()
 
+	# ============================================================
 	def ping_db(self) :
 		try :
 			with self.createsession() as session :

@@ -25,6 +25,7 @@ class TermsChecker:
 			return
 		action()
 
+	# ============================================================
 	# Actions, these are called by the init.
 	def review(self):
 		self.checkTerms(first_stop=True)
@@ -32,16 +33,19 @@ class TermsChecker:
 			self.result = "review"
 
 
+	# ============================================================
 	def block(self):
 		self.checkTerms(first_stop=True)
 		if len(self.found) > 0 :
 			self.result = "block"
 
+	# ============================================================
 	def countreview(self):
 		self.checkTerms()
 		if len(self.found) >= self.MAX_FOUND :
 			self.result = "review"
 
+	# ============================================================
 	def countblock(self):
 		self.checkTerms()
 		if len(self.found) >= self.MAX_FOUND :
@@ -49,6 +53,7 @@ class TermsChecker:
 
 	# other functions.
 
+	# ============================================================
 	def checkTerms(self, first_stop: bool = False):
 		term: FlaggedTerms
 		for term in self.terms:
@@ -69,8 +74,10 @@ class TermsChecker:
 
 
 
+	# ============================================================
 	def getResults(self):
 		return self.result, self.found
 
+	# ============================================================
 	def getReviewStatus(self):
 		return self.result

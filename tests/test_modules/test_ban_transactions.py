@@ -16,9 +16,11 @@ class TestBanDatabaseOperations(unittest.TestCase):
         self.server_controller = ServerTransactions()
         self.ban_controller = BanTransactions()
 
+    # ============================================================
     def tearDown(self):
         drop_bot_database()
 
+    # ============================================================
     # add: positive and negative
     def test_add_ban_positive_and_duplicate_negative(self):
         guild_id = self.guild_id
@@ -33,6 +35,7 @@ class TestBanDatabaseOperations(unittest.TestCase):
         dup = self.ban_controller.add(user_id, guild_id, "reason", "staff")
         self.assertIsInstance(dup, Bans)
 
+    # ============================================================
     def test_add_ban_negative_without_server(self):
         # Negative: adding a ban when server not present should fail (False/None)
         self.server_controller.add(999999999999999999, "owner", "server_name", 100, "invite")
@@ -40,6 +43,7 @@ class TestBanDatabaseOperations(unittest.TestCase):
         result = self.ban_controller.add(self.user_id, 999999999999999998, "r", "s")
         self.assertFalse(result)
 
+    # ============================================================
     # get: positive and negative
     def test_get_ban_positive(self):
         guild_id = self.guild_id
@@ -50,10 +54,12 @@ class TestBanDatabaseOperations(unittest.TestCase):
         self.assertIsNotNone(got)
         self.assertEqual(got.ban_id, created.ban_id)
 
+    # ============================================================
     def test_get_ban_negative(self):
         # Negative: get nonexistent ban returns None
         self.assertIsNone(self.ban_controller.get(1234567890))
 
+    # ============================================================
     # update: positive and negative
     def test_update_ban_positive(self):
         ban = BanFactory().create(approved=False)
@@ -62,11 +68,13 @@ class TestBanDatabaseOperations(unittest.TestCase):
         self.assertTrue(updated.verified)
         self.assertTrue(updated.approved)
 
+    # ============================================================
     def test_update_ban_negative_nonexistent(self):
         # Negative: updating nonexistent ban returns None/False
         res = self.ban_controller.update(999999999999, verified=True)
         self.assertFalse(res)
 
+    # ============================================================
     # get_all: positive and negative
     def test_get_all_positive_and_hidden_excluded(self):
         bans = BanFactory().create(amount=5)
@@ -74,10 +82,12 @@ class TestBanDatabaseOperations(unittest.TestCase):
         self.ban_controller.update(bans[0].ban_id, hidden=True)
         self.assertEqual(len(self.ban_controller.get_all()), 4)
 
+    # ============================================================
     def test_get_all_negative_empty(self):
         # Negative: when no bans present
         self.assertEqual(len(self.ban_controller.get_all()), 0)
 
+    # ============================================================
     # get_all_pending: positive and negative
     def test_get_all_pending_positive_and_server_hidden(self):
         bans = BanFactory().create(amount=3, approved=False)
@@ -88,10 +98,12 @@ class TestBanDatabaseOperations(unittest.TestCase):
         ServerTransactions().update(more[0].gid, hidden=True)
         self.assertLessEqual(len(self.ban_controller.get_all_pending()), 5)
 
+    # ============================================================
     def test_get_all_pending_negative_empty(self):
         # Negative: when no pending bans exist
         self.assertEqual(len(self.ban_controller.get_all_pending()), 0)
 
+    # ============================================================
     # get_all_user: positive and negative
     def test_get_all_user_positive_and_negative(self):
         guild1 = ServerFactory().create()
@@ -102,6 +114,7 @@ class TestBanDatabaseOperations(unittest.TestCase):
         # Negative: user with no bans
         self.assertEqual(len(self.ban_controller.get_all_user(999999999999)), 0)
 
+    # ============================================================
     # count: positive and negative (available/hidden/deleted)
     def test_count_positive_and_types(self):
         bans = BanFactory().create(amount=6)
@@ -112,18 +125,21 @@ class TestBanDatabaseOperations(unittest.TestCase):
         self.assertEqual(self.ban_controller.count(result_type="hidden"), 1)
         self.assertEqual(self.ban_controller.count(result_type="deleted"), 1)
 
+    # ============================================================
     def test_count_negative_no_bans(self):
         # Negative: counts on empty DB
         self.assertEqual(self.ban_controller.count(), 0)
         self.assertEqual(self.ban_controller.count(result_type="hidden"), 0)
         self.assertEqual(self.ban_controller.count(result_type="deleted"), 0)
 
+    # ============================================================
     # exists: positive and negative
     def test_exists_positive_and_negative(self):
         ban = BanFactory().create()
         self.assertTrue(self.ban_controller.exists(ban.ban_id))
         self.assertFalse(self.ban_controller.exists(111111111111111111))
 
+    # ============================================================
     # delete_soft: positive and negative
     def test_delete_soft_positive_and_get_none(self):
         ServerFactory().create()
@@ -131,10 +147,12 @@ class TestBanDatabaseOperations(unittest.TestCase):
         self.assertTrue(self.ban_controller.delete_soft(ban.ban_id))
         self.assertIsNone(self.ban_controller.get(ban.ban_id))
 
+    # ============================================================
     def test_delete_soft_negative_nonexistent(self):
         # Negative: deleting nonexistent ban returns False
         self.assertFalse(self.ban_controller.delete_soft(999999999999))
 
+    # ============================================================
     # get_deleted_bans: positive and negative
     def test_get_deleted_bans_positive_and_negative(self):
         bans = BanFactory().create(amount=4)
@@ -148,6 +166,7 @@ class TestBanDatabaseOperations(unittest.TestCase):
         create_bot_database()
         self.assertEqual(len(self.ban_controller.get_deleted_bans()), 0)
 
+    # ============================================================
     # get guild status from ban: positive and when guild deleted (negative)
     def test_get_guild_status_from_ban_positive_and_negative(self):
         guild = ServerFactory().create()

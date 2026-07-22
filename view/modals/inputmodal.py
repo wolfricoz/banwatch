@@ -13,16 +13,19 @@ class InputModal(discord.ui.Modal):
         self.ephemeral = ephemeral
     reason = discord.ui.TextInput(label='What is the reason?', style=discord.TextStyle.long, placeholder='Type your reason here...', max_length=500)
 
+    # ============================================================
     async def on_submit(self, interaction: discord.Interaction) -> None:
         try:
             await self.send_message(interaction, self.confirmation)
         except discord.errors.HTTPException:
             pass
 
+    # ============================================================
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
-        print(error)
+        logging.error(f"InputModal error: {error}", exc_info=error)
         await self.send_message(interaction, f"An error occurred: {error}")
 
+    # ============================================================
     async def send_message(self, interaction: discord.Interaction, message: str) -> None:
         """sends the message to the channel."""
         try:

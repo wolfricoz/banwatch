@@ -37,6 +37,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 				await asyncio.sleep(0)
 		logging.info(f"Completed caching {count} bans.")
 
+	# ============================================================
 	def exists(self, ban_id: int, remove_deleted: bool = False) -> bool :
 		with self.createsession() as session :
 			ban = session.scalar(Select(Bans).where(Bans.ban_id == ban_id))
@@ -45,6 +46,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 				return False
 			return session.scalar(Select(Bans).where(Bans.ban_id == ban_id))
 
+	# ============================================================
 	def add(self, uid: int, gid: int, reason: str, staff: str, approved: bool = False, verified: bool = False,
 	        hidden: bool = False, remove_deleted: bool = False) -> Bans | bool :
 		with self.createsession() as session :
@@ -62,6 +64,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			self.commit(session)
 			return ban
 
+	# ============================================================
 	def get(self, ban_id: int = None, current_session=None, override: bool = False) -> Type[Bans] | None :
 		with self.createsession() as session :
 			if current_session :
@@ -84,6 +87,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 				Servers.hidden.is_(False)
 			).first()
 
+	# ============================================================
 	def get_all_user(self, user_id, override=False) :
 		with self.createsession() as session :
 			if override :
@@ -98,6 +102,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 				     Servers.hidden.is_(False),
 				     Servers.active.is_(True))).all()
 
+	# ============================================================
 	def count_all_user(self, user_id, override=False) :
 		with self.createsession() as session :
 			if override :
@@ -106,6 +111,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 				and_(Bans.uid == user_id, Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None),
 				     Bans.approved.is_(True), Servers.hidden.is_(False))).count()
 
+	# ============================================================
 	def get_all(self, override=False) :
 		with self.createsession() as session :
 			if override :
@@ -115,6 +121,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 					and_(Bans.deleted_at.is_(None), Bans.hidden.is_(False), Bans.approved.is_(True), Servers.deleted_at.is_(None),
 					     Servers.hidden.is_(False)))).all()
 
+	# ============================================================
 	def get_audit(self, override=False) :
 		with self.createsession() as session :
 			if override :
@@ -135,6 +142,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 					     Servers.active.is_(True),
 					     Servers.hidden.is_(False)))).all()
 
+	# ============================================================
 	def get_all_pending(self) :
 		with self.createsession() as session :
 			return session.scalars(
@@ -142,6 +150,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 					and_(Bans.deleted_at.is_(None), Bans.hidden.is_(False), Servers.deleted_at.is_(None),
 					     Servers.hidden.is_(False)))).unique().all()
 
+	# ============================================================
 	# noinspection SqlResolve
 	def count(self, result_type="all", server_id = None) :
 		"""
@@ -178,6 +187,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 				case _ :
 					return session.execute(text(f"SELECT count(*) FROM bans {server}"), params).scalar()
 
+	# ============================================================
 	def delete_soft(self, ban_id: int) -> bool :
 		with self.createsession() as session :
 			# override=True: this is a maintenance path, so it must find hidden bans and bans in
@@ -191,6 +201,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			logging.info(f"Ban soft removed {ban_id}.")
 			return True
 
+	# ============================================================
 	def delete_soft_bulk(self, ban_ids: list[int], chunk_size: int = 500) -> int :
 		"""Soft-removes many bans in one statement per chunk instead of one round-trip each.
 
@@ -214,20 +225,24 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 				# Read rowcount before commit() - it closes the session in its finally block.
 				removed += result.rowcount
 				self.commit(session)
+		logging.info(f"Bulk soft-removed {removed}/{len(ban_ids)} bans.")
 		return removed
 
+	# ============================================================
 	def delete_permanent(self, ban: int | Type[Bans]) -> bool :
 		with self.createsession() as session :
 
 			if isinstance(ban, int) :
 				ban = self.get(ban, override=True)
-			logging.info(f"Permanently removing ban: {ban.ban_id}")
 			if not ban :
+				logging.info("Permanent delete skipped: ban not found.")
 				return False
+			logging.info(f"Permanently removing ban: {ban.ban_id}")
 			session.delete(ban)
 			self.commit(session)
 			return True
 
+	# ============================================================
 	def update(self, ban: int | Bans | Type[Bans],
 	           gid: int = None,
 	           uid: int = None,
@@ -274,10 +289,12 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			self.commit(session)
 			return ban
 
+	# ============================================================
 	def get_deleted_bans(self) -> list[type[Bans]] :
 		with self.createsession() as session :
 			return session.query(Bans).filter(Bans.deleted_at.isnot(None)).all()
 
+	# ============================================================
 	def get_criminal_bans(self) :
 		with self.createsession() as session :
 			statement = select(Bans).where(
@@ -292,6 +309,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 
 	#	=== Statistics ===
 
+	# ============================================================
 	def status_statistic(self, guild_id: int = None) -> dict[str, int] :
 		"""
 
@@ -305,6 +323,7 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			'deleted'  : self.count("deleted", server_id=guild_id),
 		}
 
+	# ============================================================
 	def trend_statistic(self, guild_id: int = None, days = 30) -> dict[Any, Any] | dict[str, Any] | dict[str, str] | dict[
 		bytes, bytes] :
 		with self.createsession() as session :

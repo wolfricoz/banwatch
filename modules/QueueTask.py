@@ -15,9 +15,11 @@ class QueueTask(commands.Cog) :
 		self.queue.start()
 		self.display_status.start()
 
+	# ============================================================
 	def cog_unload(self) :
 		self.queue.cancel()
 
+	# ============================================================
 	@app_commands.command(name="restart_queue", description="[dev command] Restart the bot queue")
 	@AccessControl().check_access('dev')
 	async def restart_queue(self, interaction: discord.Interaction, empty: bool=False) :
@@ -28,16 +30,19 @@ class QueueTask(commands.Cog) :
 		await send_response(interaction, f"Queue restarted. Empty: {empty}", ephemeral=True)
 
 
+	# ============================================================
 	@tasks.loop(seconds=0.4)
 	async def queue(self) :
 		await queue().start()
 
+	# ============================================================
 	@tasks.loop(minutes=15)
 	async def restart_queue_task(self):
 		queue().task_finished = True
 		self.queue.restart()
 
 
+	# ============================================================
 	@tasks.loop(seconds=3)
 	async def display_status(self) :
 		await self.bot.wait_until_ready()
@@ -50,10 +55,12 @@ class QueueTask(commands.Cog) :
 		self.status = status
 		await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=status))
 
+	# ============================================================
 	@queue.before_loop
 	async def before_queue(self) :
 		await self.bot.wait_until_ready()
 
+	# ============================================================
 	@queue.before_loop
 	async def before_display(self) :
 		await self.bot.wait_until_ready()

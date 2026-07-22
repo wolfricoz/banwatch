@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 from enum import StrEnum
 from typing import Optional
@@ -22,6 +23,7 @@ class Punishments :
 	def __init__(self) :
 		pass
 
+	# ============================================================
 	def load_warnings(self, guild_id: int, user_id: int) -> int :
 		"""
 		Gets a warning count from the guild and the user's id.
@@ -31,6 +33,7 @@ class Punishments :
 		"""
 		return WarningTransactions().count_warnings(user_id, guild_id)
 
+	# ============================================================
 	async def check_punishments(self, guild: discord.Member, member: discord.Member) -> Optional[PunishmentOptions] :
 		"""Checks the punishments the user should receive based on count."""
 		result = None
@@ -52,6 +55,7 @@ class Punishments :
 		# --- Execute action here ---
 		await self.execute_punishment(guild, member, result, warning_count)
 
+	# ============================================================
 	async def execute_punishment(self, guild: discord.Guild, user: discord.Member, result: PunishmentOptions,
 	                             warning_count) -> None :
 		"""Executes the determined action on the user."""
@@ -60,7 +64,7 @@ class Punishments :
 
 		match result :
 			case PunishmentOptions.TIMEOUT :
-				print(f"Timing out {user.id} in guild {guild.id}")
+				logging.info(f"Auto-timeout: {user} ({user.id}) in {guild.name} ({guild.id}) at {warning_count} warnings")
 				embed = discord.Embed(
 					title="🔨 Automated Action: Timeout",
 					description=f"User {user.mention} has crossed a warning threshold.",
@@ -91,13 +95,13 @@ class Punishments :
 					f"You can rejoin here: {server.invite}")
 				try :
 					await user.send(reason_message)
-				except (discord.errors.Forbidden or discord.errors.NotFound) :
-					pass
+				except (discord.errors.Forbidden, discord.errors.NotFound) :
+					logging.debug(f"Could not DM kick notice to {user} ({user.id})")
 
 				await user.kick(reason=reason_message)
 
 			case PunishmentOptions.BAN :
-				print(f"Banning {user.id} from guild {guild.id}")
+				logging.info(f"Auto-ban: {user} ({user.id}) from {guild.name} ({guild.id}) at {warning_count} warnings")
 
 				reason_message = f"You have been permanently banned from {guild.name} for repeatedly violating the server rules. Your account has reached the maximum threshold of warnings allowed ({warning_count} warnings). If you believe this is an error, please contact a member of the administration team."
 				embed = discord.Embed(title=f"{user.name} ({user.id}) banned!", description=f"{reason_message}",
@@ -107,8 +111,8 @@ class Punishments :
 				try :
 					await user.send(f"You have been banned from {guild.name} for `{reason_message}`")
 
-				except (discord.errors.Forbidden or discord.errors.NotFound) :
-					pass
+				except (discord.errors.Forbidden, discord.errors.NotFound) :
+					logging.debug(f"Could not DM ban notice to {user} ({user.id})")
 				await user.ban(reason=reason_message, delete_message_days=0)
 
 			case _ :
@@ -117,6 +121,7 @@ class Punishments :
 
 	# === Helper functions ===
 
+	# ============================================================
 	@staticmethod
 	def _evaluate_threshold(
 			guild_id: int,

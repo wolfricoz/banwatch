@@ -1,5 +1,6 @@
 import inspect
 import json
+import logging
 import os
 import sys
 from glob import glob
@@ -7,6 +8,8 @@ from glob import glob
 from discord.ext import commands
 
 from project.data import CACHE, VERSION
+
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 class DocGenerator():
@@ -16,8 +19,9 @@ class DocGenerator():
         self.start()
         self.create_cache_File()
 
+    # ============================================================
     def start(self):
-        print("===Generating Documentation===")
+        logging.info("===Generating Documentation===")
         sys.path.append(os.path.dirname(os.path.abspath(__file__)))
         count = 1
 
@@ -34,6 +38,7 @@ class DocGenerator():
             self.load_file(file, nav=count)
             count += 1
 
+    # ============================================================
     def load_file(self, file, nav=1):
         name = os.path.splitext(os.path.basename(file))[0]
         document = f"docs/commands/{name}.md"
@@ -59,7 +64,7 @@ class DocGenerator():
 
                         continue
 
-                    print(f"- Documenting Module: {name}")
+                    logging.info(f"- Documenting Module: {name}")
                     docfile.write(self.document_header(tclass, name, nav))
 
                     for _, member_obj in inspect.getmembers(module, inspect.isclass):
@@ -73,6 +78,7 @@ class DocGenerator():
                     for function in tclass.__dict__:
                         self.command_line(docfile, function, tclass, domain, )
 
+    # ============================================================
     def document_header(self, module, module_name: str, nav):
 
         return f"""---
@@ -91,6 +97,7 @@ nav_order: {nav}
 
 """
 
+    # ============================================================
     def command_line(self, docfile, function, tclass, domain, cachefile=None):
         if function.startswith("_") or function.startswith('cog') or function.startswith('cog') or function.startswith(
                 'before_'):
@@ -123,7 +130,7 @@ nav_order: {nav}
                 # Format parameters like: <param1> <param2>
                 param_string = " " + " ".join([f"<{p}>" for p in params])
         except (ValueError, TypeError):
-            print("Could not retrieve signature for function:", function)
+            logging.warning(f"Could not retrieve signature for function: {function}")
             # This can happen for objects that are not inspectable
             pass
         self.add_command_to_cache(domain, function, docstring)
@@ -133,17 +140,19 @@ nav_order: {nav}
                       f"> {docstring}\n\n"
                       f"---\n\n")
 
+    # ============================================================
     def add_command_to_cache(self, domain, function, docstring):
         # if domain not in self.command_cache :
         # 	self.command_cache[domain] = {}
         # self.command_cache[domain][function] = docstring
         self.command_cache[function] = docstring
 
+    # ============================================================
     def create_cache_File(self):
-        print(f"===Creating command cache file===")
+        logging.info("===Creating command cache file===")
         with open(CACHE, "w", encoding="utf-8") as cachefile:
             json.dump(self.command_cache, cachefile, indent=4)
-        print("===Command cache file created===")
+        logging.info("===Command cache file created===")
 
 
 DocGenerator()

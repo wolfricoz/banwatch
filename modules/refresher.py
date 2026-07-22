@@ -12,9 +12,11 @@ class Refresher(commands.Cog):
         self.index = 0
         self.ban_update_task.start()
 
+    # ============================================================
     def cog_unload(self):
         self.ban_update_task.cancel()
 
+    # ============================================================
     @tasks.loop(hours=2)
     async def ban_update_task(self):
         """Updates banlist when user is unbanned"""
@@ -24,6 +26,7 @@ class Refresher(commands.Cog):
         await BanTransactions().populate_cache()
         logging.info(f"[auto refresh]Bans Updated")
 
+    # ============================================================
     @tasks.loop(minutes=10)
     async def populate_cache_task(self) :
         await self.bot.wait_until_ready()
@@ -32,6 +35,7 @@ class Refresher(commands.Cog):
         logging.info("Finished building cache")
 
 
+    # ============================================================
     @ban_update_task.before_loop
     async def before_ban_update_task(self):
         await self.bot.wait_until_ready()

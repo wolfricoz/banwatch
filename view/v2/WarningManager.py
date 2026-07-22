@@ -96,6 +96,7 @@ class WarningManager(discord.ui.LayoutView) :
 		# Update button states right at initialization
 		self.update_button_states()
 
+	# ============================================================
 	def get_display_content(self) -> str :
 		"""Generates the Markdown string content for the TextDisplay layer."""
 		if not self.warnings :
@@ -113,11 +114,13 @@ class WarningManager(discord.ui.LayoutView) :
 		)
 		return content
 
+	# ============================================================
 	def create_embed(self) -> discord.Embed :
 		"""Generates the background card embed for layout context."""
 		embed = discord.Embed(color=discord.Color.orange())
 		return embed
 
+	# ============================================================
 	def update_button_states(self) :
 		"""Helper to enable/disable navigation buttons based on the current page."""
 		if self.total_pages <= 1 :
@@ -128,6 +131,7 @@ class WarningManager(discord.ui.LayoutView) :
 		self.prev_page.disabled = self.current_page == 0
 		self.next_page.disabled = self.current_page == self.total_pages - 1
 
+	# ============================================================
 	async def update_view(self, interaction: discord.Interaction) :
 		"""Updates the text container and components after page change."""
 		self.update_button_states()
@@ -143,6 +147,7 @@ class WarningManager(discord.ui.LayoutView) :
 
 	# --- CALLBACKS ---
 
+	# ============================================================
 	async def prev_page_callback(self, interaction: discord.Interaction) :
 		if self.current_page > 0 :
 			self.current_page -= 1
@@ -150,6 +155,7 @@ class WarningManager(discord.ui.LayoutView) :
 		else :
 			await interaction.response.defer()
 
+	# ============================================================
 	async def next_page_callback(self, interaction: discord.Interaction) :
 		if self.current_page < self.total_pages - 1 :
 			self.current_page += 1
@@ -157,6 +163,7 @@ class WarningManager(discord.ui.LayoutView) :
 		else :
 			await interaction.response.defer()
 
+	# ============================================================
 	async def add_evidence_callback(self, interaction: discord.Interaction) -> Any :
 		current_warning: Warnings = self.warnings[self.current_page] if self.warnings else None
 		evidence_channel: discord.TextChannel = await ConfigData().get_channel(interaction.guild, Channels.WARNING_EVIDENCE_ARCHIVE, True)
@@ -171,6 +178,7 @@ class WarningManager(discord.ui.LayoutView) :
 		queue().add(evidence.delete(), 0)
 		return None
 
+	# ============================================================
 	async def view_evidence_callback(self, interaction: discord.Interaction) -> None :
 		manager = WarningEvidence(self.warnings[self.current_page])
 		evidence_channel: discord.TextChannel = await ConfigData().get_channel(interaction.guild, Channels.WARNING_EVIDENCE_ARCHIVE, True)
@@ -183,6 +191,7 @@ class WarningManager(discord.ui.LayoutView) :
 		return None
 
 
+	# ============================================================
 	async def delete_warning_callback(self, interaction: discord.Interaction) :
 		current_warning = self.warnings[self.current_page] if self.warnings else None
 		WarningTransactions().delete_warning(current_warning.id)
@@ -194,6 +203,7 @@ class WarningManager(discord.ui.LayoutView) :
 			f"{interaction.user.mention} deleted warning `{current_warning.reason}` from {self.user.global_name}.",
 		)
 
+	# ============================================================
 	async def ban_user_callback(self, interaction: discord.Interaction) :
 
 		current_warning = self.warnings[self.current_page]

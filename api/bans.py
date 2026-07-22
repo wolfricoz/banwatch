@@ -21,6 +21,7 @@ async def example_route() :
 	return {"message" : "Hello from the example route!"}
 
 
+# ============================================================
 @router.post("/bans/get/", )
 async def bans_get(ban_request: BanRequest, request: Request) :
 	if not await Auth(request).verify() :
@@ -35,6 +36,7 @@ async def bans_get(ban_request: BanRequest, request: Request) :
 	return bans
 
 
+# ============================================================
 @router.get("/bans/count/{user_id}", )
 async def bans_count(user_id: int, request: Request) :
 	# Currently only used by ageverifier, however if this goes public then it needs rate limiting.

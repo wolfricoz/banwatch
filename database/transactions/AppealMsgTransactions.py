@@ -17,6 +17,7 @@ class AppealMsgTransactions(DatabaseTransactions) :
 			DatabaseTransactions().commit(session)
 			return msg
 
+	# ============================================================
 	def get_chat_log(self, appeal: int | Appeals) :
 		with self.createsession() as session :
 

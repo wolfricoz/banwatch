@@ -12,6 +12,7 @@ class on_member_update(Cog) :
 	def __init__(self, bot: Bot) :
 		self.bot = bot
 
+	# ============================================================
 	@Cog.listener()
 	async def on_member_update(self, before: discord.Member, after: discord.Member) :
 		"""Checks if the trap role was added to a member"""
@@ -32,8 +33,9 @@ class on_member_update(Cog) :
 				if role.id == purge_role:
 					try:
 						await guild.ban(after, reason="Trap role detected - automatic ban", delete_message_days=0)
+						logging.info(f"Trap-role auto-ban: {after} ({after.id}) in {guild.name} ({guild.id})")
 					except Exception as e:
-						logging.info(f"Failed to ban member {after.id} in guild {guild.id} for trap role: {e}", exc_info=True)
+						logging.error(f"Failed to ban member {after.id} in guild {guild.id} for trap role: {e}", exc_info=True)
 					break
 
 

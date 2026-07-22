@@ -17,6 +17,7 @@ class Statistics(GroupCog, name="statistics") :
 
 	pass
 
+	# ============================================================
 	@app_commands.command(name="bans", description="Shows you a detailed graph of the status of your bans")
 	@app_commands.guild_only()
 	@app_commands.checks.has_permissions(manage_messages=True)
@@ -38,6 +39,7 @@ class Statistics(GroupCog, name="statistics") :
 		await send_message(interaction.channel, f"-# Note: Bans may be hidden due to insufficient evidence, unclear justification, low value to external servers, privacy protection, or if the ban is outdated. You can view them on the dashboard!", files=[discord.File(fp=file, filename="ban_status.png")])
 		clean_pie(interaction.guild_id)
 
+	# ============================================================
 	@app_commands.command(name="trend", description="Shows you a detailed graph of the timeline of your bans!")
 	@app_commands.guild_only()
 	@app_commands.checks.has_permissions(manage_messages=True)

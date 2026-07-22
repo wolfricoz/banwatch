@@ -15,6 +15,7 @@ class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    # ============================================================
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         """Checks if user is banned"""
@@ -23,15 +24,18 @@ class Events(commands.Cog):
         sr = await Bans().get_user_bans(member.id)
 
         if sr is None or len(sr) < 1:
-            logging.info(f"{member} has no ban record")
+            logging.debug(f"{member} ({member.id}) joined {member.guild.name} with no ban record")
             return
+        logging.info(f"Banned member {member} ({member.id}) joined {member.guild.name} ({member.guild.id}) with {len(sr)} ban record(s)")
         if channel is None:
             # await send_message(member.guild.owner, 'No mod channel set, please set one to receive banwatch notifications', error_mode='ignore')
+            logging.warning(f"{member.guild.name} ({member.guild.id}) has no mod channel set; cannot notify of banned join")
             channel = find_first_accessible_text_channel(member.guild)
             await send_message(channel, f"No mod channel set for {member.guild.name}, unable to send banwatch notifications in this server. Please resolve this with `/config change`.",
 															 error_mode="ignore")
             return
         if len(channel.members) > 50:
+            logging.info(f"Skipping banned-join notice in {member.guild.name}: mod channel is public ({len(channel.members)} members)")
             await send_message(channel, f"{member.mention} has a ban record, but this channel is considered public; to avoid witch hunts or shaming users we only allow staff channels with less than 50 users.", error_mode="ignore")
             return
 

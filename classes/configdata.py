@@ -52,6 +52,7 @@ class ConfigData(metaclass=Singleton) :
 				except Exception as e :
 					logging.error(e, exc_info=True)
 
+	# ============================================================
 	# os.rmdir("configs")
 	def reload(self) :
 		"""Reloads the Config data from the database"""
@@ -62,11 +63,13 @@ class ConfigData(metaclass=Singleton) :
 			except Exception as e :
 				logging.error(e, exc_info=True)
 
+	# ============================================================
 	def load(self, guilds) :
 		self.data = {}
 		for guild in guilds :
 			self.load_guild(guild.id)
 
+	# ============================================================
 	def load_guild(self, serverid) :
 		"""Loads the Config for a guild"""
 		config = self.configcontroller.server_config_get(serverid)
@@ -75,22 +78,26 @@ class ConfigData(metaclass=Singleton) :
 		for item in config :
 			self.data[str(serverid)][item.key.upper()] = item.value
 
+	# ============================================================
 	def add_key(self, serverid, key, value: str | bool | int, overwrite=False) :
 		"""Adds a key to the Config"""
 
 		self.configcontroller.config_unique_add(serverid, key, value, overwrite=overwrite)
 		self.load_guild(serverid)
 
+	# ============================================================
 	def remove_key(self, serverid, key) :
 		"""Removes a key from the Config"""
 		self.configcontroller.config_unique_remove(serverid, key)
 		self.load_guild(serverid)
 
+	# ============================================================
 	def update_key(self, serverid, key, value) :
 		"""Updates a key in the Config"""
 		self.configcontroller.config_update(serverid, key, value)
 		self.load_guild(serverid)
 
+	# ============================================================
 	def get_key(self, serverid, key, default=None) :
 		"""Gets a key from the Config, throws KeyNotFound if not found"""
 		guild = self.get_guild(serverid)
@@ -114,12 +121,14 @@ class ConfigData(metaclass=Singleton) :
 
 
 
+	# ============================================================
 	def get_key_or_none(self, serverid, key) :
 		"""Gets a key from the Config, returns None if not found"""
 		return self.get_key(serverid, key)
 
 		"""Gets channel from the Config."""
 
+	# ============================================================
 	async def get_channel(self, guild: discord.Guild, channel_type: str = "modchannel", optional: bool = False) -> None | VoiceChannel | StageChannel | ForumChannel | TextChannel | CategoryChannel | Thread :
 		"""Gets the channel from the Config"""
 		channel_id = self.get_key_or_none(guild.id, channel_type)
@@ -187,6 +196,7 @@ class ConfigData(metaclass=Singleton) :
 			return None
 		return channel
 
+	# ============================================================
 	def get_guild(self, guild_id: int) -> dict[str, str | bool | int] :
 		if not guild_id in self.data:
 			self.load_guild(guild_id)

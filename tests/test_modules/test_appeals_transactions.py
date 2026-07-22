@@ -12,9 +12,11 @@ class TestAppealsDatabaseOperations(unittest.TestCase):
     def setUp(self):
         create_bot_database()
 
+    # ============================================================
     def tearDown(self):
         drop_bot_database()
 
+    # ============================================================
     def test_add_appeal(self):
         appeal_controller = AppealsDbTransactions()
         ban = BanFactory().create()
@@ -28,6 +30,7 @@ class TestAppealsDatabaseOperations(unittest.TestCase):
         appeal_dup = appeal_controller.add(ban.ban_id, "reason")
         self.assertFalse(appeal_dup)
 
+    # ============================================================
     def test_change_status(self):
         appeal_controller = AppealsDbTransactions()
         ban = BanFactory().create()
@@ -42,6 +45,7 @@ class TestAppealsDatabaseOperations(unittest.TestCase):
         self.assertIsNotNone(appeal)
         self.assertEqual(appeal.status, "approved")
 
+    # ============================================================
     def test_change_status_returns_false_if_not_exists(self):
         appeal_controller = AppealsDbTransactions()
         ban = BanFactory().create()
@@ -49,6 +53,7 @@ class TestAppealsDatabaseOperations(unittest.TestCase):
         result = appeal_controller.change_status(ban.ban_id, "approved")
         self.assertFalse(result)
 
+    # ============================================================
     def test_exist_returns_appeal_if_exists(self):
         appeal_controller = AppealsDbTransactions()
         ban = BanFactory().create()
@@ -57,6 +62,7 @@ class TestAppealsDatabaseOperations(unittest.TestCase):
         result = appeal_controller.exist(ban.ban_id)
         self.assertIsInstance(result, Appeals)
 
+    # ============================================================
     def test_exist_returns_none_if_not_exists(self):
         appeal_controller = AppealsDbTransactions()
         ban = BanFactory().create()
@@ -64,6 +70,7 @@ class TestAppealsDatabaseOperations(unittest.TestCase):
         result = appeal_controller.exist(ban.ban_id)
         self.assertIsNone(result)
 
+    # ============================================================
     def test_get_returns_appeal_if_exists(self):
         appeal_controller = AppealsDbTransactions()
         ban = BanFactory().create()
@@ -72,6 +79,7 @@ class TestAppealsDatabaseOperations(unittest.TestCase):
         result = appeal_controller.get(ban.ban_id)
         self.assertIsInstance(result, Appeals)
 
+    # ============================================================
     def test_get_returns_none_if_not_exists(self):
         appeal_controller = AppealsDbTransactions()
         ban = BanFactory().create()

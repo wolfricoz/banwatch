@@ -32,6 +32,7 @@ class SelectBan(SecureView):
 		self.add_item(select)
 
 
+	# ============================================================
 	async def select_ban(self, interaction: discord.Interaction):
 		"""This function is called when the user selects a ban from the select menu."""
 		ban_id = int(self.children[0].values[0])
@@ -49,6 +50,7 @@ class SelectBan(SecureView):
 		await send_message(interaction.channel, f"Banning {user.mention} with reason: {reason}")
 
 
+	# ============================================================
 	async def on_timeout(self) -> None:
 		"""This function is called when the view times out."""
 		return

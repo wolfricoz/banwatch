@@ -19,6 +19,7 @@ class Evidence(commands.GroupCog, name="evidence") :
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
 
+	# ============================================================
 	@app_commands.command(name="add", description="Adds evidence (text or attachments) to a user's ban record.")
 	@app_commands.checks.has_permissions(moderate_members=True)
 	async def add(self, interaction: discord.Interaction, user: discord.User, ban_id: str = None, info: str = None, attachment1: discord.Attachment= None, attachment2: discord.Attachment= None, attachment3: discord.Attachment= None) :
@@ -58,6 +59,7 @@ class Evidence(commands.GroupCog, name="evidence") :
 		queue().add(send_response(interaction, f"⏳ Processing Evidence, please wait.", ephemeral=True), priority=2)
 		queue().add(EvidenceController.add_evidence(interaction, evidence, ban_id, user), priority=2)
 
+	# ============================================================
 	@app_commands.command(name="get", description="Retrieves and displays all evidence for a user or ban ID.")
 	@app_commands.checks.has_permissions(moderate_members=True)
 	async def get(self, interaction: discord.Interaction, user: discord.User = None, ban_id: str = None) :
@@ -77,6 +79,7 @@ class Evidence(commands.GroupCog, name="evidence") :
 		entries = ProofTransactions().get(user_id=user.id)
 		await EvidenceController().send_proof(interaction, entries, user.id)
 
+	# ============================================================
 	# Add a way to manage bans, both for staff of a server as well as the banwatch staff
 	@app_commands.command(name="manage", description="View and manage evidence for a user or ban ID in a paginated view.")
 	@app_commands.checks.has_permissions(moderate_members=True)

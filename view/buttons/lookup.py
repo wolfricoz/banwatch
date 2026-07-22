@@ -25,6 +25,7 @@ class LookUp(SecureView) :
 		if not entries :
 			self.evidence.disabled = True
 
+	# ============================================================
 	async def send_message(self, bot: commands.Bot, channel: discord.TextChannel, sr,
 	                       user: discord.Member | discord.User, excess=True, interaction: discord.Interaction = None, override=False) :
 		logging.info(f"Starting send_message for user {user.name}({user.id}) in channel {channel.name}({channel.id})")
@@ -105,23 +106,27 @@ class LookUp(SecureView) :
 			characters += 1800
 
 		logging.info(f"Completed send_message for user {user.name}({user.id})")
+	# ============================================================
 	async def get_user_id(self, interaction: discord.Interaction) :
 		embed = interaction.message.embeds[0]
 		return int(embed.footer.text)
 
+	# ============================================================
 	@discord.ui.button(label="view evidence", style=discord.ButtonStyle.primary, custom_id="banoptions_evidence")
 	async def evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		user_id = await self.get_user_id(interaction)
 		entries = ProofTransactions().get(user_id=user_id)
 		await EvidenceController().send_proof(interaction, entries, user_id)
 
+	# ============================================================
 	@discord.ui.button(label="Cross-ban", style=discord.ButtonStyle.danger, custom_id="Cross-ban")
 	async def cross_ban(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		user_id = await self.get_user_id(interaction)
 		await interaction.response.send_message("Please select which server you want to cross-ban from.", view=SelectBan(user_id), ephemeral=True)
 
+	# ============================================================
 	async def on_error(self, interaction: Interaction, error: Exception, item: Item[Any], /) -> None:
 		"""This function is called when an error occurs in the view."""
-		logging.info(f"Error in {interaction.message.id}: {error}")
+		logging.error(f"Error in LookUp view (message {interaction.message.id}): {error}", exc_info=error)
 		await interaction.response.send_message(f"An error occurred: {error}", ephemeral=True)
 		await super().on_error(interaction, error, item)

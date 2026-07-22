@@ -83,6 +83,7 @@ class HelpLayout(discord.ui.LayoutView) :
 
 		self._update_page()
 
+	# ============================================================
 	def _update_page(self) :
 		logging.info(f"Updating page: {self.current_page}")
 		# Clear the rows
@@ -127,11 +128,13 @@ class HelpLayout(discord.ui.LayoutView) :
 			next_button.callback = self._next_page
 			self.buttonrow.add_item(next_button)
 
+	# ============================================================
 	async def _previous_page(self, interaction: discord.Interaction) :
 		self.current_page = max(0, self.current_page - 1)
 		self._update_page()
 		await interaction.response.edit_message(view=self)
 
+	# ============================================================
 	async def _next_page(self, interaction: discord.Interaction) :
 		self.current_page = min(self.total_pages - 1, self.current_page + 1)
 		self._update_page()

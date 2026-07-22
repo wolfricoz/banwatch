@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 
 import discord
@@ -40,22 +41,24 @@ async def pending_bans(bot, revoked=False, limit = None) :
 			try :
 				user = await bot.fetch_user(user_id)
 			except discord.NotFound :
-				print(f"User with ID {user_id} not found.")
+				logging.warning(f"Pending ban: user {user_id} not found.")
 			except discord.HTTPException as e :
-				print(f"Failed to fetch user with ID {user_id}: {e}")
+				logging.warning(f"Pending ban: failed to fetch user {user_id}: {e}")
 
 		# If the guild is not found in the cache, fetch from the API
 		if guild is None :
-			print(f"Guild with ID {guild_id} not found in cache.")
+			logging.debug(f"Pending ban: guild {guild_id} not in cache, fetching.")
 			try :
 				guild = await bot.fetch_guild(guild_id)
 			except discord.NotFound :
-				print(f"Guild with ID {guild_id} not found.")
+				logging.warning(f"Pending ban: guild {guild_id} not found.")
 			except discord.HTTPException as e :
-				print(f"Failed to fetch guild with ID {guild_id}: {e}")
+				logging.warning(f"Pending ban: failed to fetch guild {guild_id}: {e}")
 
 		if user is None or guild is None or reason is None :
-			print(f"Error: {user} {guild} {reason}")
+			logging.warning(
+				f"Skipping pending ban {wait_id}: missing data "
+				f"(user={user}, guild={guild}, reason={reason!r})")
 			continue
 		found_bans.append(ban)
 		try :
@@ -71,7 +74,10 @@ async def pending_bans(bot, revoked=False, limit = None) :
 			queue().add(channel.send(f"", embed=embed, view=BanApproval(bot, wait_id, True)),
 			            priority=2)
 		except Exception as e :
-			print(f"Error: {e}")
+			logging.error(
+				f"Failed to build/queue pending-ban embed for {user_id} in {guild_id}: {e}",
+				exc_info=True)
+	logging.info(f"Pending bans: queued {len(found_bans)} for review.")
 	if len(found_bans) < 1 :
 		await send_message(channel, f"No pending bans, good job team!", error_mode='ignore')
 		return

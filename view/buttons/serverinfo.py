@@ -12,6 +12,7 @@ class ServerInfo(SecureView) :
 	def __init__(self) :
 		super().__init__(timeout=None)
 
+	# ============================================================
 	async def send(self, channel, guild: discord.Guild, new = False) :
 		embed = discord.Embed(title=f"{guild.name}'s info")
 		server_info = ServerTransactions().get(guild.id)
@@ -34,6 +35,7 @@ class ServerInfo(SecureView) :
 		embed.set_footer(text=guild.id)
 		await send_message(channel, embed=embed, view=self)
 
+	# ============================================================
 	@discord.ui.button(label="Approve", style=discord.ButtonStyle.success, custom_id="approve")
 	async def approve_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		if not AccessControl().access_dev(interaction.user.id) :
@@ -41,6 +43,7 @@ class ServerInfo(SecureView) :
 		await send_response(interaction, "Approved Server")
 		await interaction.message.delete()
 
+	# ============================================================
 	@discord.ui.button(label="Leave", style=discord.ButtonStyle.success, custom_id="Leave")
 	async def leave_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		if not AccessControl().access_dev(interaction.user.id) :
@@ -51,6 +54,7 @@ class ServerInfo(SecureView) :
 		await guild.leave()
 		await interaction.message.delete()
 
+	# ============================================================
 	@discord.ui.button(label="Leave & Blacklist", style=discord.ButtonStyle.success, custom_id="Leave_blacklist")
 	async def blacklist_button(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		if not AccessControl().access_dev(interaction.user.id) :

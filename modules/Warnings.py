@@ -19,6 +19,7 @@ class Warnings(GroupCog) :
 	def __init__(self, bot: Bot) :
 		self.bot = bot
 
+	# ============================================================
 	# Add warning
 	@app_commands.command(name="warn", description="Creates a warning for the selected member")
 	@app_commands.checks.has_permissions(manage_messages=True)
@@ -84,6 +85,7 @@ class Warnings(GroupCog) :
 
 		# define punishments
 
+	# ============================================================
 	# view/manage warnings UI (Edit, Delete, Add Evidence)
 	@app_commands.command(name="manage", description="View and manage the warnings the user has.")
 	@app_commands.checks.has_permissions(manage_messages=True)
@@ -106,6 +108,7 @@ class Warnings(GroupCog) :
 		view = WarningManager(user=user, warnings=warnings)
 		return await send_response(interaction, "", view=view)
 
+	# ============================================================
 	@app_commands.command(name="punishments", description="Define automated punishments based on warning count")
 	@app_commands.choices(option=[
 		app_commands.Choice(name=punishment.name.title(), value=punishment.value) for punishment in WarningConfigs

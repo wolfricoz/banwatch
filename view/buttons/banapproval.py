@@ -27,6 +27,7 @@ class BanApproval(SecureView) :
 		self.create_thread = create_thread
 		self.silent = silent
 
+	# ============================================================
 	@discord.ui.button(label="Approve with Proof (Verify)", style=discord.ButtonStyle.success, custom_id="verify_ban")
 	async def verify(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		await interaction.response.defer(ephemeral=True)
@@ -59,6 +60,7 @@ class BanApproval(SecureView) :
 			return
 		await Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, self.create_thread, verified=True)
 
+	# ============================================================
 	@discord.ui.button(label="Approve without Proof", style=discord.ButtonStyle.success, custom_id="approve_ban")
 	async def approve_no_proof(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		await interaction.response.defer(ephemeral=True)
@@ -69,6 +71,7 @@ class BanApproval(SecureView) :
 
 		queue().add(self.approve_handler(interaction), priority=2)
 
+	# ============================================================
 	@discord.ui.button(label="Inform Server", style=discord.ButtonStyle.primary, custom_id="request_evidence")
 	async def request_evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		reason = await send_modal(interaction, confirmation="Thank you for providing a reason",
@@ -90,6 +93,7 @@ class BanApproval(SecureView) :
 		await send_response(interaction, f"{guild.name} has been notified with reason:\n{reason}")
 		return None
 
+	# ============================================================
 	@discord.ui.button(label="Alter Ban Reason", style=discord.ButtonStyle.primary, custom_id="change_reason")
 	async def change_reason(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		if self.bot is None or self.wait_id is None :
@@ -112,6 +116,7 @@ class BanApproval(SecureView) :
 		embed.add_field(name="Reason edited", value=f"Reason was edited by {interaction.user.mention}", inline=False)
 		await interaction.message.edit(embed=embed, view=self)
 
+	# ============================================================
 	@discord.ui.button(label="view evidence", style=discord.ButtonStyle.primary, custom_id="view_evidence")
 	async def view_evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		ban_entry = BanTransactions().get(self.wait_id, override=True)
@@ -123,6 +128,7 @@ class BanApproval(SecureView) :
 		entries = ProofTransactions().get(ban_id=self.wait_id)
 		await EvidenceController().send_proof(interaction, entries, self.wait_id)
 
+	# ============================================================
 	@discord.ui.button(label="Hide & Inform", style=discord.ButtonStyle.danger, custom_id="deny_broadcast")
 	async def hide(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		deny_reason = await send_modal(interaction, confirmation="Thank you for providing a reason", title="Denial Reason",
@@ -153,6 +159,7 @@ class BanApproval(SecureView) :
 
 	# await send_response(interaction, f"Ban Hidden: \n `{deny_reason}`", ephemeral=True)
 
+	# ============================================================
 	@discord.ui.button(label="Hide Ban", style=discord.ButtonStyle.danger, custom_id="deny_silent")
 	async def hidesilent(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		if self.bot is None or self.wait_id is None :
@@ -174,6 +181,7 @@ class BanApproval(SecureView) :
 		                    f"Silently Hidden `{interaction.message.embeds[0].title}`  by {interaction.user.mention}!")
 		await denial_channel.send(embed=banembed)
 
+	# ============================================================
 	async def update_embed(self, interaction, action="verify") :
 		self.update_buttons(action)
 		embed: discord.Embed = interaction.message.embeds[0]
@@ -181,6 +189,7 @@ class BanApproval(SecureView) :
 		embed.add_field(name="Banwatch ID", value=self.wait_id, inline=False)
 		await interaction.message.edit(embed=interaction.message.embeds[0], view=self)
 
+	# ============================================================
 	async def get_ban_data(self, ban_entry) :
 		guild = self.bot.get_guild(ban_entry.gid)
 		user = self.bot.get_user(ban_entry.uid)
@@ -190,6 +199,7 @@ class BanApproval(SecureView) :
 
 		return guild, user, ban_entry.reason
 
+	# ============================================================
 	async def send_feedback(self, interaction: discord.Interaction) :
 		ban = BanTransactions().get(self.wait_id, override=True)
 		if ban is None :
@@ -210,6 +220,7 @@ class BanApproval(SecureView) :
 		notice = f"Your ban {self.wait_id} has been {'edited' if ban.edited else 'approved'}  by the banwatch team{f' and broadcast with ban reason: \n{ban.reason}' if not self.silent else '.'}"
 		await send_message(channel, notice)
 
+	# ============================================================
 	async def approve_handler(self, interaction: discord.Interaction) :
 		start = time.time()
 		ban_entry = BanTransactions().get(self.wait_id, override=True)
@@ -240,6 +251,7 @@ class BanApproval(SecureView) :
 			return
 		queue().add(Bans().check_guilds(None, self.bot, guild, user, banembed, self.wait_id, False), priority=0)
 
+	# ============================================================
 	def update_buttons(self, selected) :
 		self.hide.disabled = True
 		self.view_evidence.disabled = True

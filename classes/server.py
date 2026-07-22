@@ -13,6 +13,7 @@ class Server :
 		# and isolates tracking to this instance alone.
 		self.checked_ids = set()
 
+	# ============================================================
 	def get_banned_ids(self, guild_id: int) -> list[int]  :
 		"""
 
@@ -22,15 +23,18 @@ class Server :
 		"""
 		return ServerTransactions().get_bans(guild_id, uid_only=True)
 
+	# ============================================================
 	def check_ban(self, user_id: int) -> bool :
 		if user_id in self.banned_ids :
 			self.checked_ids.add(user_id)
 			return True
 		return False
 
+	# ============================================================
 	def add_checked_id(self, user_id: int) -> None :
 		self.checked_ids.add(user_id)
 
+	# ============================================================
 	def check_missed_ids(self) -> list[int] :
 		missed_ids = []
 		for user_id in self.banned_ids :
@@ -38,6 +42,7 @@ class Server :
 				missed_ids.append(user_id)
 		return missed_ids
 
+	# ============================================================
 	def remove_missing_ids(self, missing_ids: list[int]) -> int :
 		"""Soft-removes bans that are in our database but no longer on the guild.
 

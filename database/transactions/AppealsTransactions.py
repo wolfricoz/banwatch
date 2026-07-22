@@ -1,3 +1,4 @@
+import logging
 from typing import Type
 
 from sqlalchemy import Select
@@ -22,10 +23,12 @@ class AppealsDbTransactions(DatabaseTransactions) :
 				ban_id = int(ban_id)
 			return session.scalar(Select(Appeals).where(Appeals.ban_id == ban_id))
 
+	# ============================================================
 	def exist(self, ban_id: int) -> Appeals | None :
 		with self.createsession() as session :
 			return session.scalar(Select(Appeals).where(Appeals.ban_id == ban_id))
 
+	# ============================================================
 	def add(self, ban_id: int, message: str, status="pending") -> bool | Type[Appeals] | Appeals :
 		with self.createsession() as session :
 			if self.exist(ban_id) :
@@ -35,13 +38,14 @@ class AppealsDbTransactions(DatabaseTransactions) :
 			self.commit(session)
 			return appeal
 
+	# ============================================================
 	def change_status(self, ban_id, status) :
 		with self.createsession() as session :
 			appeal: Appeals | None = self.get(ban_id, session)
 			if not appeal :
-				print("appeal does not exist")
+				logging.warning(f"Cannot change appeal status: no appeal for ban_id {ban_id}")
 				return False
 			appeal.status = status
 			self.commit(session)
-			print("status changed")
+			logging.info(f"Appeal {ban_id} status changed to {status}")
 			return True

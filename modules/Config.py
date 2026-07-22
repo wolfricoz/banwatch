@@ -19,6 +19,7 @@ class Config(commands.GroupCog, name="config") :
 	def __init__(self, bot: commands.Bot) :
 		self.bot = bot
 
+	# ============================================================
 	@app_commands.command(name="help", description="Are you stuck? This command will help you.")
 	async def help(self, interaction: discord.Interaction) :
 		"""
@@ -27,6 +28,7 @@ class Config(commands.GroupCog, name="config") :
 		"""
 		await send_response(interaction, " ", view=HelpLayout())
 
+	# ============================================================
 	@app_commands.command(name="change", description="Set the channel for bot announcements and moderation logs.")
 	@app_commands.choices(option=[
 		Choice(name=c.name.replace("_", " ").title(), value=c.value) for c in Channels
@@ -53,6 +55,7 @@ class Config(commands.GroupCog, name="config") :
 			return await send_response(interaction, f"Set **{option.name}** to {channel.mention}. If this is your first time setting the mod channel then banwatch is going to automatically add all your bans to the database. For bans that require evidence or additional action we may request evidence or additional action. \n\n__**This may result in many messages in the mod channel**__")
 		await send_response(interaction, f"Set **{option.name}** to {channel.mention}")
 
+	# ============================================================
 	@app_commands.command(name="appeals", description="Enable or disable the ability for users to appeal bans.")
 	@app_commands.checks.has_permissions(manage_guild=True)
 	@app_commands.guild_only()
@@ -66,6 +69,7 @@ class Config(commands.GroupCog, name="config") :
 		ConfigData().add_key(interaction.guild.id, "allow_appeals", allow, overwrite=True)
 		await send_response(interaction, f"Ban appeals have been set to: {'enabled' if allow is True else 'disabled'}")
 
+	# ============================================================
 	@app_commands.command(name="visibility", description="Hide your server's bans from showing up in public lookups.")
 	@app_commands.checks.has_permissions(manage_guild=True)
 	@app_commands.guild_only()
@@ -81,6 +85,7 @@ class Config(commands.GroupCog, name="config") :
 		                    f"Your server's visibility has ben set to: {'hidden' if hide is True else 'Visible'}\n\n"
 		                    f"Your bans may temporarily still be available in the checkall cache, which is reloaded every 10 minutes")
 
+	# ============================================================
 	@app_commands.command(name="permissioncheck",
 	                      description="Checks if the bot has all necessary permissions to function correctly.")
 	@app_commands.guild_only()
