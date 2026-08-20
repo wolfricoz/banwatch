@@ -57,6 +57,12 @@ your server can configure it, see the [Permissions](permissions.md) page.
 
 Check out the full list of commands by clicking [here](commands.md).
 
+## How it works under the hood
+
+Curious what happens between a moderator pressing "ban" and other servers hearing
+about it? The [Architecture](architecture.md) page has diagrams of the ban flow,
+the vetting rules, broadcasting, appeals, and the data model.
+
 ## Support
 
 If you run into any issues or have any questions, you can join the support server by

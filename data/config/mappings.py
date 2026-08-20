@@ -9,6 +9,13 @@ premium_roles = {
 	"trap_role": "Role that will be automatically banned when assigned.",
 }
 
+# Free, server-level on/off switches, exposed through /config toggles. Unset counts as enabled:
+# Banwatch does not seed per-guild toggle rows the way ageverifier does, so switching one off
+# writes an explicit DISABLED row.
+available_toggles = {
+	'log_config_changes': "Post a notice in the mod channel whenever this server's Banwatch configuration is changed, from Discord or from the dashboard.",
+}
+
 class Channels(StrEnum):
 	MOD_CHANNEL = "modchannel"
 	INVITE = "INVITE_CHANNEL"

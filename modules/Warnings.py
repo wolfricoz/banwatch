@@ -4,7 +4,9 @@ from discord.ext.commands import Bot, GroupCog
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
+from classes.config.utils import ConfigUtils
 from classes.configdata import ConfigData
+from classes.queue import queue
 from classes.warnings.punishments import Punishments
 from data.config.mappings import Channels, WarningConfigs
 from database.transactions.ConfigTransactions import ConfigTransactions
@@ -126,8 +128,12 @@ class Warnings(GroupCog) :
 		key = option.value
 		if warning_count < 1:
 			ConfigTransactions().config_unique_remove(interaction.guild.id, key)
+			queue().add(ConfigUtils.log_change(interaction.guild, {key : None},
+			                                   user_name=interaction.user.mention))
 			return await send_response(interaction, f"Successfully removed {key} from the warning consequences list", ephemeral=True)
 		ConfigTransactions().config_unique_add(interaction.guild.id, key, warning_count)
+		queue().add(ConfigUtils.log_change(interaction.guild, {key : warning_count},
+		                                   user_name=interaction.user.mention))
 		return await send_response(interaction, f"Successfully added {key} from the warning consequences list. After {warning_count} they will receive this punishment.", ephemeral=True)
 
 

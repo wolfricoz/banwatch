@@ -50,6 +50,10 @@ class OnMemberBan(unittest.IsolatedAsyncioTestCase) :
 		self.AccessControl = p("AccessControl")
 		self.BanChecker = p("BanChecker")
 		self.queue = p("queue")
+		# Resolving the mod channel now goes through classes/ban/ban_channel.py (it also checks
+		# that we can actually post there), so patch that rather than bot.get_channel.
+		self.resolve_ban_channel = self.stack.enter_context(
+			patch("listeners.on_member_ban.resolve_ban_channel", new=AsyncMock()))
 		# send_message is an async function, so patch() would auto-create an AsyncMock whose
 		# un-awaited coroutine (queue().add(send_message(...))) triggers warnings. Use a plain mock.
 		self.send_message = self.stack.enter_context(
@@ -74,6 +78,7 @@ class OnMemberBan(unittest.IsolatedAsyncioTestCase) :
 		self.bot.user = object()
 		self.mod_channel = MagicMock()
 		self.bot.get_channel = MagicMock(return_value=self.mod_channel)
+		self.resolve_ban_channel.return_value = self.mod_channel
 
 		self.guild = MagicMock()
 		self.guild.id = 999
@@ -109,12 +114,42 @@ class OnMemberBan(unittest.IsolatedAsyncioTestCase) :
 		self.Bans.return_value.add_ban.assert_not_awaited()
 
 	# ============================================================
-	async def test_missing_mod_channel_dms_owner_and_stops(self) :
-		self.bot.get_channel.return_value = None
+	async def test_missing_mod_channel_no_longer_stops_the_flow(self) :
+		# Previously this DM'd the owner and returned - which dropped the ban entirely whenever
+		# the owner had DMs closed. The flow now continues; whichever step needs the channel
+		# warns the server in a channel it can actually reach (classes/ban/ban_channel.py).
+		self.resolve_ban_channel.return_value = None
 		await self.cog.on_member_ban(self.guild, self.user)
-		self.send_message.assert_called_once()
-		self.assertIs(self.send_message.call_args.args[0], self.guild.owner)
-		self.BanChecker.assert_not_called()
+		self.BanChecker.assert_called_once()
+		self.checker.short_run.assert_awaited_once()
+		self.checker.send_review_prompt.assert_awaited_once_with(self.guild)
+		self.send_message.assert_not_called()   # no owner DM from the listener any more
+
+	# ============================================================
+	async def test_missing_mod_channel_still_auto_hides(self) :
+		# The old early return also meant an auto-hidden ban (cross-ban, low-value, migrated) was
+		# never recorded when no mod channel was set. It is now.
+		self.resolve_ban_channel.return_value = None
+		self.checker.get_status.return_value = HIDE
+		await self.cog.on_member_ban(self.guild, self.user)
+		self.checker.evaluate_ban.assert_awaited_once_with(self.guild, server_only=False)
+
+	# ============================================================
+	async def test_cross_ban_notice_is_skipped_without_a_mod_channel(self) :
+		# The cross-ban summary names the banned user, so it goes to the mod channel or nowhere -
+		# never to the fallback channel. The cross-bans themselves must still happen.
+		self.resolve_ban_channel.return_value = None
+		self.checker.get_status.return_value = PROMPT
+		self.ConfigData.return_value.get_key.return_value = True
+		self.AccessControl.return_value.is_premium.return_value = True
+		server = MagicMock()
+		server.id, server.name = 1, "A"
+		self.ServerTransactions.return_value.get_owners_servers.return_value = [server]
+
+		await self.cog.on_member_ban(self.guild, self.user)
+
+		self.cog.cross_ban.assert_called_once()
+		self.send_message.assert_not_called()
 
 	# ============================================================
 	async def test_hidden_server_records_silently_and_stops(self) :

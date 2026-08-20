@@ -99,17 +99,29 @@ class BanApproval(SecureView) :
 		if self.bot is None or self.wait_id is None :
 			await send_response(interaction, "Error: The bot has restarted, the data of this button was lost", ephemeral=True)
 			return
+		await interaction.response.defer(ephemeral=True)
 
 		view = SelectReason()
 		await send_message(interaction.channel, "Select your reason.", view=view)
 		await view.wait()
 		reason = view.get_reason()
+		# Picking a reason takes longer than the 3 second response window, so this button's interaction can no
+		# longer open a modal. The select interaction is the only fresh token available at this point.
 		if reason == "custom" :
-			reason = await send_modal(interaction, "What is the new reason for the ban?", "New Ban Reason")
+			if view.interaction is None :
+				await self.reply(interaction, "No reason was selected, the ban reason was not changed.")
+				return
+			reason = await send_modal(view.interaction, "What is the new reason for the ban?", "New Ban Reason")
+		elif view.interaction is not None :
+			await view.interaction.response.defer()
+
+		if not reason :
+			await self.reply(interaction, "No reason was provided, the ban reason was not changed.")
+			return
+
 		await Bans().change_ban_reason(self.wait_id, reason, interaction.user.global_name)
-		await send_response(interaction,
-		                    f"You have changed the reason for `{interaction.message.embeds[0].description}` to `{reason}`",
-		                    ephemeral=True)
+		await self.reply(interaction,
+		                 f"You have changed the reason for `{interaction.message.embeds[0].description}` to `{reason}`")
 		# update the embed of the message
 		embed = interaction.message.embeds[0]
 		embed.description = reason
@@ -188,6 +200,15 @@ class BanApproval(SecureView) :
 		embed.set_footer(text=f"action `{action}` was performed by {interaction.user}")
 		embed.add_field(name="Banwatch ID", value=self.wait_id, inline=False)
 		await interaction.message.edit(embed=interaction.message.embeds[0], view=self)
+
+	# ============================================================
+	@staticmethod
+	async def reply(interaction: discord.Interaction, message: str) :
+		"""Sends an ephemeral follow up on a deferred interaction, falling back to the channel if the token expired."""
+		try :
+			await interaction.followup.send(message, ephemeral=True)
+		except discord.errors.HTTPException :
+			await send_message(interaction.channel, message)
 
 	# ============================================================
 	async def get_ban_data(self, ban_entry) :

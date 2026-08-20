@@ -9,8 +9,10 @@ from discord.ext import commands
 
 from classes.TermsChecker import TermsChecker
 from classes.access import AccessControl
+from classes.ban.ban_channel import UNREACHABLE, UNSET, resolve_ban_channel, warn_missing_ban_channel
 from classes.configdata import ConfigData
 from classes.queue import queue
+from data.config.mappings import Channels
 from database.transactions.ServerTransactions import ServerTransactions
 
 from resources.bans.BanCheckVariables import BAN_STARTS_WITH, IGNORED_REASONS
@@ -266,28 +268,38 @@ class BanChecker() :
 	async def send_review_prompt(self, guild) :
 		"""Queues the 'share this ban?' prompt (embed + action buttons) to the guild's mod channel.
 		This is the interactive path: the buttons run the full check again when a moderator acts, so
-		callers use this for any ban that is not a definitive auto-hide. Does nothing if there is no
-		mod channel configured."""
+		callers use this for any ban that is not a definitive auto-hide.
+
+		If there is no usable mod channel, the prompt cannot be shown - the embed names the banned
+		user and quotes the ban reason, so it must never be redirected to some other channel. We warn
+		the server instead (see classes/ban/ban_channel.py), in a random channel we can post in, with
+		no ban details in it."""
 		from view.buttons.banoptionbuttons import BanOptionButtons
-		mod_channel = await ConfigData().get_channel(guild)
+		configured = ConfigData().get_key_or_none(guild.id, Channels.MOD_CHANNEL)
+		mod_channel = await resolve_ban_channel(guild)
 		if mod_channel is None :
-			try :
-				await guild.owner.send(
-					"No moderation channel set, please setup your moderation channel using the /Config commands. Your ban has not been broadcasted but has been recorded")
-			except discord.Forbidden:
-				for channel in guild.channels :
-					try :
-						await channel.send(
-							"No moderation channel set, please setup your moderation channel using the /Config commands. Your ban has not been broadcasted but has been recorded")
-					except discord.NotFound or discord.Forbidden :
-						continue
-					return
+			await warn_missing_ban_channel(
+				guild, problem=UNSET if not configured else UNREACHABLE, source="ban")
 			return
 		user = self.ban.user
 		embed = discord.Embed(title=f"Do you want to share {user}'s ({user.id}) ban with other servers?",
 		                      description=f"{self.ban.reason}")
 		embed.set_footer(text=f"{guild.id}-{self.ban.user.id}")
-		queue().add(mod_channel.send(embed=embed, view=BanOptionButtons()), priority=2)
+		queue().add(self._deliver_review_prompt(guild, mod_channel, embed, BanOptionButtons()), priority=2)
+
+	# ============================================================
+	async def _deliver_review_prompt(self, guild, mod_channel, embed, view) :
+		"""Send the prompt, and warn elsewhere if the send fails after all.
+
+		resolve_ban_channel checks the cached permissions, but only the send itself proves the
+		channel is usable - permissions can change between the two, and the queue would otherwise
+		swallow the failure and leave the server thinking the ban was handled."""
+		try :
+			await mod_channel.send(embed=embed, view=view)
+		except (discord.Forbidden, discord.HTTPException) as e :
+			logging.warning(
+				f"Could not deliver the ban review prompt to #{mod_channel.name} in {guild.name}({guild.id}): {e}")
+			await warn_missing_ban_channel(guild, problem=UNREACHABLE, source="ban", exclude=mod_channel)
 
 	# ============================================================
 	async def evaluate_ban(self, guild, server_only=False) :
@@ -315,7 +327,13 @@ class BanChecker() :
 					self.reason = "Ban marked for review and has been hidden until evidence has been provided: " + self.reason
 					ui = EvidenceUI(self.ban.user, guild, self.ban.user.id + guild.id, reason=self.ban.reason,
 					                staff_reason=self.reason, review=True)
-					queue().add(ui.send_embed(await ConfigData().get_channel(guild)), priority=2)
+					# Like the review prompt, this embed carries ban details, so it goes to the mod
+					# channel or nowhere. The ban is still recorded below either way.
+					evidence_channel = await resolve_ban_channel(guild)
+					if evidence_channel is None :
+						await warn_missing_ban_channel(guild, problem=UNSET, source="evidence")
+					else :
+						queue().add(ui.send_embed(evidence_channel), priority=2)
 					# To prevent spamming the approval channel, we hide them instead because this is called during large operations like mass reviewing bans.
 					await Bans().add_ban(self.ban.user.id, guild.id, self.ban.reason, guild.owner.name, approved=False,
 					                     hidden=True, status=self.status)

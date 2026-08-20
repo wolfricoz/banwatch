@@ -11,6 +11,7 @@ from classes.access import AccessControl
 from classes.autocorrect import autocomplete_guild
 from classes.ban.BanChecker import BanChecker
 from classes.bans import Bans
+from classes.config.utils import ConfigUtils
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from classes.rpsec import RpSec
@@ -242,6 +243,13 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 		- Requires BanWatch Staff access.
 		"""
 		ServerTransactions().update(int(server), hidden=hide)
+		# The change lands on someone else's server, so the notice has to go there rather than to
+		# the guild this command was run in.
+		target = self.bot.get_guild(int(server))
+		if target :
+			queue().add(ConfigUtils.log_change(target,
+			                                   {"visibility" : "hidden" if hide is True else "visible"},
+			                                   user_name=f"{interaction.user.mention} (BanWatch staff)"))
 		await send_response(interaction,
 		                    f"{server}'s visibility has ben set to: {'hidden' if hide is True else 'Visible'}\n\n"
 		                    f"Your bans may temporarily still be available in the checkall cache, which is reloaded every 10 minutes")

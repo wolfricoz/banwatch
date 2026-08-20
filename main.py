@@ -76,6 +76,10 @@ async def lifespan(app: FastAPI) :
 	loop = asyncio.get_event_loop()
 	thread = threading.Thread(target=lambda : asyncio.run(run()))
 	thread.start()
+	# Routes that need to resolve a guild (see api/config.py) reach the bot through here, the
+	# same way ageverifier does. The bot runs on its own loop in `thread`, so API handlers must
+	# only *read* from it - anything that awaits discord goes through the queue.
+	app.state.bot = bot
 	yield
 	await bot.close()
 

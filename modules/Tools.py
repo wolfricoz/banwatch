@@ -65,13 +65,13 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 		view = SelectReason()
 		await send_message(interaction.channel, "Select your reason.", view=view)
 		await view.wait()
-		reason = view.reason
+		reason = view.get_reason()
 
 		if isinstance(ban_type, Choice) :
 			ban_type = ban_type.value
 
 		if reason == "custom" :
-			reason = await send_modal(interaction, "What is the reason for the ban?", "Ban Reason")
+			reason = await send_modal(view.interaction, "What is the reason for the ban?", "Ban Reason")
 		user_list = users.split(" ")
 		for user_id in user_list :
 			await asyncio.sleep(1)

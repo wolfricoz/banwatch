@@ -4,9 +4,11 @@ from discord.app_commands import Choice
 from discord.ext import commands
 from discord_py_utilities.messages import send_response
 
+from classes.config.utils import ConfigUtils
 from classes.configdata import ConfigData
 from classes.permissions import PermissionsCheck
-from data.config.mappings import Channels
+from classes.queue import queue
+from data.config.mappings import Channels, available_toggles
 from database.transactions.ServerTransactions import ServerTransactions
 from view.v2.HelpLayout import HelpLayout
 
@@ -51,6 +53,8 @@ class Config(commands.GroupCog, name="config") :
 			                           f"❌ I need the `Read Messages` permission in {channel.mention} to set it as the {option.name}.")
 
 		ConfigData().add_key(interaction.guild.id, option.value, channel.id, overwrite=True)
+		queue().add(ConfigUtils.log_change(interaction.guild, {option.value : channel.mention},
+		                                   user_name=interaction.user.mention))
 		if option.value == "modchannel":
 			return await send_response(interaction, f"Set **{option.name}** to {channel.mention}. If this is your first time setting the mod channel then banwatch is going to automatically add all your bans to the database. For bans that require evidence or additional action we may request evidence or additional action. \n\n__**This may result in many messages in the mod channel**__")
 		await send_response(interaction, f"Set **{option.name}** to {channel.mention}")
@@ -67,6 +71,9 @@ class Config(commands.GroupCog, name="config") :
 		- `Manage Server`
 		"""
 		ConfigData().add_key(interaction.guild.id, "allow_appeals", allow, overwrite=True)
+		queue().add(ConfigUtils.log_change(interaction.guild,
+		                                   {"allow_appeals" : "ENABLED" if allow is True else "DISABLED"},
+		                                   user_name=interaction.user.mention))
 		await send_response(interaction, f"Ban appeals have been set to: {'enabled' if allow is True else 'disabled'}")
 
 	# ============================================================
@@ -81,9 +88,30 @@ class Config(commands.GroupCog, name="config") :
 		- `Manage Server`
 		"""
 		ServerTransactions().update(interaction.guild.id, hidden=hide)
+		queue().add(ConfigUtils.log_change(interaction.guild,
+		                                   {"visibility" : "hidden" if hide is True else "visible"},
+		                                   user_name=interaction.user.mention))
 		await send_response(interaction,
 		                    f"Your server's visibility has ben set to: {'hidden' if hide is True else 'Visible'}\n\n"
 		                    f"Your bans may temporarily still be available in the checkall cache, which is reloaded every 10 minutes")
+
+	# ============================================================
+	@app_commands.command(name="toggles", description="Enable or disable optional Banwatch behaviour for this server.")
+	@app_commands.choices(action=[Choice(name=x, value=x) for x in ["enabled", "disabled"]],
+	                      key=[Choice(name=x, value=x) for x in available_toggles])
+	@app_commands.checks.has_permissions(manage_guild=True)
+	@app_commands.guild_only()
+	async def toggles(self, interaction: discord.Interaction, key: Choice[str], action: Choice[str]) :
+		"""
+		Turns one of Banwatch's optional behaviours on or off. See /config help for what each one does.
+
+		**Permissions:**
+		- `Manage Server`
+		"""
+		ConfigData().add_key(interaction.guild.id, key.value, action.value.upper(), overwrite=True)
+		queue().add(ConfigUtils.log_change(interaction.guild, {key.value : action.value.upper()},
+		                                   user_name=interaction.user.mention))
+		return await send_response(interaction, f"{key.value} has been set to {action.value}", ephemeral=True)
 
 	# ============================================================
 	@app_commands.command(name="permissioncheck",

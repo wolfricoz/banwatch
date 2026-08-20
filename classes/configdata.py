@@ -20,10 +20,21 @@ class KeyNotFound(Exception) :
 		super().__init__(f"Key {key} not found in Config")
 
 
+# The config table stores everything as a string, and three different vocabularies for the same
+# boolean have accumulated: "ENABLED"/"DISABLED" (legacy and ageverifier), "true"/"false" (what
+# the dashboard writes) and "1"/"0". Normalise all of them in one place - the previous check
+# lowercased the value and then compared it against the *uppercase* literals "ENABLED"/"DISABLED",
+# which can never match, so a disabled toggle came back as the truthy string "disabled".
+TRUE_VALUES = frozenset({"true", "1", "on", "enabled", "yes"})
+FALSE_VALUES = frozenset({"false", "0", "off", "disabled", "no"})
+
+
 class ConfigData(metaclass=Singleton) :
 	"""This class generates the Config file, with functions to change and get values from it"""
 
 	configcontroller = ConfigTransactions()
+	# guild id (as a *string*) -> {KEY: value}. Always go through get_guild/load_guild rather than
+	# indexing this directly: mixing int and str keys is what silently disabled the cache before.
 	data = {}
 
 	async def migrate(self) :
@@ -55,13 +66,12 @@ class ConfigData(metaclass=Singleton) :
 	# ============================================================
 	# os.rmdir("configs")
 	def reload(self) :
-		"""Reloads the Config data from the database"""
+		"""Drops the whole cache; every guild is re-read from the database on next access.
+
+		Deliberately lazy. Eagerly re-loading every known guild here was one query per guild
+		on every dashboard save, and all but the one guild that actually changed would be
+		thrown away unread."""
 		self.data = {}
-		for guild in ServerTransactions().get_all() :
-			try:
-				self.load_guild(guild)
-			except Exception as e :
-				logging.error(e, exc_info=True)
 
 	# ============================================================
 	def load(self, guilds) :
@@ -77,6 +87,7 @@ class ConfigData(metaclass=Singleton) :
 
 		for item in config :
 			self.data[str(serverid)][item.key.upper()] = item.value
+		return self.data[str(serverid)]
 
 	# ============================================================
 	def add_key(self, serverid, key, value: str | bool | int, overwrite=False) :
@@ -107,17 +118,52 @@ class ConfigData(metaclass=Singleton) :
 
 		if isinstance(value, bool) :
 			return value
-		if value.isnumeric() and value not in ["0", "1"] :
-			return int(value)
-		if isinstance(value, str) :
-			if value.lower() in  ["true", "1", "ENABLED"] :
-				return True
-			if value.lower() in  ["false", "0", "DISABLED"] :
-				return False
-
+		if not isinstance(value, str) :
+			# The column is a string, but a bool/int written straight through the ORM comes back
+			# as-is. Hand it back rather than calling str-only methods on it.
 			return value
 
-		return default
+		normalised = value.strip().lower()
+		# Booleans first: "1"/"0" are boolean spellings here, which is why they were excluded
+		# from the numeric branch below.
+		if normalised in TRUE_VALUES :
+			return True
+		if normalised in FALSE_VALUES :
+			return False
+		if value.strip().isnumeric() :
+			return int(value.strip())
+
+		return value
+
+	# ============================================================
+	def get_toggle(self, serverid: int, key: str, expected: str = "ENABLED", default: str = "DISABLED") -> bool :
+		"""Reads a key as an on/off toggle, tolerating every spelling in TRUE_VALUES/FALSE_VALUES.
+
+		:param expected: the state being asked about - ``get_toggle(g, k)`` answers "is this on?"
+		:param default: what an unset key counts as.
+		"""
+		value = str(self.get_key(serverid, key, default)).strip().lower()
+
+		if value in TRUE_VALUES :
+			return expected.upper() == "ENABLED"
+		if value in FALSE_VALUES :
+			return expected.upper() == "DISABLED"
+		return value == expected.lower()
+
+	# ============================================================
+	def get_key_int_or_zero(self, serverid: int, key: str) -> int :
+		"""Gets a key as an int, returning 0 when it is unset or not a usable id."""
+		result = self.get_key(serverid, key)
+		# bool is a subclass of int, so check it first or a stored "false" returns 0/1 as an id.
+		if isinstance(result, bool) :
+			return 0
+		if isinstance(result, int) :
+			return result
+		if isinstance(result, str) and result.strip().isnumeric() :
+			return int(result.strip())
+		if result is not None :
+			logging.warning(f"{serverid} key {key} is not an int")
+		return 0
 
 
 
@@ -198,7 +244,13 @@ class ConfigData(metaclass=Singleton) :
 
 	# ============================================================
 	def get_guild(self, guild_id: int) -> dict[str, str | bool | int] :
-		if not guild_id in self.data:
-			self.load_guild(guild_id)
-		return self.data.get(str(guild_id), {})
+		# The cache is keyed by str(guild_id) because load_guild writes it that way. Testing
+		# membership with the raw int - which is what this did - never matched, so every single
+		# get_key() fell through to load_guild() and hit the database. That made the cache dead
+		# weight and turned the config into an accidental live read; it also meant the refresh
+		# endpoint had nothing to invalidate. Compare like for like.
+		cache_key = str(guild_id)
+		if cache_key not in self.data :
+			return self.load_guild(guild_id)
+		return self.data[cache_key]
 

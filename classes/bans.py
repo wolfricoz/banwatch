@@ -8,10 +8,12 @@ from datetime import datetime, timezone
 
 import discord
 from discord.ext import commands
+from discord_py_utilities.exceptions import NoChannelException, NoPermissionException
 from discord_py_utilities.invites import check_guild_invites
 from discord_py_utilities.messages import send_message
 
 from classes.appeal import inform_user
+from classes.ban.ban_channel import SLOW_COOLDOWN, UNREACHABLE, UNSET, resolve_ban_channel, warn_missing_ban_channel
 from classes.configdata import ConfigData
 from classes.queue import queue
 from classes.rpsec import RpSec
@@ -78,9 +80,26 @@ class Bans(metaclass=Singleton) :
 	# ============================================================
 	async def inform_server(self, bot: commands.Bot, guild: discord.Guild, banembed: discord.Embed, ban_id: int) :
 
-		modchannel = await ConfigData().get_channel(guild, "modchannel")
+		# banembed names the banned user and quotes the ban reason: it goes to the mod channel or
+		# nowhere. Without one, the receiving server is told - in a random channel we can reach -
+		# that it is missing out on ban reports, with no ban details in that warning.
+		modchannel = await resolve_ban_channel(guild)
+		if modchannel is None :
+			await warn_missing_ban_channel(guild, source="broadcast", cooldown=SLOW_COOLDOWN)
+			return
 		options = BanInform(ban_class=Bans(), ban_id=ban_id)
-		message = await send_message(modchannel, embed=banembed, view=options)
+		try :
+			message = await send_message(modchannel, embed=banembed, view=options)
+		except (discord.Forbidden, discord.HTTPException, NoPermissionException, NoChannelException) as e :
+			logging.warning(f"Could not inform {guild.name}({guild.id}) about ban {ban_id}: {e}")
+			await warn_missing_ban_channel(guild, problem=UNREACHABLE, source="broadcast",
+			                               cooldown=SLOW_COOLDOWN, exclude=modchannel)
+			return
+		if message is None :
+			# send_message swallows Forbidden in its default error mode and returns None; without
+			# this guard the next line raises AttributeError inside the queue.
+			logging.warning(f"No message returned when informing {guild.name}({guild.id}) about ban {ban_id}")
+			return
 		BanMessageTransactions().add_ban_message(ban_id, guild.id, message.id)
 
 	# ============================================================
@@ -268,15 +287,26 @@ class Bans(metaclass=Singleton) :
 		if not me.guild_permissions.ban_members :
 			logging.warning(
 				f"No ban_members permission in {guild.name}({guild.id}), skipping guild (bans left untouched)")
+			# Runs on every sweep, so throttle: staff hear about this at most once an hour.
+			from classes.permissions_notice import PermissionNotice
+			await PermissionNotice.notify(
+				guild, missing=["ban_members"], purpose="apply shared bans in your server", throttle=True)
 			return
 
 		db_server = ServerTransactions().get(guild.id)
 		if db_server and db_server.hidden is True :
 			return
 
-		modchannel = await ConfigData().get_channel(guild, optional=True)
+		modchannel = await resolve_ban_channel(guild)
 		if not modchannel :
-			logging.info(f"No modchannel set for {guild.name}({guild.id}), skipping bans")
+			logging.info(f"No usable modchannel for {guild.name}({guild.id}), skipping bans")
+			# The sweep is the only thing that would ever notice, and it says nothing. Tell the
+			# server - once a day, in a random channel we can reach - that its bans are going
+			# nowhere. No ban details: the channel may be public.
+			configured = ConfigData().get_key_or_none(guild.id, Channels.MOD_CHANNEL)
+			await warn_missing_ban_channel(
+				guild, problem=UNSET if not configured else UNREACHABLE, source="sweep",
+				cooldown=SLOW_COOLDOWN)
 			return
 
 		count = 0

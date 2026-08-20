@@ -188,7 +188,7 @@ class BanInfo(discord.ui.LayoutView) :
 		await view.wait()
 		reason = view.get_reason()
 		if reason == "custom" :
-			reason = await send_modal(interaction, "What is the reason for the ban?", "Ban Reason")
+			reason = await send_modal(view.interaction, "What is the reason for the ban?", "Ban Reason")
 		try :
 			await interaction.guild.unban(self.user, reason=reason)
 		except discord.errors.NotFound :

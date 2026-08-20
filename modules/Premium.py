@@ -14,6 +14,7 @@ from discord_py_utilities.messages import send_message, send_response
 from classes.access import AccessControl
 from classes.autocorrect import autocomplete_guild
 from classes.bans import Bans
+from classes.config.utils import ConfigUtils
 from classes.queue import queue
 from data.config.mappings import premium_toggles
 from database.transactions.BanTransactions import BanTransactions
@@ -143,6 +144,8 @@ class Premium(GroupCog, name="premium") :
 		- `Premium Server`
 		"""
 		ConfigTransactions().config_unique_add(interaction.guild.id, "TRAP_ROLE", role.id)
+		queue().add(ConfigUtils.log_change(interaction.guild, {"TRAP_ROLE" : role.mention},
+		                                   user_name=interaction.user.mention))
 		await send_response(interaction, f"Set the bot trap role to {role.mention}", ephemeral=True)
 
 	# ============================================================
@@ -162,6 +165,9 @@ class Premium(GroupCog, name="premium") :
 		await send_response(interaction, f"Toggling feature `{feature_name.value}` to `{'enabled' if enable else 'disabled'}`",
 		                    ephemeral=True)
 		ConfigTransactions().toggle_add(interaction.guild.id, feature_name.value, enable)
+		queue().add(ConfigUtils.log_change(interaction.guild,
+		                                   {feature_name.value : "ENABLED" if enable else "DISABLED"},
+		                                   user_name=interaction.user.mention))
 
 
 
@@ -196,6 +202,8 @@ class Premium(GroupCog, name="premium") :
 			if existing :
 				return await send_response(interaction, f"Ban preset `{name}` already exists.", ephemeral=True)
 			ConfigTransactions().config_unique_add(interaction.guild.id, "BAN_PRESET", name)
+			queue().add(ConfigUtils.log_change(interaction.guild, {"BAN_PRESET" : f"added preset `{name}`"},
+			                                   user_name=interaction.user.mention))
 			await send_response(interaction, f"Added ban preset `{name}`.", ephemeral=True)
 		elif operation.value == "remove" :
 			if not name :
@@ -204,6 +212,8 @@ class Premium(GroupCog, name="premium") :
 			if not existing :
 				return await send_response(interaction, f"Ban preset `{name}` does not exist.", ephemeral=True)
 			ConfigTransactions().config_unique_remove(interaction.guild.id, "BAN_PRESET", name)
+			queue().add(ConfigUtils.log_change(interaction.guild, {"BAN_PRESET" : f"removed preset `{name}`"},
+			                                   user_name=interaction.user.mention))
 			await send_response(interaction, f"Removed ban preset `{name}`.", ephemeral=True)
 
 	# ============================================================

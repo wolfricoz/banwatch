@@ -4,7 +4,9 @@ from discord.ext.commands import Bot, GroupCog
 from discord_py_utilities.messages import send_response
 
 from classes.bans import Bans
+from classes.config.utils import ConfigUtils
 from classes.configdata import ConfigData
+from classes.queue import queue
 from data.config.mappings import Channels
 from database.transactions.ConfigTransactions import ConfigTransactions
 from database.transactions.ServerTransactions import ServerTransactions
@@ -33,6 +35,8 @@ class Invite(GroupCog, name="invite", description="Manage your servers invites!"
 		ConfigData().load_guild(interaction.guild.id)
 		invite = await Bans().create_invite(self.bot, interaction.guild, force_new=True)
 		ServerTransactions().update(interaction.guild.id, invite=invite)
+		queue().add(ConfigUtils.log_change(interaction.guild, {Channels.INVITE : channel.mention},
+		                                   user_name=interaction.user.mention))
 		await send_response(interaction, f"You've changed your invite channel to {channel.mention}, here's your new invite: {invite}")
 
 	# ============================================================
@@ -48,6 +52,8 @@ class Invite(GroupCog, name="invite", description="Manage your servers invites!"
 		"""
 
 		invite = await Bans().create_invite(self.bot, interaction.guild, force_new=True)
+		queue().add(ConfigUtils.log_change(interaction.guild, {"invite" : invite},
+		                                   user_name=interaction.user.mention))
 		await send_response(interaction, f"Your invite has been regenerated, here's your new invite: {invite}")
 
 

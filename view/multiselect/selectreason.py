@@ -376,6 +376,8 @@ class SelectReason(SecureView) :
 
 	# ============================================================
 	def get_reason(self) :
+		if not self.reason :
+			return "custom"
 		for reason in self.all_reasons :
 			if reason.get('reason', "custom").lower() == self.reason.lower() :
 				return reason.get('ban_reason')

@@ -6,6 +6,7 @@ from discord_py_utilities.messages import send_message
 
 from classes.access import AccessControl
 from classes.ban.BanChecker import BanChecker, BanCheckerStatus
+from classes.ban.ban_channel import resolve_ban_channel
 from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.queue import queue
@@ -44,13 +45,14 @@ class BanEvents(commands.Cog) :
 
 		# fetch ban entry
 		ban: discord.BanEntry = await guild.fetch_ban(user)
-		mod_channel = bot.get_channel(ConfigData().get_key_or_none(guild.id, "modchannel" ))
-
-		# Check if modchannel is set, else just log it.
-		if mod_channel is None:
-			logging.warning(f"{guild.name}({guild.id}) doesn't have modchannel set.")
-			queue().add(send_message(guild.owner, f"{guild.name}({guild.id}) doesn't have modchannel set. Please set it using the /Config change command."), priority=2)
-			return
+		# None here means "no usable mod channel": unset, deleted, or we can't post in it. We no
+		# longer stop the flow on that - a DM to the owner is dropped whenever their DMs are closed,
+		# and returning early meant an auto-hidden ban was never even recorded. The flow continues,
+		# and whichever step actually needs the channel warns the server in a random channel it can
+		# reach (classes/ban/ban_channel.py). Ban details never leave the mod channel.
+		mod_channel = await resolve_ban_channel(guild)
+		if mod_channel is None :
+			logging.warning(f"{guild.name}({guild.id}) has no usable modchannel; continuing without it.")
 
 		# Hidden server: record the ban but never broadcast or prompt.
 		if ServerTransactions().is_hidden(guild.id):
@@ -81,7 +83,9 @@ class BanEvents(commands.Cog) :
 				logging.info(f"Premium cross-ban with server {server.name} ({server.id})")
 				queue().add(self.cross_ban(server, guild, user))
 				server_names.append(server.name)
-			queue().add(send_message(mod_channel, f"Cross-banned user {user}({user.id}) in servers: {', '.join(server_names)}"), priority=0)
+			# Names the banned user, so mod channel or nowhere - the cross-bans themselves still run.
+			if mod_channel is not None :
+				queue().add(send_message(mod_channel, f"Cross-banned user {user}({user.id}) in servers: {', '.join(server_names)}"), priority=0)
 
 		# Not auto-hidden: always show the review buttons. They run the REAL check and persist the ban
 		# when a moderator acts, so nothing is written here.
