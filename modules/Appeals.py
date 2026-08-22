@@ -9,9 +9,11 @@ from discord_py_utilities.messages import send_message, send_response
 from classes.access import AccessControl
 from classes.autocorrect import autocomplete_appeal
 from classes.configdata import ConfigData
+from data.variables.messages import contact_notice
 from database.transactions.AppealsTransactions import AppealsDbTransactions
 from database.transactions.BanTransactions import BanTransactions
 from view.buttons.appealbuttons import AppealButtons
+from view.buttons.reportbuttons import ReportButtons
 from view.modals import inputmodal
 
 
@@ -77,21 +79,30 @@ class Appeals(commands.GroupCog, name="appeal") :
 			await interaction.response.send_message("No bans to report", ephemeral=True)
 			return
 		appeals_allowed = ConfigData().get_key(int(guild), "allow_appeals", True)
-		if appeals_allowed is not False or appeals_allowed is not None :
+		# Mirror of the check in create(): only demand a prior appeal if the server actually accepts them.
+		if appeals_allowed is not False and appeals_allowed is not None :
 			appeal = AppealsDbTransactions().exist(interaction.user.id + int(guild))
 			if not appeal :
 				return await send_response(interaction,
 				                           "You must appeal your ban with the server; please only report bans after all possible appeal options have been exhausted.")
 		reason = await inputmodal.send_modal(interaction,
-		                                     "Thank you for the report, we will investigate this and get back to you.")
+		                                     f"Thank you for the report, we will investigate this and get back to you. Keep your DMs open, the staff responds to your report there.\n{contact_notice}")
 		ban_id = interaction.user.id + int(guild)
-		guild = self.bot.get_guild(int(guild))
+		guild_id = int(guild)
+		guild = self.bot.get_guild(guild_id)
 		ban = BanTransactions().get(ban_id, override=True)
+		if ban is None :
+			return await send_message(interaction.channel,
+			                          "We could not find that ban anymore, so there is nothing to report.")
+		guild_name = guild.name if guild is not None else getattr(ban.guild, "name", "Unknown server")
 		staff_channel = self.bot.get_channel(int(os.getenv("BANS")))
-		embed = discord.Embed(title=f"{interaction.user.name} wants to report {ban_id}", description=reason)
-		embed.add_field(name=f"{interaction.user.name}({interaction.user.id}) banned in {guild.name}({guild.id})",
+		embed = discord.Embed(title=f"{interaction.user.name} wants to report {ban_id}", description=reason,
+		                      timestamp=datetime.now())
+		embed.add_field(name=f"{interaction.user.name}({interaction.user.id}) banned in {guild_name}({guild_id})",
 		                value=ban.reason)
-		await send_message(staff_channel, embed=embed)
+		# The footer carries the routing key for ReportButtons; don't remove it.
+		embed.set_footer(text=ban_id)
+		await send_message(staff_channel, embed=embed, view=ReportButtons())
 
 
 async def setup(bot: commands.Bot) :

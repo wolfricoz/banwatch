@@ -31,6 +31,7 @@ from view.buttons.appealbuttons import AppealButtons
 from view.buttons.baninform import BanInform
 from view.buttons.communicationbuttons import CommunicationButtons
 from view.buttons.lookup import LookUp
+from view.buttons.reportbuttons import ReportButtons
 from view.buttons.serverinfo import ServerInfo
 from view.v2.EvidenceSubmission import EvidenceUI
 from view.v2.OnboardingLayout import OnboardingLayout
@@ -139,6 +140,7 @@ async def on_ready() :
 		bot.add_view(LookUp())
 		bot.add_view(AppealButtons())
 		bot.add_view(CommunicationButtons())
+		bot.add_view(ReportButtons())
 		bot.add_view(BanInform(Bans()))
 		bot.add_view(OnboardingLayout())
 		bot.add_view(EvidenceUI(None, None, None, None))

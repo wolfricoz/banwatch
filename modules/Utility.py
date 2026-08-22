@@ -1,8 +1,14 @@
+import logging
+import os
+from datetime import datetime
+
 import discord
 from discord import app_commands
 from discord.ext import commands
-from discord_py_utilities.messages import send_response
+from discord_py_utilities.messages import send_message, send_response
 
+from project.data import CONTACT_EMAIL, DOCUMENTATION
+from view.modals.inputmodal import send_modal
 from view.v2.HelpLayout import HelpLayout
 
 
@@ -34,8 +40,39 @@ class Utility(commands.Cog, description="Miscellaneous utility commands for gene
 		- None required for the user.
 		"""
 		await interaction.response.send_message(
-			"If you are in need of support, please read our documentation at https://wolfricoz.github.io/banwatch/ ! You can find our discord link in the documentation. If you still need help, please join our discord server and ask in the support channel.",
+			f"If you are in need of support, please read our documentation at {DOCUMENTATION} ! You can find our discord link in the documentation. If you still need help, please join our discord server and ask in the support channel."
+			f"\n\nDon't want to (or can't) use discord? Use `/report_issue` to send a report straight to the developers, or email us at {CONTACT_EMAIL}. Data protection requests can be sent to that address as well.",
 			ephemeral=True)
+
+	# ============================================================
+	@app_commands.command(name="report_issue", description="Report a problem with Banwatch itself to the developers.")
+	async def report_issue(self, interaction: discord.Interaction) :
+		"""
+		Reports a problem with the bot itself, such as a bug, misuse of the bot, or a request about your personal data.
+		The report is delivered to the developers and the contact email is included in the confirmation, so there is
+		always a route to us that does not depend on discord.
+
+		**Permissions:**
+		- None required for the user.
+		"""
+		issue = await send_modal(interaction,
+		                         f"Thank you, your report has been sent to the developers. You can also reach us at {CONTACT_EMAIL} if you would rather not use discord, or if you don't hear back from us.",
+		                         "What issue would you like to report?", 2000)
+		if not issue :
+			return
+		embed = discord.Embed(title=f"Issue reported by {interaction.user}", description=issue,
+		                      color=discord.Color.orange(), timestamp=datetime.now())
+		embed.add_field(name="Reported by", value=f"{interaction.user}({interaction.user.id})")
+		embed.add_field(name="Server",
+		                value=f"{interaction.guild.name}({interaction.guild.id})" if interaction.guild else "Direct message")
+		embed.set_footer(text=f"Reply by email: {CONTACT_EMAIL}")
+		channel = self.bot.get_channel(int(os.getenv("DEV")))
+		if channel is None :
+			logging.error(f"Issue report by {interaction.user.id} could not be delivered: dev channel not found")
+			return await interaction.followup.send(
+				f"We could not deliver your report automatically, please email it to {CONTACT_EMAIL} instead.",
+				ephemeral=True)
+		await send_message(channel, " ", embed=embed)
 
 	# ============================================================
 	@app_commands.command(name="donate", description="If you like banwatch, consider donating!")

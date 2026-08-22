@@ -1,5 +1,12 @@
 import enum
 
+from project.data import CONTACT_EMAIL
+
+contact_notice = (
+  f"-# Need to report an issue with Banwatch itself, or unable to reach us on discord? "
+  f"Email us at {CONTACT_EMAIL} and we will get back to you."
+)
+
 evidence_message_template = (
   "Please send a message with the evidence you would like to add to {user}'s record, this will be added to the ban ID {ban_id} in our support server and broadcasted to relevant servers."
   "\n Type `cancel` to cancel."
@@ -19,7 +26,7 @@ evidence_warning_message_template = (
   "\n\n**Forwarded Messages are now officially supported.**")
 
 class BotMessages(enum.Enum):
-	BLACKISTED = "🚫 You are blacklisted from using this bot."
+	BLACKISTED = f"🚫 You are blacklisted from using this bot. If you believe this is a mistake, you can appeal by emailing {CONTACT_EMAIL}."
 
 	def __str__(self):
 		return self.value
