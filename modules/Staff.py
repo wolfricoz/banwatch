@@ -15,7 +15,6 @@ from classes.config.utils import ConfigUtils
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from classes.rpsec import RpSec
-from classes.tasks import pending_bans
 from data.variables.messages import evidence_message_template
 from database.current import Bans as BanTable
 from database.transactions.BanTransactions import BanTransactions
@@ -202,9 +201,11 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 		ban_ids = banid.split(",")
 
 		await interaction.response.send_message("Queueing the search for the embed")
+		# revoke_bans(staff=True) resets each ban to pending and posts that ban back to the review
+		# queue itself, so there is no bulk pending_bans() sweep here any more - it would repost
+		# the same ban a second time, plus up to 50 unrelated ones.
 		for ban_id in ban_ids :
 			await Bans().revoke_bans(self.bot, ban_id, reason, staff=True)
-		queue().add(pending_bans(self.bot, True, limit=50))
 
 	# ============================================================
 	@app_commands.command(name="amistaff", description="[DEV] check if you're a banwatch staff member.")

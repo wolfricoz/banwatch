@@ -55,7 +55,11 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			if ServerTransactions().exists(gid) is False :
 				return False
 			if self.exists(uid + gid, remove_deleted=remove_deleted) :
-				self.update(ban=uid + gid, gid=gid, uid=uid, approved=approved, verified=verified, hidden=hidden)
+				# Re-adding a ban we already know about (re-ban, sweep, cross-ban) must not resurrect
+				# a hidden one: hidden=False is passed down as None so the stored flag survives.
+				# Only an explicit hidden=True hides here; un-hiding goes through /staff banvisibility.
+				self.update(ban=uid + gid, gid=gid, uid=uid, approved=approved, verified=verified,
+				            hidden=True if hidden else None)
 				return self.get(uid + gid)
 
 			ban = Bans(ban_id=uid + gid, uid=uid, gid=gid, reason=reason, approved=approved, verified=verified, hidden=hidden,
@@ -259,10 +263,15 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 	           ) -> bool | Bans | type[Bans] :
 		with self.createsession() as session :
 
-			if isinstance(ban, int) :
-				ban = self.get(ban, session, override=True)
+			# Callers hand us either a ban id or a Bans object that an earlier - by now closed -
+			# session loaded. Writing to a detached instance is silently discarded on commit, which
+			# is how hide actions (/staff banvisibility, the hide buttons, premium search_bans)
+			# ended up doing nothing at all. Always re-load the row in THIS session so the values
+			# below are actually written.
+			ban_id = ban if isinstance(ban, int) else getattr(ban, 'ban_id', None)
+			ban = self.get(ban_id, session, override=True) if ban_id is not None else None
 			if not ban :
-				logging.error(f"Ban {ban} not found.")
+				logging.error(f"Ban {ban_id} not found.")
 				return False
 			updates = {
 				'approved'      : approved,
@@ -287,7 +296,21 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 			logging.info(f"Updated {ban.ban_id} with:")
 			logging.info(updates)
 			self.commit(session)
+			if hidden is True :
+				# /user checkall reads the cache, not the database, and it is only rebuilt on the
+				# full ban sweep. Without this a freshly hidden ban keeps being reported until then.
+				self.drop_from_cache(ban)
 			return ban
+
+	# ============================================================
+	def drop_from_cache(self, ban: Bans | Type[Bans]) -> None :
+		"""Removes a single ban from the lookup cache built by populate_cache()."""
+		user_bans = self.local_cache.get(str(ban.uid))
+		if not user_bans :
+			return
+		user_bans.pop(str(ban.ban_id), None)
+		if not user_bans :
+			self.local_cache.pop(str(ban.uid), None)
 
 	# ============================================================
 	def get_deleted_bans(self) -> list[type[Bans]] :

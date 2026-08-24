@@ -1,5 +1,7 @@
+import asyncio
 import unittest
 
+from classes.bans import Bans as BanController
 from database.current import Bans, create_bot_database, drop_bot_database
 from database.factories.ban import BanFactory
 from database.factories.serverfactory import ServerFactory
@@ -165,6 +167,37 @@ class TestBanDatabaseOperations(unittest.TestCase):
         drop_bot_database()
         create_bot_database()
         self.assertEqual(len(self.ban_controller.get_deleted_bans()), 0)
+
+    # ============================================================
+    # hidden bans must stay hidden: /lookup only sees them with the staff override
+    def test_hide_ban_object_persists_and_is_excluded_from_lookup(self):
+        guild = ServerFactory().create()
+        ban = self.ban_controller.add(self.user_id, guild.id, "r", "s", approved=True, verified=True)
+        # /staff banvisibility and the hide buttons hand update() the Bans object they fetched
+        # earlier, not an id. That used to be a detached instance and the write was dropped.
+        self.ban_controller.update(ban, hidden=True)
+        self.assertTrue(self.ban_controller.get(ban.ban_id, override=True).hidden)
+        # what /lookup queries
+        self.assertIsNone(self.ban_controller.get(ban.ban_id))
+        self.assertEqual(len(self.ban_controller.get_all_user(self.user_id)), 0)
+        # ... unless the override is on
+        self.assertIsNotNone(self.ban_controller.get(ban.ban_id, override=True))
+        self.assertEqual(len(self.ban_controller.get_all_user(self.user_id, override=True)), 1)
+
+    # ============================================================
+    def test_hidden_ban_survives_approval_and_readd(self):
+        guild = ServerFactory().create()
+        ban = self.ban_controller.add(self.user_id, guild.id, "r", "s", approved=True)
+        self.ban_controller.update(ban.ban_id, hidden=True)
+        # approving/verifying must not touch visibility
+        asyncio.run(BanController().change_ban_approval_status(ban.ban_id, True, verified=True))
+        self.assertTrue(self.ban_controller.get(ban.ban_id, override=True).hidden)
+        # neither may re-adding a ban we already know about (re-ban, sweep, cross-ban)
+        self.ban_controller.add(self.user_id, guild.id, "r", "s", approved=True)
+        self.assertTrue(self.ban_controller.get(ban.ban_id, override=True).hidden)
+        # staff can still un-hide deliberately
+        self.ban_controller.update(ban.ban_id, hidden=False)
+        self.assertFalse(self.ban_controller.get(ban.ban_id, override=True).hidden)
 
     # ============================================================
     # get guild status from ban: positive and when guild deleted (negative)

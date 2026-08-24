@@ -251,8 +251,30 @@ class Bans(metaclass=Singleton) :
 
 			queue().add(self.delete_message(channel, ban_message.message_id, reason=reason), priority=0)
 			BanMessageTransactions().delete_bm(int(ban_message.message_id))
-			if staff :
-				BanTransactions().update(int(ban_id), approved=False)
+
+		if staff :
+			# A staff revoke retracts the whole verdict, not just the broadcast, so the ban goes
+			# back to square one and in front of staff again. This sits OUTSIDE the message loop
+			# on purpose: it used to run per ban message, which meant a ban with no broadcast
+			# messages left - or one whose mod channels were all unreachable - kept its approved
+			# flag and never returned to the queue. The non-staff callers (unban, and the hide
+			# buttons, which have just set hidden=True) only want the messages pulled.
+			await self.return_to_queue(bot, int(ban_id))
+
+	# ============================================================
+	async def return_to_queue(self, bot: commands.Bot, ban_id: int) -> bool :
+		"""Resets a ban to pending - approved, verified and hidden all false - and re-posts it to
+		the staff review queue.
+
+		:return: True if the ban was reset and queued for review.
+		"""
+		from classes.tasks import queue_ban_for_review
+		ban = BanTransactions().update(ban_id, approved=False, verified=False, hidden=False)
+		if not ban :
+			logging.warning(f"Cannot return ban {ban_id} to the review queue: ban not found.")
+			return False
+		logging.info(f"Ban {ban_id} reset to pending and returned to the review queue.")
+		return await queue_ban_for_review(bot, ban)
 
 	# ============================================================
 	async def delete_message(self, channel: discord.TextChannel, message_id, reason=None) :
@@ -425,7 +447,10 @@ class Bans(metaclass=Singleton) :
 		BanTransactions().delete_soft(user_id + guild_id)
 
 	# ============================================================
-	async def change_ban_approval_status(self, ban_id: int, status: bool, verified=False, hidden=False) :
+	async def change_ban_approval_status(self, ban_id: int, status: bool, verified=False, hidden=None) :
+		"""Approving or verifying a ban must never touch its visibility: hidden defaults to None so
+		update() leaves the flag alone. It used to default to False, which meant every approval and
+		every verification silently un-hid a ban staff had hidden. Pass hidden explicitly to change it."""
 		BanTransactions().update(ban_id, approved=status, verified=verified, hidden=hidden)
 
 	# ============================================================
