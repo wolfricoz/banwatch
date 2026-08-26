@@ -19,6 +19,7 @@ from classes.configer import Configer
 from classes.evidence import EvidenceController
 from classes.queue import queue
 from classes.tasks import pending_bans
+from classes.tools.toolbox import Toolbox
 from database.transactions.BanMessageTransactions import BanMessageTransactions
 from database.transactions.BanTransactions import BanTransactions
 from database.transactions.FlaggedTermsTransactions import FlaggedTermsTransactions
@@ -76,25 +77,25 @@ class DevTools(commands.GroupCog, name="dev") :
 		await send_response(interaction, "Here are the stats!", embed=embed, ephemeral=True)
 
 	# ============================================================
-	@app_commands.command(name="loadflaggedterms",
-	                      description="[DEV] Loads the old watchlist config into the new flagged terms table.")
-	@AccessControl().check_access("dev")
-	async def update_flagged_terms(self, interaction: discord.Interaction) :
-		"""
-		[DEV] Migrates flagged terms from the old config to the new database table.
-
-		**Permissions:**
-		- `Developer`
-		"""
-		checklist = await Configer.get_checklist()
-		for word in checklist :
-			try :
-				FlaggedTermsTransactions().add(term=word, action='review')
-			except Exception as e :
-				logging.warning(f"could not load {word} into flagged terms: {e}")
-
-		await send_response(interaction,
-		                    f"Old watchlist flagged terms have been successfully loaded. loaded: ||{', '.join(checklist)}||")
+	# @app_commands.command(name="loadflaggedterms",
+	#                       description="[DEV] Loads the old watchlist config into the new flagged terms table.")
+	# @AccessControl().check_access("dev")
+	# async def update_flagged_terms(self, interaction: discord.Interaction) :
+	# 	"""
+	# 	[DEV] Migrates flagged terms from the old config to the new database table.
+	#
+	# 	**Permissions:**
+	# 	- `Developer`
+	# 	"""
+	# 	checklist = await Configer.get_checklist()
+	# 	for word in checklist :
+	# 		try :
+	# 			FlaggedTermsTransactions().add(term=word, action='review')
+	# 		except Exception as e :
+	# 			logging.warning(f"could not load {word} into flagged terms: {e}")
+	#
+	# 	await send_response(interaction,
+	# 	                    f"Old watchlist flagged terms have been successfully loaded. loaded: ||{', '.join(checklist)}||")
 
 	# ============================================================
 	@app_commands.command(name="announce", description="[DEV] Sends an announcement to the mod channel of all servers.")
@@ -255,52 +256,52 @@ class DevTools(commands.GroupCog, name="dev") :
 		return None
 
 	# ============================================================
-	@app_commands.command(name="backup", description="[DEV] Backs up ban and evidence channels to the backup server.")
-	@AccessControl().check_access("dev")
-	async def copy(self, interaction: discord.Interaction, evidence_only: bool = False) :
-		"""
-		[DEV] Backs up ban and evidence channels to a private backup server.
-
-		**Permissions:**
-		- `Developer`
-		"""
-		await send_response(interaction, "Backup Started", ephemeral=True)
-		backup_server = self.bot.get_guild(int(os.getenv("BACKUP_SERVER")))
-		if not evidence_only :
-			ban_channel = self.bot.get_channel(int(os.getenv("APPROVED")))
-			evidence_channel = self.bot.get_channel(int(os.getenv("EVIDENCE")))
-			backupsection = get(backup_server.categories, name="backup")
-			if backupsection is None :
-				backupsection = await backup_server.create_category_channel("backup",
-				                                                            overwrites={
-					                                                            backup_server.default_role : discord.PermissionOverwrite(
-						                                                            read_messages=False)})
-
-			pending_removal: list[Coroutine] = [channel.delete() for channel in backupsection.channels]
-
-			# Instead of static channels, we will now make channels when the bot is ran.
-
-			backupevidence = await backup_server.create_text_channel(f"evidence-{datetime.now().strftime('%m-%d-%Y')}",
-			                                                         category=backupsection)
-			ban_history = ban_channel.history(limit=None, oldest_first=True)
-			evidence_history = evidence_channel.history(limit=None, oldest_first=True)
-			bans = BanTransactions().get_all(override=True)
-			async for message in evidence_history :
-				if message.content.startswith("Evidence") is False :
-					continue
-				queue().add(self.backup_message(backupevidence, message), 0)
-
-			for channel in pending_removal :
-				await channel
-			if evidence_only is True :
-				return
-			backupbans = await backup_server.create_text_channel(f"bans-{datetime.now().strftime('%m-%d-%Y')}",
-			                                                     category=backupsection)
-			async for message in ban_history :
-				if len(message.embeds) < 1 :
-					continue
-				queue().add(
-					self.backup_message(backupbans, message), 0)
+	# @app_commands.command(name="backup", description="[DEV] Backs up ban and evidence channels to the backup server.")
+	# @AccessControl().check_access("dev")
+	# async def copy(self, interaction: discord.Interaction, evidence_only: bool = False) :
+	# 	"""
+	# 	[DEV] Backs up ban and evidence channels to a private backup server.
+	#
+	# 	**Permissions:**
+	# 	- `Developer`
+	# 	"""
+	# 	await send_response(interaction, "Backup Started", ephemeral=True)
+	# 	backup_server = self.bot.get_guild(int(os.getenv("BACKUP_SERVER")))
+	# 	if not evidence_only :
+	# 		ban_channel = self.bot.get_channel(int(os.getenv("APPROVED")))
+	# 		evidence_channel = self.bot.get_channel(int(os.getenv("EVIDENCE")))
+	# 		backupsection = get(backup_server.categories, name="backup")
+	# 		if backupsection is None :
+	# 			backupsection = await backup_server.create_category_channel("backup",
+	# 			                                                            overwrites={
+	# 				                                                            backup_server.default_role : discord.PermissionOverwrite(
+	# 					                                                            read_messages=False)})
+	#
+	# 		pending_removal: list[Coroutine] = [channel.delete() for channel in backupsection.channels]
+	#
+	# 		# Instead of static channels, we will now make channels when the bot is ran.
+	#
+	# 		backupevidence = await backup_server.create_text_channel(f"evidence-{datetime.now().strftime('%m-%d-%Y')}",
+	# 		                                                         category=backupsection)
+	# 		ban_history = ban_channel.history(limit=None, oldest_first=True)
+	# 		evidence_history = evidence_channel.history(limit=None, oldest_first=True)
+	# 		bans = BanTransactions().get_all(override=True)
+	# 		async for message in evidence_history :
+	# 			if message.content.startswith("Evidence") is False :
+	# 				continue
+	# 			queue().add(self.backup_message(backupevidence, message), 0)
+	#
+	# 		for channel in pending_removal :
+	# 			await channel
+	# 		if evidence_only is True :
+	# 			return
+	# 		backupbans = await backup_server.create_text_channel(f"bans-{datetime.now().strftime('%m-%d-%Y')}",
+	# 		                                                     category=backupsection)
+	# 		async for message in ban_history :
+	# 			if len(message.embeds) < 1 :
+	# 				continue
+	# 			queue().add(
+	# 				self.backup_message(backupbans, message), 0)
 
 	# ============================================================
 	@app_commands.command(name="rebuild_evidence",
@@ -384,7 +385,7 @@ class DevTools(commands.GroupCog, name="dev") :
 				embed = message.embeds[0]
 				try :
 					match = re.search(r'ban ID: (\d+)', embed.footer.text)
-				except AttributeError:
+				except AttributeError :
 					match = None
 				if not match :
 					continue
@@ -563,7 +564,6 @@ class DevTools(commands.GroupCog, name="dev") :
 
 		await send_response(interaction, queue_text, ephemeral=True)
 
-
 	# @app_commands.command(name="set_audit_message",
 	#                       description="[DEV] sets date override for bans affected by the audit to show these were inspected.")
 	# @AccessControl().check_access("dev")
@@ -631,12 +631,12 @@ class DevTools(commands.GroupCog, name="dev") :
 		msg = await send_message(interaction.channel, f"Starting ban sync, please be patient!")
 		count: int = 0
 		for guild in self.bot.guilds :
-			try:
+			try :
 				async for ban in guild.bans() :
-					if count % 200 == 0:
+					if count % 200 == 0 :
 						await asyncio.sleep(0)
 						logging.info(f"Found {count} bans")
-					if reason:
+					if reason :
 						queue().add(asyncio.to_thread(
 							BanTransactions().update,
 							guild.id + ban.user.id,
@@ -653,19 +653,27 @@ class DevTools(commands.GroupCog, name="dev") :
 						override=False
 					), priority=0)
 					count += 1
-			except Exception as e:
+			except Exception as e :
 				logging.info(f"Failed to sync {guild.id} bans: {e}")
 				continue
 		await send_message(interaction.channel, f"Finished ban sync of {count} bans.")
 
-
 	# ============================================================
-	async def backup_message(self, channel, message):
-			"""
-				Sends the message to the designated channel.
-			"""
-			channel.send(message.content, files=[await attachment.to_file() for attachment in message.attachments],
-			             embeds=message.embeds)
+	async def backup_message(self, channel, message) :
+		"""
+			Sends the message to the designated channel.
+		"""
+		channel.send(message.content, files=[await attachment.to_file() for attachment in message.attachments],
+		             embeds=message.embeds)
+
+	@app_commands.command(name="toolbox", description="[DEV] developer toolbox")
+	@app_commands.choices(tool=[Choice(name=tool_name, value=tool_func) for tool_name, tool_func in Toolbox().TOOLS_LIST.items()])
+	@AccessControl().check_access("dev")
+	async def toolbox(self, interaction: discord.Interaction, tool: Choice['str']) :
+		result = Toolbox().run(interaction, tool.value)
+		await send_response(interaction, result)
+
+
 
 async def setup(bot: commands.Bot) :
 	await bot.add_cog(DevTools(bot))
