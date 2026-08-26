@@ -312,7 +312,7 @@ class Bans(metaclass=Singleton) :
 			# Runs on every sweep, so throttle: staff hear about this at most once an hour.
 			from classes.permissions_notice import PermissionNotice
 			await PermissionNotice.notify(
-				guild, missing=["ban_members"], purpose="apply shared bans in your server", throttle=True)
+				guild, missing=["ban_members"], purpose="View your servers bans", throttle=True)
 			return
 
 		db_server = ServerTransactions().get(guild.id)

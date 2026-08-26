@@ -30,7 +30,7 @@ PERMISSION_INFO = {
 	"attach_files"          : ("Attach Files", "attach evidence images to ban and warning messages"),
 	"read_message_history"  : ("Read Message History", "find previous ban messages when updating or revoking them"),
 	"manage_messages"       : ("Manage Messages", "clean up and revoke ban messages"),
-	"ban_members"           : ("Ban Members", "apply shared bans to your server"),
+	"ban_members"           : ("Ban Members", "view your bans and needed for the /ban command"),
 	"kick_members"          : ("Kick Members", "remove users as part of warning punishments"),
 	"manage_guild"          : ("Manage Server", "read invite data for the dashboard"),
 	"create_instant_invite" : ("Create Invite", "generate an invite link for the dashboard"),
