@@ -670,7 +670,7 @@ class DevTools(commands.GroupCog, name="dev") :
 	@app_commands.choices(tool=[Choice(name=tool_name, value=tool_func) for tool_name, tool_func in Toolbox().TOOLS_LIST.items()])
 	@AccessControl().check_access("dev")
 	async def toolbox(self, interaction: discord.Interaction, tool: Choice['str']) :
-		result = Toolbox().run(interaction, tool.value)
+		result = await Toolbox().run(interaction, tool.value)
 		await send_response(interaction, result)
 
 
