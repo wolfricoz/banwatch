@@ -5,12 +5,12 @@ from database.transactions.BanTransactions import BanTransactions
 
 
 class BanFactory :
-	def create(self, amount = 1, guild = None, approved = True):
+	def create(self, amount = 1, guild = None, approved = True, reason = "reason"):
 		records = []
 		if not guild:
 			guild = ServerFactory().create()
 		if amount == 1:
-			return BanTransactions().add(random.randrange(10 ** 17, 10 ** 18), guild.id, "reason", "staff", approved=approved)
+			return BanTransactions().add(random.randrange(10 ** 17, 10 ** 18), guild.id, reason, "staff", approved=approved)
 		while len(records) < amount:
-			records.append(BanTransactions().add(random.randrange(10 ** 17, 10 ** 18), guild.id, "reason", "staff", approved=approved))
+			records.append(BanTransactions().add(random.randrange(10 ** 17, 10 ** 18), guild.id, reason, "staff", approved=approved))
 		return records

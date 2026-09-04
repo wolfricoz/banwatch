@@ -330,6 +330,32 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 
 			return session.execute(statement).scalars().all()
 
+	# ============================================================
+	def get_pending_by_reason(self, word: str) -> list[Type[Bans]] :
+		"""Pending bans whose reason contains `word`, case-insensitively.
+
+		Mirrors the visibility filters of get_all_pending() so this returns exactly the subset of
+		bans staff already see in the review queue, plus the approved=False filter that
+		get_all_pending() leaves to its caller to apply in Python.
+
+		:param word: staff supplied search term, matched as a substring of the ban reason.
+		:return: the matching pending bans, guild and proof eagerly loaded.
+		"""
+		# The word comes straight from a slash command, so its LIKE wildcards have to be escaped or
+		# a staffer typing "%" would match - and bulk approve - every pending ban in the database.
+		# "!" is the escape character rather than the usual backslash: MySQL also treats a
+		# backslash as a string escape, so an ESCAPE '\' clause is ambiguous there.
+		escaped = word.replace("!", "!!").replace("%", "!%").replace("_", "!_")
+		with self.createsession() as session :
+			return session.scalars(
+				Select(Bans).join(Servers).options(joinedload(Bans.proof), joinedload(Bans.guild)).where(
+					and_(Bans.approved.is_(False),
+					     Bans.hidden.is_(False),
+					     Bans.deleted_at.is_(None),
+					     Bans.reason.ilike(f"%{escaped}%", escape="!"),
+					     Servers.deleted_at.is_(None),
+					     Servers.hidden.is_(False)))).unique().all()
+
 	#	=== Statistics ===
 
 	# ============================================================

@@ -17,8 +17,13 @@ class Confirm(SecureView):
 		return self.value
 
 	# ============================================================
-	def __init__(self):
-		super().__init__(timeout=None)
+	def __init__(self, timeout: float | None = None):
+		"""timeout defaults to None to keep the existing persistent call sites unchanged.
+
+		Pass a timeout when the caller awaits send_confirm() from a command: without one,
+		wait() never returns if nobody presses a button and the awaiting coroutine leaks.
+		"""
+		super().__init__(timeout=timeout)
 
 	# ============================================================
 	@discord.ui.button(label="Confirm", style=discord.ButtonStyle.green, custom_id="confirm")

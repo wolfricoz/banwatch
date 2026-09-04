@@ -132,6 +132,67 @@ class Bans(metaclass=Singleton) :
 		queue().add(self.send_to_ban_channel(approved_channel, banembed, guild, user, bot, wait_id))
 
 	# ============================================================
+	async def notify_origin_server(self, bot, ban_id: int, silent: bool = False) -> None :
+		"""Tells the server that reported a ban that the banwatch team has approved it.
+
+		Extracted from the approval buttons so the bulk approval command sends the exact same
+		notice and the two can never drift apart.
+		"""
+		ban = BanTransactions().get(ban_id, override=True)
+		if ban is None :
+			logging.warning(f"Cannot notify origin server: ban {ban_id} not found.")
+			return
+		guild = bot.get_guild(ban.gid)
+		if guild is None :
+			try :
+				guild = await bot.fetch_guild(ban.gid)
+			except (discord.NotFound, discord.HTTPException) :
+				logging.error(f"Failed to fetch guild with id {ban.gid}")
+				return
+		channel = await ConfigData().get_channel(guild)
+		if channel is None :
+			logging.info(f"Guild {guild} has no channel")
+			return
+		action = "edited" if ban.edited else "approved"
+		suffix = "." if silent else f" and broadcast with ban reason: \n{ban.reason}"
+		await send_message(channel, f"Your ban {ban_id} has been {action} by the banwatch team{suffix}")
+
+	# ============================================================
+	async def approve_ban(self, bot, ban) -> bool :
+		"""Approves and broadcasts a single pending ban without a review message to click.
+
+		The approval buttons build their embed from interaction.message, which a bulk caller does
+		not have, so this rebuilds the same embed from the ban record and hands it to
+		check_guilds - which is what actually flips approved and fans the ban out to the network.
+
+		:param ban: a Bans row with its guild relationship eagerly loaded (the invite is read here).
+		:return: True when the ban was queued for broadcast, False when its guild or user could not
+		         be resolved, in which case the ban stays pending.
+		"""
+		guild = bot.get_guild(ban.gid)
+		if guild is None :
+			# No fetch_guild fallback on purpose: the broadcast path calls guild.get_channel() and
+			# reads guild.owner, neither of which work on an uncached guild, and a guild the bot is
+			# no longer in cannot be broadcast for anyway.
+			logging.warning(f"Skipping approval of {ban.ban_id}: guild {ban.gid} is not cached.")
+			return False
+		user = bot.get_user(ban.uid)
+		if user is None :
+			try :
+				user = await bot.fetch_user(ban.uid)
+			except (discord.NotFound, discord.HTTPException) as e :
+				logging.warning(f"Skipping approval of {ban.ban_id}: could not fetch user {ban.uid}: {e}")
+				return False
+		owner = guild.owner
+		banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
+		                         description=f"{ban.reason}")
+		# "ban ID: {id}" is parsed back out of this footer by get_ban_id(), so keep the format.
+		banembed.set_footer(text=f"Server Invite: {ban.guild.invite} Server Owner: {owner} ban ID: {ban.ban_id} ")
+		queue().add(self.notify_origin_server(bot, ban.ban_id), priority=0)
+		await self.check_guilds(None, bot, guild, user, banembed, ban.ban_id, False)
+		return True
+
+	# ============================================================
 	async def send_to_ban_channel(self, approved_channel, banembed, guild, user, bot: commands.Bot,
 	                              wait_id) :
 		approved_message = await approved_channel.send(embed=banembed)

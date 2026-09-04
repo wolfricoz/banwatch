@@ -38,6 +38,13 @@ class BanApproval(SecureView) :
 		if ban_entry is None :
 			await send_response(interaction, "Ban not found", ephemeral=True)
 			return
+		if ban_entry.approved :
+			# A bulk approval (/staff approve_pending) leaves these review messages live in the ban
+			# channel with working buttons. Without this guard a second press runs check_guilds
+			# again and broadcasts the ban to the whole network twice.
+			await send_response(interaction, "This ban has already been handled and is no longer pending.",
+			                    ephemeral=True)
+			return
 		# noinspection PyTypeChecker,PydanticTypeChecker
 		if len(ban_entry.proof) < 1 :
 			await send_response(interaction, "No evidence found, please add evidence and try again", ephemeral=True)
@@ -52,7 +59,7 @@ class BanApproval(SecureView) :
 		                          f"Approved `{interaction.message.embeds[0].title}`   with proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}",
 		                          ephemeral=False), priority=2)
 		await self.update_embed(interaction)
-		queue().add(self.send_feedback(interaction), priority=0)
+		queue().add(self.send_feedback(), priority=0)
 
 		if self.silent :
 			queue().add(inform_user(guild, user), 0)
@@ -221,25 +228,12 @@ class BanApproval(SecureView) :
 		return guild, user, ban_entry.reason
 
 	# ============================================================
-	async def send_feedback(self, interaction: discord.Interaction) :
-		ban = BanTransactions().get(self.wait_id, override=True)
-		if ban is None :
-			await send_response(interaction, "Ban not found", ephemeral=True)
-			return
-		guild = self.bot.get_guild(ban.gid)
-		if guild is None :
-			try :
-				guild = await self.bot.fetch_guild(ban.gid)
-			except Exception :
-				logging.error(f"Failed to fetch guild with id {ban.gid}")
-				return
+	async def send_feedback(self) :
+		"""Notifies the origin server that its ban was approved.
 
-		channel = await ConfigData().get_channel(guild, )
-		if channel is None :
-			logging.info(f"Guild {guild} has no channel")
-			return
-		notice = f"Your ban {self.wait_id} has been {'edited' if ban.edited else 'approved'}  by the banwatch team{f' and broadcast with ban reason: \n{ban.reason}' if not self.silent else '.'}"
-		await send_message(channel, notice)
+		The notice itself lives on Bans so /staff approve_pending sends exactly the same message.
+		"""
+		await Bans().notify_origin_server(self.bot, self.wait_id, silent=self.silent)
 
 	# ============================================================
 	async def approve_handler(self, interaction: discord.Interaction) :
@@ -247,6 +241,13 @@ class BanApproval(SecureView) :
 		ban_entry = BanTransactions().get(self.wait_id, override=True)
 		if ban_entry is None :
 			await send_response(interaction, "Ban not found", ephemeral=True)
+			return
+		if ban_entry.approved :
+			# A bulk approval (/staff approve_pending) leaves these review messages live in the ban
+			# channel with working buttons. Without this guard a second press runs check_guilds
+			# again and broadcasts the ban to the whole network twice.
+			await send_response(interaction, "This ban has already been handled and is no longer pending.",
+			                    ephemeral=True)
 			return
 		logging.info(f"Approving ban {ban_entry.ban_id}. Time since button press: {time.time() - start} seconds")
 
@@ -262,7 +263,7 @@ class BanApproval(SecureView) :
 		queue().add(send_response(interaction,
 		                          f"Approved `{interaction.message.embeds[0].title}`   without proof by {interaction.user.mention}! {'Silent option was true, ban not broadcast' if self.silent else ''}",
 		                          ephemeral=False), priority=2)
-		queue().add(self.send_feedback(interaction), priority=0)
+		queue().add(self.send_feedback(), priority=0)
 		logging.info(
 			f"Sent feedback for ban approval without proof. Time since button press: {time.time() - start} seconds")
 

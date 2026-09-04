@@ -19,6 +19,7 @@ from data.variables.messages import evidence_message_template
 from database.current import Bans as BanTable
 from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ServerTransactions import ServerTransactions
+from view.buttons.confirm import Confirm
 
 GUILD = int(os.getenv("GUILD"))
 
@@ -281,6 +282,56 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 			queue().add(audit_ban(self.bot, ban), priority=0)
 			count += 1
 		await send_message(interaction.channel, f"Queued {count}/{len(bans)} (limit: {maximum}) bans for audit.")
+
+	# ============================================================
+	@app_commands.command(name="approve_pending",
+	                      description="[Staff] Approve all pending bans whose reason contains a word")
+	@AccessControl().check_access()
+	@app_commands.guilds(GUILD)
+	async def approve_pending(self, interaction: discord.Interaction, word: str, maximum: int = 100) :
+		"""
+		Approves every pending ban whose reason contains the given word and broadcasts them to the network, exactly as the approval button does one at a time. The matches are previewed and have to be confirmed before anything is approved.
+
+		**Permissions:**
+		- Requires BanWatch Staff access.
+		"""
+		word = word.strip()
+		if not word :
+			# An empty search term matches the reason of every pending ban in the database.
+			return await send_response(interaction, "Please provide a word to search the ban reasons for.",
+			                           ephemeral=True)
+		# The lookup has to happen before the first response: Confirm.send_confirm() replies with
+		# interaction.response.send_message(), which only works on an interaction nothing has
+		# responded to or deferred yet.
+		bans = BanTransactions().get_pending_by_reason(word)
+		safe_word = word.replace("`", "'")
+		if not bans :
+			return await send_response(interaction, f"No pending bans found with `{safe_word}` in the reason.",
+			                           ephemeral=True)
+
+		targets = bans[:maximum]
+		preview = [f"Found **{len(bans)}** pending ban(s) with `{safe_word}` in the reason. "
+		           f"**{len(targets)}** would be approved and broadcast (limit: {maximum}).", ""]
+		for ban in targets[:10] :
+			reason = ban.reason[:80].replace("`", "'")
+			preview.append(f"`{ban.ban_id}` - {reason}")
+		if len(targets) > 10 :
+			preview.append(f"...and {len(targets) - 10} more.")
+		preview.append("\nThis broadcasts every one of them to the whole network. Continue?")
+
+		if not await Confirm(timeout=120).send_confirm(interaction, "\n".join(preview)[:1900]) :
+			return await send_message(interaction.channel, f"Bulk approval of `{safe_word}` cancelled.")
+
+		count = 0
+		for ban in targets :
+			if count % 50 == 0 :
+				await asyncio.sleep(0)
+				logging.info(f"Queueing bulk approval, current count: {count}/{len(targets)}")
+			queue().add(Bans().approve_ban(self.bot, ban), priority=0)
+			count += 1
+		await send_message(interaction.channel,
+		                   f"Queued {count}/{len(bans)} (limit: {maximum}) pending bans matching "
+		                   f"`{safe_word}` for approval, requested by {interaction.user.mention}.")
 
 
 

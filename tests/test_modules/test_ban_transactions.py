@@ -210,3 +210,43 @@ class TestBanDatabaseOperations(unittest.TestCase):
         # now mark guild deleted and ensure ban is treated as inaccessible
         self.server_controller.update(guild.id, delete=True)
         self.assertIsNone(self.ban_controller.get(ban.ban_id))
+
+    # ============================================================
+    # get_pending_by_reason: the query behind /staff approve_pending
+    def test_get_pending_by_reason_positive_and_case_insensitive(self):
+        BanFactory().create(amount=3, approved=False, reason="scammer")
+        BanFactory().create(amount=2, approved=False, reason="spam bot")
+        BanFactory().create(amount=1, approved=False, reason="SCAMMER alt account")
+        # substring match, so "scam" also catches "scammer", and case must not matter
+        self.assertEqual(len(self.ban_controller.get_pending_by_reason("scam")), 4)
+        self.assertEqual(len(self.ban_controller.get_pending_by_reason("SCAMMER")), 4)
+        self.assertEqual(len(self.ban_controller.get_pending_by_reason("spam")), 2)
+
+    # ============================================================
+    def test_get_pending_by_reason_excludes_non_pending(self):
+        pending = BanFactory().create(amount=3, approved=False, reason="scammer")
+        # already approved bans must never be re-approved and re-broadcast
+        BanFactory().create(amount=1, approved=True, reason="scammer")
+        self.assertEqual(len(self.ban_controller.get_pending_by_reason("scammer")), 3)
+        # a ban staff deliberately hid is not offered for bulk approval either
+        self.ban_controller.update(pending[0].ban_id, hidden=True)
+        self.assertEqual(len(self.ban_controller.get_pending_by_reason("scammer")), 2)
+        # the factory puts all three bans in one guild, so hiding it hides the rest
+        ServerTransactions().update(pending[1].gid, hidden=True)
+        self.assertEqual(len(self.ban_controller.get_pending_by_reason("scammer")), 0)
+
+    # ============================================================
+    def test_get_pending_by_reason_escapes_like_wildcards(self):
+        BanFactory().create(amount=2, approved=False, reason="scammer")
+        # unescaped, "%" and "_" are LIKE wildcards and would match every pending ban
+        self.assertEqual(len(self.ban_controller.get_pending_by_reason("%")), 0)
+        self.assertEqual(len(self.ban_controller.get_pending_by_reason("_")), 0)
+        # they still work as literal characters
+        BanFactory().create(amount=1, approved=False, reason="100% scammer")
+        self.assertEqual(len(self.ban_controller.get_pending_by_reason("%")), 1)
+
+    # ============================================================
+    def test_get_pending_by_reason_negative_no_match(self):
+        BanFactory().create(amount=2, approved=False, reason="scammer")
+        self.assertEqual(len(self.ban_controller.get_pending_by_reason("raider")), 0)
+        self.assertEqual(len(self.ban_controller.get_pending_by_reason("scammer")), 2)
