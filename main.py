@@ -23,6 +23,7 @@ from classes.configdata import ConfigData
 from classes.configer import Configer
 from classes.onboarding import Onboarding
 from classes.queue import queue
+from classes.support import leavereport
 from classes.tasks import pending_bans
 from database.current import create_bot_database
 from database.transactions.ServerTransactions import ServerTransactions
@@ -200,6 +201,9 @@ async def on_guild_remove(guild) :
 	await log.send(f"left `{guild}({guild.id})` :(. Ban watch is now in {len(bot.guilds)}")
 	logging.info(f"{guild} left, refreshing ban list")
 	ServerTransactions().update(guild.id, active=False)
+	# Saves the join-leaver file (waiting for the log buffer to flush) and posts the leave summary to the ban
+	# approval channel, so it runs apart from this event.
+	bot.loop.create_task(leavereport.send(bot, guild))
 
 
 # cogloader
