@@ -1,9 +1,10 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from discord_py_utilities.messages import await_message, send_response
+from discord_py_utilities.messages import send_response
 
 from classes.evidence import EvidenceController
+from classes.prompts import ask_for_message
 from classes.queue import queue
 from data.variables.messages import evidence_message_template
 from database.transactions.BanTransactions import BanTransactions
@@ -53,7 +54,7 @@ class Evidence(commands.GroupCog, name="evidence") :
 			await EvidenceController.add_evidence_standalone(interaction, ban_id,user,  info, attachments)
 			return
 
-		evidence = await await_message(interaction, evidence_message_template.format(user=user.name, ban_id=ban_id))
+		evidence = await ask_for_message(interaction, evidence_message_template.format(user=user.name, ban_id=ban_id))
 		if evidence is False :
 			return
 		queue().add(send_response(interaction, f"⏳ Processing Evidence, please wait.", ephemeral=True), priority=2)

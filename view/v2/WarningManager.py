@@ -2,10 +2,11 @@ from typing import Any, List
 
 import discord
 from discord_py_utilities.bans import ban_user
-from discord_py_utilities.messages import await_message, send_message, send_response
+from discord_py_utilities.messages import send_message, send_response
 
 from classes.bans import Bans
 from classes.configdata import ConfigData
+from classes.prompts import ask_for_message
 from classes.queue import queue
 from classes.warnings.evidence import WarningEvidence
 from data.config.mappings import Channels
@@ -169,7 +170,7 @@ class WarningManager(discord.ui.LayoutView) :
 		evidence_channel: discord.TextChannel = await ConfigData().get_channel(interaction.guild, Channels.WARNING_EVIDENCE_ARCHIVE, True)
 		if not isinstance(evidence_channel, discord.TextChannel) :
 			return await send_response(interaction, f"[Config Missing] No evidence archive is set, please set it with /config change")
-		evidence: discord.Message | bool = await await_message(interaction, evidence_warning_message_template.format(user=self.user.name, warning_id=current_warning.id))
+		evidence: discord.Message | bool = await ask_for_message(interaction, evidence_warning_message_template.format(user=self.user.name, warning_id=current_warning.id))
 		if not isinstance(evidence, discord.Message) :
 			return send_response(interaction, f"Adding evidence has been cancelled.")
 		manager = WarningEvidence(current_warning)

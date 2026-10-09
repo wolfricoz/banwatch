@@ -22,13 +22,19 @@ class RolesSelect(discord.ui.RoleSelect):
         self.values.append(interaction.guild.me)
         channel = get(interaction.guild.text_channels, name="banwatch-alerts")
         if not channel:
-            channel = await interaction.guild.create_text_channel(
-                name="banwatch-alerts",
-                overwrites={
-                    role: discord.PermissionOverwrite(read_messages=True, embed_links=True, read_message_history=True, send_messages=True)
-                    for role in self.values
-                }
-            )
+            try:
+                channel = await interaction.guild.create_text_channel(
+                    name="banwatch-alerts",
+                    overwrites={
+                        role: discord.PermissionOverwrite(read_messages=True, embed_links=True, read_message_history=True, send_messages=True)
+                        for role in self.values
+                    }
+                )
+            except discord.Forbidden:
+                # Banwatch needs Manage Channels (and Manage Roles for the overwrites) to create it (BANWATCH-A4).
+                return await interaction.response.send_message(
+                    "I couldn't create the `banwatch-alerts` channel: I need the **Manage Channels** and **Manage Roles** permissions. "
+                    "Grant them and try again, or pick an existing channel with `/config change`.", ephemeral=True)
         ConfigTransactions().config_unique_add(interaction.guild.id, "modchannel", channel.id)
         await interaction.response.send_message(f"Mod channel created: {channel.mention}", ephemeral=True)
         # The cache still holds the previous modchannel here, so hand log_change the channel it

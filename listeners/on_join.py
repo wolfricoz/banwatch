@@ -20,17 +20,20 @@ class Events(commands.Cog):
     async def on_member_join(self, member: discord.Member):
         """Checks if user is banned"""
         bot = self.bot
-        channel = await ConfigData().get_channel(member.guild)
         sr = await Bans().get_user_bans(member.id)
 
         if sr is None or len(sr) < 1:
             logging.debug(f"{member} ({member.id}) joined {member.guild.name} with no ban record")
             return
         logging.info(f"Banned member {member} ({member.id}) joined {member.guild.name} ({member.guild.id}) with {len(sr)} ban record(s)")
+        # optional=True: only banned joins need the channel, and we report the missing channel ourselves below.
+        channel = await ConfigData().get_channel(member.guild, optional=True)
         if channel is None:
             # await send_message(member.guild.owner, 'No mod channel set, please set one to receive banwatch notifications', error_mode='ignore')
             logging.warning(f"{member.guild.name} ({member.guild.id}) has no mod channel set; cannot notify of banned join")
             channel = find_first_accessible_text_channel(member.guild)
+            if channel is None:
+                return
             await send_message(channel, f"No mod channel set for {member.guild.name}, unable to send banwatch notifications in this server. Please resolve this with `/config change`.",
 															 error_mode="ignore")
             return

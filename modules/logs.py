@@ -213,7 +213,7 @@ class Logging(commands.Cog):
 				attachment = discord.File(io.BytesIO(tb.encode("utf-8")), "error.txt")
 				await channel.send(header, file=attachment)
 		except Exception as e:
-			logging.error(e)
+			logging.error(f"Could not post the error to the DEV channel: {e}", exc_info=True)
 
 	# ============================================================
 	@commands.Cog.listener("on_command_error")
@@ -254,8 +254,11 @@ class Logging(commands.Cog):
 		"""sends a message to the user if the command fails."""
 		try:
 			await interaction.channel.send(message)
+		except discord.Forbidden as e:
+			# The command ran in a channel the bot can't post in; nothing to fix on our side (BANWATCH-17).
+			logging.info(f"Could not send the failure message in {interaction.channel_id}: {e}")
 		except Exception as e:
-			logging.error(e)
+			logging.warning(f"Could not send the failure message in {interaction.channel_id}: {e}", exc_info=True)
 
 	# ============================================================
 	async def on_app_command_error(self, interaction: Interaction, error: AppCommandError):
