@@ -4,6 +4,7 @@ import logging
 import math
 
 from discord import Forbidden, channel
+from discord_py_utilities.exceptions import NoChannelException
 
 from classes.configdata import KeyNotFound
 
@@ -101,6 +102,9 @@ class queue(metaclass=Singleton) :
 			if hasattr(task, 'channel') and isinstance(task.channel, channel.TextChannel) :
 				await task.channel.send(f"{task.channel.name} has been removed from queue.")
 			logging.info(f"No permission for {task.__name__}: {e}")
+		except NoChannelException:
+			# A queued message whose target channel is unset or deleted in that guild's config (BANWATCH-A5).
+			logging.warning(f"No channel for queued task {task.__name__}, skipped")
 		except KeyNotFound:
 			logging.warning(f"Key not found in queue: {task.__name__} for guild {task.guild.id if hasattr(task, 'guild') else 'unknown'}")
 		except Exception as e :

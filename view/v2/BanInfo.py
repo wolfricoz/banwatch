@@ -4,10 +4,11 @@ import os
 
 import discord
 from discord_py_utilities.bans import ban_user
-from discord_py_utilities.messages import await_message, send_message, send_response
+from discord_py_utilities.messages import send_message, send_response
 
 from classes.bans import Bans as BansClass
 from classes.evidence import EvidenceController
+from classes.prompts import ask_for_message
 from classes.queue import queue
 from data.variables.messages import evidence_message_template
 from database.current import Bans
@@ -125,7 +126,7 @@ class BanInfo(discord.ui.LayoutView) :
 	async def evidence(self, interaction: discord.Interaction) :
 		if not self.check_perms(interaction) :
 			return await send_response(interaction, f"You don't have permission for this action", ephemeral=True)
-		evidence = await await_message(interaction, evidence_message_template.format(user=self.user.name,
+		evidence = await ask_for_message(interaction, evidence_message_template.format(user=self.user.name,
 		                                                                             ban_id=self.user.id + interaction.guild.id))
 		if evidence is False :
 			return None

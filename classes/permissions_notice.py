@@ -59,8 +59,9 @@ class PermissionNotice :
 	def _should_send(cls, guild_id: int, dedupe_key: str) -> bool :
 		now = time.monotonic()
 		guild_map = cls._last_sent.setdefault(guild_id, {})
-		last = guild_map.get(dedupe_key, 0.0)
-		if now - last < cls._COOLDOWN_SECONDS :
+		# No 0.0 default: monotonic() counts from host boot, so that would drop every notice in the first hour of uptime.
+		last = guild_map.get(dedupe_key)
+		if last is not None and now - last < cls._COOLDOWN_SECONDS :
 			return False
 		guild_map[dedupe_key] = now
 		return True

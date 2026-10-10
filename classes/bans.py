@@ -125,7 +125,11 @@ class Bans(metaclass=Singleton) :
 				queue().add(self.inform_server(bot, guilds, banembed, wait_id), priority=0)
 		await Bans().change_ban_approval_status(wait_id, True, verified=verified)
 		if interaction is not None :
-			await interaction.message.delete()
+			try :
+				await interaction.message.delete()
+			except discord.NotFound :
+				# Another moderator already handled (and removed) the approval message (BANWATCH-18).
+				pass
 		if not silent :
 			queue().add(inform_user(guild, user), 0)
 
@@ -480,6 +484,9 @@ class Bans(metaclass=Singleton) :
 			logging.info(f"No permission to fetch invites in {guild.name}({guild.id})")
 		except IndexError :
 			logging.info(f"{guild.name}({guild.id}) has no invites.")
+		except discord.NotFound :
+			# The bot left the guild while the sweep was running (BANWATCH-HN).
+			logging.info(f"{guild.name}({guild.id}) is no longer available, no invite created.")
 		except Exception as e :
 			logging.error(f"Error creating invite for {guild.name}({guild.id}): {e}")
 
