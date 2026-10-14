@@ -18,6 +18,7 @@ from classes.configdata import ConfigData
 from classes.configer import Configer
 from classes.evidence import EvidenceController
 from classes.queue import queue
+from classes.support import weeklyreport
 from classes.tasks import pending_bans
 from classes.tools.toolbox import Toolbox
 from database.transactions.BanMessageTransactions import BanMessageTransactions
@@ -402,6 +403,22 @@ class DevTools(commands.GroupCog, name="dev") :
 			except Exception as e :
 				logging.warning(f"Error processing message {message.id} in guild {g.name}: {e}", exc_info=True)
 		logging.info(f"Rebuilt {count} ban messages for guild {g.name}")
+
+	# ============================================================
+	@app_commands.command(name="stats_report",
+	                      description="[DEV] Posts the weekly stats report for the last 7 days to the dev channel now.")
+	@AccessControl().check_access("dev")
+	async def stats_report(self, interaction: discord.Interaction) :
+		"""
+		[DEV] Posts the weekly developer stats report now, covering the last 7 days, instead of waiting for Sunday.
+
+		**Permissions:**
+		- `Developer`
+		"""
+		await send_response(interaction, "Building the weekly stats report.", ephemeral=True)
+		sent = await weeklyreport.send(self.bot)
+		await interaction.followup.send("Report posted to the dev channel." if sent else
+		                                "The report could not be posted, check the logs.", ephemeral=True)
 
 	# ============================================================
 	@app_commands.command(name="testban", description="[DEV] Unbans and re-bans the test account in the current server.")

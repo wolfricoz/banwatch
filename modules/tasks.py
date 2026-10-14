@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from datetime import datetime, time, timezone
 
 from discord.ext import commands, tasks
 
@@ -8,6 +9,7 @@ from classes.blacklist import blacklist_check
 from classes.configdata import ConfigData
 from classes.dashboard.Servers import Servers
 from classes.queue import queue
+from classes.support import quickleaves, weeklyreport
 from classes.tasks import pending_bans
 from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ServerTransactions import ServerTransactions
@@ -21,6 +23,7 @@ class Tasks(commands.Cog) :
 		self.check_pending_bans.start()
 		self.purge_bot_roles.start()
 		self.clean_convict_bans.start()
+		self.weekly_report.start()
 
 	# ============================================================
 	def cog_unload(self) :
@@ -29,6 +32,7 @@ class Tasks(commands.Cog) :
 		self.check_pending_bans.cancel()
 		self.purge_bot_roles.cancel()
 		self.clean_convict_bans.cancel()
+		self.weekly_report.cancel()
 
 
 	# ============================================================
@@ -133,6 +137,24 @@ class Tasks(commands.Cog) :
 			current += 1
 		logging.info(f"Cleaned up {current}/{total_bans} criminal bans from servers")
 
+
+	# ============================================================
+	@tasks.loop(time=time(hour=12, tzinfo=timezone.utc))
+	async def weekly_report(self) :
+		"""Clears out expired join-leaver files daily, and posts the weekly stats report to the DEV channel on Sundays."""
+		try :
+			removed = await asyncio.to_thread(quickleaves.prune)
+			logging.info(f"Deleted {removed} expired join-leaver files")
+			if datetime.now(tz=timezone.utc).weekday() == 6 :
+				await weeklyreport.send(self.bot)
+		except Exception as e :
+			# A failing run must not stop the loop; tomorrow's run tries again.
+			logging.error(f"Weekly report task failed: {e}", exc_info=True)
+
+	# ============================================================
+	@weekly_report.before_loop
+	async def before_weekly_report(self) :
+		await self.bot.wait_until_ready()
 
 	# ============================================================
 	@check_active_servers.before_loop
