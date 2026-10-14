@@ -10,7 +10,6 @@ import sentry_sdk
 from sentry_sdk.integrations.logging import LoggingIntegration
 from discord.ext import commands
 from discord_py_utilities.messages import send_message
-from discord_py_utilities.permissions import find_first_accessible_text_channel
 # IMPORT LOAD_DOTENV FUNCTION FROM DOTENV MODULE.
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -177,8 +176,7 @@ async def on_guild_join(guild: discord.Guild) -> None :
 	#                    f"\n**__Leaving due to low user count__**")
 	#     await guild.leave()
 	#     return
-	fc = find_first_accessible_text_channel(guild)
-	await Onboarding().join_message(fc)
+	await Onboarding().join_message(guild)
 	await log.send(f"Ban watch is now in {len(bot.guilds)}! It just joined:"
 	               f"\nGuild: `{guild}({guild.id})`"
 	               f"\nOwner: `{guild.owner}({guild.owner.id})`"

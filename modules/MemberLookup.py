@@ -87,7 +87,7 @@ class MemberLookup(commands.GroupCog, name="user") :
 			await send_response(interaction, "⌛ Fetching bans, please wait.", ephemeral=True)  # Notify the user
 			view: LookUp = LookUp(user_id=user.id)  # Create a view for displaying the ban details
 			logging.info(f"Sending ban details for user {user.id}.")
-			await view.send_message(interaction.client, interaction.channel, [ban], user,
+			await view.send_message(interaction.client, interaction.channel, [ban], user, interaction=interaction,
 			                        override=override)  # Send the ban details
 			return
 

@@ -44,6 +44,23 @@ def humanize_permission(perm: str) -> str:
 	return label
 
 
+def format_permissions(perms: list[str]) -> str :
+	"""Render permission keys as a bold, comma-separated list of Discord-facing labels."""
+	return ", ".join(f"**{humanize_permission(p)}**" for p in perms)
+
+
+def bot_role_name(guild: discord.Guild) -> str :
+	"""The name admins will see for the bot's role in Server Settings → Roles.
+
+	The bot's own integration role is what the invite created; it is often renamed or named after
+	the application, so a hardcoded "Banwatch" can send admins looking for a role that doesn't exist.
+	"""
+	role = guild.self_role or (guild.me.top_role if guild.me else None)
+	if role is None or role.is_default() :
+		return guild.me.display_name if guild.me else "Banwatch"
+	return role.name
+
+
 class PermissionNotice :
 	"""Builds and delivers actionable permission notices, with per-problem rate limiting."""
 

@@ -8,6 +8,7 @@ from discord_py_utilities.bans import ban_user, dm_user
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.bans import Bans
+from classes.replies import reply
 from database.transactions.BanTransactions import BanTransactions
 from view.modals.inputmodal import send_modal
 from view.multiselect.selectreason import SelectReason
@@ -89,6 +90,7 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 	# ============================================================
 	@app_commands.command(name="unban", description="Unban a user from the server.")
 	@app_commands.checks.has_permissions(ban_members=True)
+	@app_commands.checks.bot_has_permissions(ban_members=True)
 	async def unban(self, interaction: discord.Interaction, user: discord.User) :
 		"""
 		Revokes a ban for a specified user, allowing them to rejoin the server. This is essential for correcting banning mistakes or allowing users to return after an appeal.
@@ -100,13 +102,14 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 		try :
 			await interaction.guild.unban(user)
 		except discord.NotFound :
-			return await send_message(interaction.channel, "User is not banned/cannot be found")
+			return await reply(interaction, f"{user.mention} is not banned in this server.")
 		embed = discord.Embed(title=f"{user.name} unbanned", color=discord.Color.green())
-		await interaction.channel.send(embed=embed)
+		await reply(interaction, embed=embed, ephemeral=False)
 
 	# ============================================================
 	@app_commands.command(name="mass_unban", description="Unban multiple users from the server.")
 	@app_commands.checks.has_permissions(ban_members=True)
+	@app_commands.checks.bot_has_permissions(ban_members=True)
 	async def mass_unban(self, interaction: discord.Interaction, users: str) :
 		"""
 		Revokes bans for multiple users simultaneously. This is useful for processing multiple successful appeals at once or reversing a mass ban action.

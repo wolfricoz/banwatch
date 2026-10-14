@@ -9,6 +9,8 @@ from discord_py_utilities.messages import send_message
 from discord_py_utilities.permissions import check_missing_channel_permissions
 
 from classes.evidence import EvidenceController
+from classes.permissions_notice import bot_role_name, format_permissions
+from classes.replies import reply
 from database.transactions.ProofTransactions import ProofTransactions
 from view.base.secureview import SecureView
 from view.multiselect.selectban import SelectBan
@@ -36,7 +38,12 @@ class LookUp(SecureView) :
 		if missing := check_missing_channel_permissions(channel, permissions) :
 			logging.error(f"Missing permission to send message to {channel.name}")
 			if interaction:
-				return await send_message(interaction.user, f"Missing permission to send ban information for {user.name} to {channel.name}. Check permissions: {', '.join(missing)}")
+				# Answer the interaction itself: it needs no channel permissions, and it replaces the
+				# "Fetching bans" placeholder the user is staring at instead of a DM they may not see.
+				return await reply(interaction,
+				                   f"❌ I can't post the ban history for {user.name} in {channel.mention}: I'm missing "
+				                   f"{format_permissions(missing)} there.\nOpen {channel.mention} → **Edit Channel → "
+				                   f"Permissions**, add **{bot_role_name(channel.guild)}**, enable those, then try again.")
 
 			return await send_message(channel.guild.owner,
 				f"Missing permission to send ban information for {user.name} to {channel.name}. Check permissions: {', '.join(missing)}")

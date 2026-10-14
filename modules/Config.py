@@ -3,10 +3,12 @@ from discord import app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
 from discord_py_utilities.messages import send_response
+from discord_py_utilities.permissions import check_missing_guild_permissions
 
 from classes.config.utils import ConfigUtils
 from classes.configdata import ConfigData
-from classes.permissions import PermissionsCheck
+from classes.permissions import PermissionsCheck, channel_problems
+from classes.permissions_notice import bot_role_name, format_permissions
 from classes.queue import queue
 from data.config.mappings import Channels, available_toggles
 from database.transactions.ServerTransactions import ServerTransactions
@@ -44,20 +46,37 @@ class Config(commands.GroupCog, name="config") :
 		**Permissions:**
 		- `Manage Server`
 		"""
-		permissions = channel.permissions_for(interaction.guild.me)
-		if not permissions.send_messages :
-			return await send_response(interaction,
-			                           f"❌ I need the `Send Messages` permission in {channel.mention} to set it as the {option.name}.")
-		if not permissions.view_channel :
-			return await send_response(interaction,
-			                           f"❌ I need the `Read Messages` permission in {channel.mention} to set it as the {option.name}.")
+		# Report every missing permission at once: checking one at a time sent admins to grant
+		# Send Messages when View Channel was the real blocker (Send Messages reads as missing without it).
+		missing_required, missing_optional = channel_problems(channel)
+		role = bot_role_name(interaction.guild)
+		if missing_required :
+			return await send_response(
+				interaction,
+				f"❌ I can't use {channel.mention} as the {option.name} yet: I'm missing "
+				f"{format_permissions(missing_required)} there.\n"
+				f"Open {channel.mention} → **Edit Channel → Permissions**, add **{role}**, enable those, "
+				"then run this command again.",
+				ephemeral=True)
 
 		ConfigData().add_key(interaction.guild.id, option.value, channel.id, overwrite=True)
 		queue().add(ConfigUtils.log_change(interaction.guild, {option.value : channel.mention},
 		                                   user_name=interaction.user.mention))
-		if option.value == "modchannel":
-			return await send_response(interaction, f"Set **{option.name}** to {channel.mention}. If this is your first time setting the mod channel then banwatch is going to automatically add all your bans to the database. For bans that require evidence or additional action we may request evidence or additional action. \n\n__**This may result in many messages in the mod channel**__")
-		await send_response(interaction, f"Set **{option.name}** to {channel.mention}")
+		warnings = []
+		if missing_optional :
+			warnings.append(f"⚠️ I'm also missing {format_permissions(missing_optional)} in {channel.mention}; "
+			                "some features won't work there until they're enabled.")
+		message = f"Set **{option.name}** to {channel.mention}."
+		if option.value == Channels.MOD_CHANNEL :
+			message += ("\n\nIf this is your first mod channel, Banwatch will now import your server's existing bans. "
+			            "Bans that need evidence will get a request in this channel, "
+			            "__**so expect a burst of messages there.**__")
+			if missing_ban := check_missing_guild_permissions(interaction.guild, ["ban_members"]) :
+				warnings.append(f"⚠️ I'm missing {format_permissions(missing_ban)} server-wide, so I can't read "
+				                f"your bans to import them. Enable it under **Server Settings → Roles → {role}**.")
+		if warnings :
+			message += "\n\n" + "\n".join(warnings)
+		await send_response(interaction, message)
 
 	# ============================================================
 	@app_commands.command(name="appeals", description="Enable or disable the ability for users to appeal bans.")
