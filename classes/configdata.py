@@ -175,6 +175,28 @@ class ConfigData(metaclass=Singleton) :
 		"""Gets channel from the Config."""
 
 	# ============================================================
+	@staticmethod
+	async def _notify_missing_channel(guild: discord.Guild, channel_type: str) -> None :
+		"""Tells the guild a required channel is unset. Throttled per guild/channel type and never raises.
+
+		This used to fire on every call (e.g. every member join) and DM the owner with error_mode='error';
+		an owner with closed DMs then crashed discord_py_utilities' permission check on a Member (BANWATCH-DP).
+		"""
+		# Lazy import: permissions_notice lazy-imports ConfigData, keep the dependency one-directional at load.
+		from classes.permissions_notice import PermissionNotice
+		if not PermissionNotice._should_send(guild.id, f"missing-channel:{channel_type}") :
+			return
+		message = f"No `{channel_type}` channel set for {guild.name}, please set it up using the /Config command"
+		for target in (find_first_accessible_text_channel(guild), guild.owner) :
+			if target is None :
+				continue
+			try :
+				if await send_message(target, message, error_mode="ignore") is not None :
+					return
+			except Exception as e :
+				logging.info(f"Could not notify {guild.name}({guild.id}) of missing `{channel_type}` channel: {e}")
+
+	# ============================================================
 	async def get_channel(self, guild: discord.Guild, channel_type: str = "modchannel", optional: bool = False) -> None | VoiceChannel | StageChannel | ForumChannel | TextChannel | CategoryChannel | Thread :
 		"""Gets the channel from the Config"""
 		channel_id = self.get_key_or_none(guild.id, channel_type)
@@ -189,13 +211,9 @@ class ConfigData(metaclass=Singleton) :
 				channel_id = None
 
 		if channel_id is None :
-			channel = find_first_accessible_text_channel(guild)
-			if channel is None:
-				channel = guild.owner
-			if optional:
+			if optional :
 				return None
-			await send_message(channel,
-			                   f"No `{channel_type}` channel set for {guild.name}, please set it up using the /Config command")
+			await self._notify_missing_channel(guild, channel_type)
 			return None
 		channel = guild.get_channel(channel_id)
 
