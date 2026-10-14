@@ -71,7 +71,7 @@ Banwatch. See [Appeals](appeals.md).
 
 ## Still stuck?
 
-- Run `/support` for a link to the support server — the best place to get help.
+- Run `/support info` for a link to the support server — the best place to get help.
 - Run `/config help` for in-app guidance.
 - Have your `/config permissioncheck` result handy; it's the first thing support
   will ask about.

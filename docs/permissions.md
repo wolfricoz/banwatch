@@ -67,7 +67,7 @@ person running them:
 | `/tools unban`, `/tools mass_unban`                           | **Ban Members**                                                    |
 | `/tools kick`                                                 | **Kick Members**                                                   |
 | `/warnings warn`, `/warnings manage`, `/warnings punishments` | Moderation permissions (Kick/Ban as appropriate)                   |
-| `/config permissioncheck`, `/lookup`, `/help`, `/support`     | No special permission                                              |
+| `/config permissioncheck`, `/lookup`, `/help`, `/support info`     | No special permission                                              |
 | `/dev ...`, `/staff ...`                                      | Bot owner / Banwatch staff only — not available to regular servers |
 
 If you try a command without the required permission, Discord (or the bot) will

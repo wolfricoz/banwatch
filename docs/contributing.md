@@ -27,7 +27,7 @@ unrelated names so no one becomes a target for harassment. See
 ## Report problems
 
 If you spot a ban that looks false, misleading, or unfair, please report it.
-Join the support server (run `/support`) and open a ticket. The Banwatch team
+Join the support server (run `/support info`) and open a ticket. The Banwatch team
 reviews reports and can hide or remove bans that don't hold up.
 
 ## Follow the code of conduct

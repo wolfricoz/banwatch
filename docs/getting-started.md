@@ -79,5 +79,5 @@ None of these are required, but they make Banwatch fit your server better:
 ## Need a hand?
 
 - Run `/config help` for in-app guidance.
-- Run `/support` for a link to the support server.
+- Run `/support info` for a link to the support server.
 - Browse the [FAQ](faq.md) or [Troubleshooting](troubleshooting.md).
