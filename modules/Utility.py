@@ -12,7 +12,7 @@ class Utility(commands.Cog, description="Miscellaneous utility commands for gene
 		self.bot = bot
 
 	# ============================================================
-	@app_commands.command(name="help", description="Unsure of what a command does? Find it here!")
+	@app_commands.command(name="help", description="Browse every Banwatch command and read what it does.")
 	async def help(self, interaction: discord.Interaction) :
 		"""Provides information about the bot's commands and features."""
 

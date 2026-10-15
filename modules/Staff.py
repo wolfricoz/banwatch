@@ -253,7 +253,7 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 			                                   {"visibility" : "hidden" if hide is True else "visible"},
 			                                   user_name=f"{interaction.user.mention} (BanWatch staff)"))
 		await send_response(interaction,
-		                    f"{server}'s visibility has ben set to: {'hidden' if hide is True else 'Visible'}\n\n"
+		                    f"{server}'s visibility has been set to: {'hidden' if hide is True else 'Visible'}\n\n"
 		                    f"Your bans may temporarily still be available in the checkall cache, which is reloaded every 10 minutes")
 
 
