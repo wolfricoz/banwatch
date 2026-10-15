@@ -5,7 +5,7 @@ import os
 import discord
 from discord import app_commands
 from discord.ext import commands
-from discord_py_utilities.messages import await_message, send_message, send_response
+from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
 from classes.autocorrect import autocomplete_guild
@@ -13,6 +13,7 @@ from classes.ban.BanChecker import BanChecker
 from classes.bans import Bans
 from classes.config.utils import ConfigUtils
 from classes.evidence import EvidenceController
+from classes.prompts import ask_for_message
 from classes.queue import queue
 from classes.rpsec import RpSec
 from data.variables.messages import evidence_message_template
@@ -145,7 +146,10 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 			return await send_response(interaction, f"This ban already has that status.")
 		user = self.bot.get_user(ban.uid)
 		if provide_proof :
-			evidence = await await_message(interaction, evidence_message_template.format(user=user.name, ban_id=ban_id))
+			evidence = await ask_for_message(interaction, evidence_message_template.format(user=user.name, ban_id=ban_id))
+			# Cancelled or timed out: don't store False as evidence.
+			if evidence is False :
+				return
 			channel = self.bot.get_channel(int(os.getenv("APPROVED")))
 			await EvidenceController.add_evidence(interaction, evidence, ban_id, user)
 			ban = BanTransactions().get(int(ban_id))

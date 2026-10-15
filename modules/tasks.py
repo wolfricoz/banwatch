@@ -2,6 +2,7 @@ import asyncio
 import logging
 from datetime import datetime, time, timezone
 
+import discord
 from discord.ext import commands, tasks
 
 from classes.access import AccessControl
@@ -106,7 +107,11 @@ class Tasks(commands.Cog) :
 		for guild in AccessControl().premium :
 			g = self.bot.get_guild(guild)
 			if g is None :
-				g = await self.bot.fetch_guild(guild)
+				try :
+					g = await self.bot.fetch_guild(guild)
+				except (discord.NotFound, discord.Forbidden) :
+					# Premium guild the bot is no longer in (BANWATCH-HK).
+					g = None
 			if g is None :
 				logging.info(f"Could not fetch guild {guild}")
 				continue

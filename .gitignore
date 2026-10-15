@@ -19,3 +19,5 @@ countbans.txt
 /settings/
 /tests/test.db
 /compliance/
+__pycache__/
+*.pyc

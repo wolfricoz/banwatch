@@ -1,9 +1,10 @@
 import logging
 
 import discord
-from discord_py_utilities.messages import await_message, send_response
+from discord_py_utilities.messages import send_response
 
 from classes.evidence import EvidenceController
+from classes.prompts import ask_for_message
 from classes.queue import queue
 from data.variables.messages import evidence_message_template
 from database.transactions.BanTransactions import BanTransactions
@@ -112,7 +113,7 @@ class EvidenceUI(discord.ui.LayoutView) :
 			return await send_response(interaction,
 			                           f"Failed to load ban data, please try again or open a ticket in the support server if this issue persists.",
 			                           ephemeral=True)
-		evidence = await await_message(interaction, evidence_message_template.format(user=self.user.name,
+		evidence = await ask_for_message(interaction, evidence_message_template.format(user=self.user.name,
 		                                                                             ban_id=self.user.id + interaction.guild.id))
 		if evidence is False :
 			return None

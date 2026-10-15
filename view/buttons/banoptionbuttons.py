@@ -5,7 +5,7 @@ from typing import Any
 import discord
 from discord import Interaction
 from discord.ui import Item, button
-from discord_py_utilities.messages import await_message, send_message, send_response
+from discord_py_utilities.messages import send_message, send_response
 
 from classes.TermsChecker import TermsChecker
 from classes.appeal import inform_user
@@ -14,6 +14,7 @@ from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.configer import Configer
 from classes.evidence import EvidenceController
+from classes.prompts import ask_for_message
 from classes.queue import queue
 from data.variables.messages import evidence_message_template
 from database.transactions.ProofTransactions import ProofTransactions
@@ -55,7 +56,7 @@ class BanOptionButtons(SecureView) :
 	async def share_with_proof(self, interaction: discord.Interaction, button: button) :
 		guild, user, ban = await self.get_data(interaction)
 
-		evidence = await await_message(interaction, evidence_message_template.format(user=user.name, ban_id=self.wait_id))
+		evidence = await ask_for_message(interaction, evidence_message_template.format(user=user.name, ban_id=self.wait_id))
 		if evidence is False :
 			return
 		await self.disable_buttons(interaction)
@@ -73,7 +74,7 @@ class BanOptionButtons(SecureView) :
 	@button(label="Log with Proof", custom_id="silent_with_proof", style=discord.ButtonStyle.primary)
 	async def silent_with_proof(self, interaction: discord.Interaction, button: button) :
 		guild, user, ban = await self.get_data(interaction)
-		evidence = await await_message(interaction, evidence_message_template.format(user=user.name, ban_id=self.wait_id))
+		evidence = await ask_for_message(interaction, evidence_message_template.format(user=user.name, ban_id=self.wait_id))
 		if evidence is False :
 			return
 		await self.disable_buttons(interaction)

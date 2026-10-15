@@ -257,7 +257,7 @@ class Logging(commands.Cog):
 				attachment = discord.File(io.BytesIO(tb.encode("utf-8")), "error.txt")
 				await channel.send(header, file=attachment)
 		except Exception as e:
-			logging.error(e)
+			logging.error(f"Could not post the error to the DEV channel: {e}", exc_info=True)
 
 	# ============================================================
 	@commands.Cog.listener("on_command_error")
