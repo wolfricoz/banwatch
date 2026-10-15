@@ -69,8 +69,10 @@ class PermissionsCheck() :
 			                value="❌ Not set, or the channel was deleted. Set one with `/config change option:Mod Channel channel:#your-mod-channel`.",
 			                inline=False)
 		for label, channel, req, opt in channel_results :
+			# Only the mod channel matters for the bot to work; say so, or "This channel" reads as a requirement.
+			suffix = "" if channel is mod_channel else " (only for commands whose results post here)"
 			embed.add_field(
-				name=f"{label}: #{channel.name}",
+				name=f"{label}: #{channel.name}{suffix}",
 				value=(cls._lines(REQUIRED_CHANNEL_PERMS, req) + "\n" + cls._lines(OPTIONAL_CHANNEL_PERMS, opt))[:1024],
 				inline=False,
 			)

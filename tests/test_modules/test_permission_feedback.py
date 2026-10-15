@@ -18,7 +18,10 @@ from classes.onboarding import Onboarding
 from classes.permissions import PermissionsCheck, channel_problems
 from classes.replies import reply
 from modules import logs
+from classes.permissions_notice import PermissionNotice
 from modules.Config import Config
+from modules.Invite import Invite
+from modules.MemberLookup import MemberLookup
 from modules.Tools import Tools
 
 ALL_GUILD = dict(ban_members=True, view_audit_log=True, kick_members=True, manage_messages=True,
@@ -124,14 +127,27 @@ class ErrorMessageTests(Quiet) :
 		self.assertIn("**View Channel**, **Send Messages**", msg)
 		self.assertNotIn("view_channel", msg)
 
-	def test_forbidden_names_missing_channel_permissions(self) :
+	def test_forbidden_mentions_channel_gap_without_blaming_it(self) :
+		# A 403 doesn't say which permission was missing: /export_bans failing on Ban Members was once
+		# reported as a channel-permission problem.
 		guild = make_guild()
 		channel = make_channel(guild, perms=dict(ALL_CHANNEL, send_messages=False))
 		interaction = make_interaction(guild=guild, channel=channel)
 		msg = logs._expected_app_error_message(app_commands.AppCommandError(), http_error(discord.Forbidden, 403),
 		                                       interaction)
-		self.assertIn("**Send Messages**", msg)
-		self.assertIn("General Test Bot", msg)
+		self.assertTrue(msg.startswith("❌ Discord blocked this action"))
+		self.assertIn("also missing **Send Messages**", msg)
+		self.assertIn("/config permissioncheck", msg)
+
+	def test_server_only_permission_has_no_channel_route(self) :
+		interaction = make_interaction(guild=make_guild())
+		msg = logs._expected_app_error_message(app_commands.BotMissingPermissions(["ban_members"]), None, interaction)
+		self.assertNotIn("channel's permissions", msg)
+
+	def test_channel_permission_keeps_channel_route(self) :
+		interaction = make_interaction(guild=make_guild())
+		msg = logs._expected_app_error_message(app_commands.BotMissingPermissions(["attach_files"]), None, interaction)
+		self.assertIn("channel's permissions", msg)
 
 	def test_forbidden_without_channel_gap_points_to_permissioncheck(self) :
 		guild = make_guild()
@@ -272,7 +288,28 @@ class UnbanTests(Quiet) :
 
 	def test_checks_bot_ban_permission(self) :
 		# A user check alone let the command reach guild.unban and fail with a generic 403.
-		self.assertTrue(any("bot_has_permissions" in getattr(c, "__qualname__", "") for c in Tools.unban.checks))
+		for command in (Tools.unban, Tools.mass_unban, Tools.export_bans) :
+			self.assertTrue(any("bot_has_permissions" in getattr(c, "__qualname__", "") for c in command.checks),
+			                command.name)
+
+	async def test_export_bans_builds_file_in_memory(self) :
+		guild = make_guild()
+
+		async def bans() :
+			entry = MagicMock()
+			entry.user = MagicMock(id=5)
+			entry.user.__str__ = lambda self : "someone"
+			entry.reason = None
+			yield entry
+
+		guild.bans = bans
+		interaction = make_interaction(guild=guild)
+		interaction.response.defer = AsyncMock()
+		with patch("modules.Tools.discord.File") as file, patch("builtins.open") as opened :
+			await Tools.export_bans.callback(Tools(MagicMock()), interaction)
+		opened.assert_not_called()
+		self.assertEqual(file.call_args.args[0].getvalue(), b"User: someone (ID: 5) - Reason: No reason provided\n")
+		self.assertTrue(interaction.followup.send.call_args.kwargs["ephemeral"])
 
 
 class OnboardingTests(Quiet) :
@@ -317,6 +354,73 @@ class OnboardingTests(Quiet) :
 		guild.owner.send = AsyncMock(side_effect=http_error(discord.Forbidden, 403))
 		with patch("classes.onboarding.find_first_accessible_text_channel", return_value=None) :
 			self.assertFalse(await Onboarding.deliver_join_message(guild))
+
+
+class NoticeRoleNameTests(Quiet) :
+	def test_notice_names_the_real_bot_role(self) :
+		guild = make_guild()
+		guild.icon = None
+		channel = make_channel(guild)
+		embed = PermissionNotice.build_embed(guild, channel=channel, missing=["ban_members"])
+		steps = next(f for f in embed.fields if f.name == "How to fix").value
+		self.assertIn("General Test Bot", steps)
+		self.assertNotIn("**Banwatch**", steps)
+
+
+class UnexpectedErrorTests(Quiet) :
+	async def test_notice_hides_internals_and_points_to_support(self) :
+		cog = logs.Logging(MagicMock())
+		cog._capture = MagicMock(return_value="abc123")
+		cog._notify_dev = AsyncMock()
+		interaction = make_interaction(guild=make_guild())
+		await cog.on_app_command_error(interaction, app_commands.AppCommandError("KeyError: 'secret_internal'"))
+		content = interaction.response.send_message.call_args.kwargs["content"]
+		self.assertNotIn("secret_internal", content)
+		self.assertNotIn("Rico", content)
+		self.assertIn("/support bug", content)
+		self.assertIn("abc123", content)
+
+
+class InviteChannelTests(Quiet) :
+	def setUp(self) :
+		super().setUp()
+		for target in ("ConfigTransactions", "ConfigData", "ServerTransactions", "queue", "ConfigUtils", "Bans") :
+			patcher = patch(f"modules.Invite.{target}")
+			setattr(self, target, patcher.start())
+			self.addCleanup(patcher.stop)
+		self.Bans.return_value.create_invite = AsyncMock(return_value="https://discord.gg/test")
+
+	async def run_set_channel(self, bot_perms, everyone_can_view=True) :
+		guild = make_guild()
+		guild.default_role = object()
+		channel = make_channel(guild)
+		channel.permissions_for = MagicMock(side_effect=lambda target : discord.Permissions(
+			view_channel=everyone_can_view) if target is guild.default_role else discord.Permissions(**bot_perms))
+		interaction = make_interaction(guild=guild, channel=channel)
+		await Invite.set_channel.callback(Invite(MagicMock()), interaction, channel)
+		return interaction.response.send_message.call_args
+
+	async def test_refuses_channel_without_invite_permission(self) :
+		call = await self.run_set_channel(dict(view_channel=True, create_instant_invite=False))
+		self.assertIn("**Create Invite**", call.args[0])
+		self.assertTrue(call.kwargs["ephemeral"])
+		self.ConfigTransactions.return_value.config_unique_add.assert_not_called()
+
+	async def test_warns_when_channel_is_hidden_from_everyone(self) :
+		call = await self.run_set_channel(dict(view_channel=True, create_instant_invite=True), everyone_can_view=False)
+		self.assertIn("hidden from @everyone", call.args[0])
+		self.ConfigTransactions.return_value.config_unique_add.assert_called_once()
+
+	async def test_public_channel_has_no_warning(self) :
+		call = await self.run_set_channel(dict(view_channel=True, create_instant_invite=True))
+		self.assertNotIn("⚠️", call.args[0])
+
+
+class OptionDescriptionTests(unittest.TestCase) :
+	def test_admin_commands_describe_every_option(self) :
+		for command in (Config.change, Config.appeals, Config.visibility, Config.toggles, MemberLookup.lookup) :
+			for param in command.parameters :
+				self.assertNotEqual(param.description, "…", f"/{command.qualified_name} {param.name} has no description")
 
 
 if __name__ == "__main__" :

@@ -1,4 +1,5 @@
 import asyncio
+import io
 
 import discord
 from discord import app_commands
@@ -210,6 +211,7 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 	# ============================================================
 	@app_commands.command(name="export_bans", description="Export all guild bans to a text file.")
 	@app_commands.checks.has_permissions(ban_members=True)
+	@app_commands.checks.bot_has_permissions(ban_members=True)
 	async def export_bans(self, interaction: discord.Interaction) :
 		"""
 		Fetches the entire ban list for the server and compiles it into a text file. This is extremely useful for auditing, backup, or migrating bans to another server or bot.
@@ -219,18 +221,15 @@ class Tools(commands.Cog, description="Moderation tools for managing bans, kicks
 		"""
 		await interaction.response.defer(ephemeral=True)
 
-		# Fetch all bans
-		bans = interaction.guild.bans()
+		lines = []
+		async for ban_entry in interaction.guild.bans() :
+			user = ban_entry.user
+			reason = ban_entry.reason if ban_entry.reason else "No reason provided"
+			lines.append(f"User: {user} (ID: {user.id}) - Reason: {reason}\n")
 
-		# Write bans to a text file
-		with open("bans.txt", "w", encoding='utf-16') as file :
-			async for ban_entry in bans :
-				user = ban_entry.user
-				reason = ban_entry.reason if ban_entry.reason else "No reason provided"
-				file.write(f"User: {user} (ID: {user.id}) - Reason: {reason}\n")
-
-		# Send the file to the channel
-		await interaction.followup.send("Here are all your bans!", file=discord.File("bans.txt"))
+		# Built in memory: a shared bans.txt on disk raced between servers and left ban data in the working directory.
+		file = discord.File(io.BytesIO("".join(lines).encode("utf-8")), filename="bans.txt")
+		await interaction.followup.send("Here are all your bans!", file=file, ephemeral=True)
 
 
 async def setup(bot: commands.Bot) :
