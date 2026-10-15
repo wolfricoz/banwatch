@@ -72,6 +72,8 @@ class OnMemberBan(unittest.IsolatedAsyncioTestCase) :
 		self.checker.evaluate_ban = AsyncMock()
 		self.checker.send_review_prompt = AsyncMock()
 		self.checker.get_status = MagicMock(return_value=PROMPT)
+		# Class-level helper used by the hidden-server path; None = the reason passes the rules.
+		self.BanChecker.auto_hide_verdict = AsyncMock(return_value=None)
 
 		# bot / guild / user doubles.
 		self.bot = MagicMock()
@@ -159,7 +161,19 @@ class OnMemberBan(unittest.IsolatedAsyncioTestCase) :
 		args = self.Bans.return_value.add_ban.await_args.args
 		self.assertEqual(args[0], self.user.id)
 		self.assertEqual(args[3], "Unknown")   # staff attribution for hidden-server bans
-		self.BanChecker.assert_not_called()    # no vetting / no prompt
+		self.assertFalse(self.Bans.return_value.add_ban.await_args.kwargs.get("hidden"))
+		self.BanChecker.assert_not_called()    # no full vetting / no prompt
+
+	# ============================================================
+	async def test_hidden_server_still_hides_rule_failures(self) :
+		# Used to store every ban from a hidden server unvetted and visible; once the server was made
+		# visible again, its cross-bans sat in the staff queue as ordinary pending bans.
+		self.ServerTransactions.return_value.is_hidden.return_value = True
+		self.BanChecker.auto_hide_verdict.return_value = "Cross ban"
+		await self.cog.on_member_ban(self.guild, self.user)
+		self.BanChecker.auto_hide_verdict.assert_awaited_once_with(FakeBan().reason)
+		self.assertTrue(self.Bans.return_value.add_ban.await_args.kwargs.get("hidden"))
+		self.checker.send_review_prompt.assert_not_awaited()
 
 	# ============================================================
 	async def test_hide_verdict_auto_hides_without_prompt(self) :

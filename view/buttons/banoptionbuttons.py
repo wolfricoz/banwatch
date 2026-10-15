@@ -9,7 +9,7 @@ from discord_py_utilities.messages import await_message, send_message, send_resp
 
 from classes.TermsChecker import TermsChecker
 from classes.appeal import inform_user
-from classes.ban.BanChecker import BanChecker
+from classes.ban.BanChecker import BanChecker, BanCheckerStatus
 from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.configer import Configer
@@ -131,11 +131,15 @@ class BanOptionButtons(SecureView) :
 
 		if checkListCheckType and checkListCheckType.lower() == "hide":
 			await self.sendDeniedEmbed(interaction, ban, checkListResult)
-			queue().add(Bans().add_ban(user.id, guild.id, ban.reason + " (HIDDEN DUE TO BLOCKLIST)", staff_member.name, approved=False, hidden=True, status="Hidden by automod"), priority=2)
+			queue().add(Bans().add_ban(user.id, guild.id, (ban.reason or "") + " (HIDDEN DUE TO BLOCKLIST)", staff_member.name, approved=False, hidden=True, status="Hidden by automod"), priority=2)
 			return
 
 
-		if checkListCheckType in ['review'] :
+		# SHORT goes to staff review too. It used to fall through to the approve-and-broadcast branch
+		# below, so every short reason ("alt", "[silent]raiding") was shared the moment a moderator
+		# clicked Broadcast - the review notice for "Short ban reason" in verification_notification
+		# was never reached.
+		if checkListCheckType in (BanCheckerStatus.REVIEW, BanCheckerStatus.SHORT) :
 
 			channel = interaction.client.get_channel(int(os.getenv("BANS")))
 			queue().add(Bans().add_ban(user.id, guild.id, ban.reason, staff_member.name, approved=False, status=checkListResult), priority=2)

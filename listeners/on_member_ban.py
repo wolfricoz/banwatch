@@ -54,9 +54,12 @@ class BanEvents(commands.Cog) :
 		if mod_channel is None :
 			logging.warning(f"{guild.name}({guild.id}) has no usable modchannel; continuing without it.")
 
-		# Hidden server: record the ban but never broadcast or prompt.
+		# Hidden server: record the ban but never broadcast or prompt. The string-only rules still
+		# run, so a cross-ban or low-value ban is stored hidden: these rows sit as pending, and land
+		# in the staff queue and /staff approve_pending as soon as the server is made visible again.
 		if ServerTransactions().is_hidden(guild.id):
-			await Bans().add_ban(user.id, guild.id, ban.reason, "Unknown")
+			hide = await BanChecker.auto_hide_verdict(ban.reason) is not None
+			await Bans().add_ban(user.id, guild.id, ban.reason, "Unknown", hidden=hide)
 			return
 
 		# Lightweight PRE-CHECK only: short_run() runs just the cheap, string-only auto-hide rules

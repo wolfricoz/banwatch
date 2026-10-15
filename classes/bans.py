@@ -167,8 +167,17 @@ class Bans(metaclass=Singleton) :
 
 		:param ban: a Bans row with its guild relationship eagerly loaded (the invite is read here).
 		:return: True when the ban was queued for broadcast, False when its guild or user could not
-		         be resolved, in which case the ban stays pending.
+		         be resolved or its reason fails the auto-hide rules, in which case the ban stays pending.
 		"""
+		# Pending rows are not guaranteed to have been vetted: the hidden-server path and the
+		# pre-ban row ban_member writes store the raw reason, and the rules may have tightened since.
+		# A bulk approval matches on a word, so a cross-ban or low-value reason containing that word
+		# would otherwise be broadcast with the rest.
+		from classes.ban.BanChecker import BanChecker
+		verdict = await BanChecker.auto_hide_verdict(ban.reason)
+		if verdict :
+			logging.warning(f"Skipping approval of {ban.ban_id}: reason fails the ban rules ({verdict}).")
+			return False
 		guild = bot.get_guild(ban.gid)
 		if guild is None :
 			# No fetch_guild fallback on purpose: the broadcast path calls guild.get_channel() and
