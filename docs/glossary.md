@@ -64,4 +64,4 @@ list is kept private on purpose.
 with `/config visibility`.
 
 **Support server** — The Discord server where you can get help, report issues,
-and appeal decisions. Reach it with `/support`.
+and appeal decisions. Reach it with `/support info`.

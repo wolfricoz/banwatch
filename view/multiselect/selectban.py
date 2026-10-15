@@ -12,9 +12,12 @@ class SelectBan(SecureView):
 
 	"""This class is for the select menu, which is used to select a user to ban."""
 
-	def __init__(self, user_id):
+	def __init__(self, user_id, exclude_guild_id: int | None = None):
 		super().__init__(timeout=None)
-		self.bans = BanTransactions().get_all_user(user_id)
+		# A server can't cross-ban from its own ban, so leave those out of the menu.
+		self.bans = [ban for ban in (BanTransactions().get_all_user(user_id) or []) if ban.gid != exclude_guild_id][:25]
+		if not self.bans:
+			return
 
 		options = [discord.SelectOption(
 				label=f"{ban.guild.name} - {ban.uid}"[0:99],

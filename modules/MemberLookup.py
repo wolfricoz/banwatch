@@ -56,6 +56,9 @@ class MemberLookup(commands.GroupCog, name="user") :
 
 	# ============================================================
 	@app_commands.command(name="lookup", description="Looks up a user's ban history by user or ban ID.")
+	@app_commands.describe(user="The user to look up; pasting their user ID is the most reliable.",
+	                       ban_id="Look up one specific ban by its ban ID instead of a user.",
+	                       override="Banwatch staff only: include hidden, unapproved and removed bans.")
 	@app_commands.checks.has_permissions(ban_members=True)  # Ensure the user has the 'ban_members' permission
 	async def lookup(self, interaction: discord.Interaction, user: discord.User = None, ban_id: str = None,
 	                 override: bool = False) :
@@ -87,7 +90,7 @@ class MemberLookup(commands.GroupCog, name="user") :
 			await send_response(interaction, "⌛ Fetching bans, please wait.", ephemeral=True)  # Notify the user
 			view: LookUp = LookUp(user_id=user.id)  # Create a view for displaying the ban details
 			logging.info(f"Sending ban details for user {user.id}.")
-			await view.send_message(interaction.client, interaction.channel, [ban], user,
+			await view.send_message(interaction.client, interaction.channel, [ban], user, interaction=interaction,
 			                        override=override)  # Send the ban details
 			return
 

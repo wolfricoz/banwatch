@@ -96,12 +96,42 @@ class CrossBanCheck(unittest.IsolatedAsyncioTestCase) :
 				self.assertEqual(checker.reason, "Cross ban")
 
 	# ============================================================
+	async def test_previously_leaking_cross_bans_are_hidden(self) :
+		# Each of these used to pass the check and reach the review buttons as an ordinary ban.
+		reasons = [
+			"[silent]Cross-ban from CoolServer with ban id: 1 with reason: raiding",  # /ban, /reban ban type
+			"[hidden]Cross-ban from CoolServer: raiding",
+			"[Silent] cross-ban from CoolServer",
+			"Cross\u2013ban from CoolServer",                    # en dash
+			"Cross\u2011ban from CoolServer",                    # non-breaking hyphen
+			"\uff23\uff52\uff4f\uff53\uff53-ban from CoolServer",  # full-width letters
+			"Cross\u200b-ban from CoolServer",                   # zero-width space
+			"Cross-banned from CoolServer",
+			"Crossbanned from CoolServer for raiding",
+			"[Cross-ban] from CoolServer: raiding",
+			"(cross ban) from CoolServer",
+			"Cross-ban: raiding in CoolServer",
+			"Crossban - CoolServer",
+			"cross_ban from CoolServer",
+			"cross-ban.",
+		]
+		for reason in reasons :
+			with self.subTest(reason=reason) :
+				checker = make_checker(reason)
+				await checker.check_cross_ban()
+				self.assertEqual(checker.status, HIDE)
+				self.assertEqual(checker.reason, "Cross ban")
+
+	# ============================================================
 	async def test_non_cross_bans_are_not_hidden(self) :
 		reasons = [
 			"Spamming and raiding",
 			"Banned for posting a cross-ban notice in chat",   # merely mentions it
+			"[silent] posted cross-ban spam in every channel",  # mentions it after the tag
 			"No reason provided",
 			"crossbanana",
+			"Cross-ban from",                                  # no server named
+			"Cross banned for raiding",                        # no "from", no separator
 			"",
 			"None",
 		]
@@ -140,13 +170,42 @@ class AssessValueCheck(unittest.IsolatedAsyncioTestCase) :
 				self.assertEqual(checker.reason, "Low Value Ban")
 
 	# ============================================================
+	async def test_previously_leaking_low_value_reasons_are_hidden(self) :
+		# Each of these used to pass assess_value, so the live path showed the review buttons.
+		reasons = [
+			"[silent]test",                # /ban with ban type Silent
+			"[silent]",                    # silent ban with no reason at all
+			"[silent] none",
+			"[Silent][hidden]raiding",     # hidden tag behind another tag
+			"None.",                       # trailing punctuation
+			"N/A.",
+			"(none)",                      # wrapped in brackets
+			"\"test\"",                    # wrapped in quotes
+			"`test`",                      # wrapped in a code span
+			"test!!!",
+			"n\u200b/a",                   # zero-width space
+			"\uff4e\uff4f\uff4e\uff45",    # full-width "none"
+			"No  reason   given",          # repeated whitespace
+			"No reason provided",          # the default many moderation bots write
+			"no reason",
+			"[silent] no pfp",
+		]
+		for reason in reasons :
+			with self.subTest(reason=reason) :
+				checker = make_checker(reason)
+				await checker.assess_value()
+				self.assertEqual(checker.status, HIDE)
+				self.assertEqual(checker.reason, "Low Value Ban")
+
+	# ============================================================
 	async def test_valuable_reasons_are_not_hidden(self) :
 		reasons = [
 			"Raiding the server repeatedly",
 			"Posting NSFW content in general chat",
-			# Documents current behaviour: assess_value does NOT catch Discord's
-			# "No reason provided" default - it is later caught by check_word_count as SHORT.
-			"No reason provided",
+			"[silent] raided the server and spammed slurs",
+			"No reason to keep them around, they raided us",
+			"Testing the mods with raids repeatedly",
+			"None of the rules were followed, raided us",
 		]
 		for reason in reasons :
 			with self.subTest(reason=reason) :
@@ -174,6 +233,12 @@ class MigratedBanCheck(unittest.IsolatedAsyncioTestCase) :
 				await checker.migrated_ban()
 				self.assertEqual(checker.status, HIDE)
 				self.assertEqual(checker.reason, "Migrated ban")
+
+	# ============================================================
+	async def test_tagged_migrated_is_hidden(self) :
+		checker = make_checker("[silent][migrated] old ban")
+		await checker.migrated_ban()
+		self.assertEqual(checker.status, HIDE)
 
 	# ============================================================
 	async def test_non_migrated_is_untouched(self) :
@@ -208,6 +273,15 @@ class WordCountCheck(unittest.IsolatedAsyncioTestCase) :
 	async def test_short_reasons_become_short(self) :
 		# < 4 words and not a genuine "spam"/"bot" mention
 		for reason in ("raiding", "ban evasion alt", "alt account", "a  b  c") :
+			with self.subTest(reason=reason) :
+				checker = make_checker(reason)
+				await checker.check_word_count()
+				self.assertEqual(checker.status, SHORT)
+
+	# ============================================================
+	async def test_tag_does_not_count_as_a_word(self) :
+		# "[silent] ban evasion alt" used to count as 4 words and skip the short-reason review.
+		for reason in ("[silent] ban evasion alt", "[hidden] alt account here") :
 			with self.subTest(reason=reason) :
 				checker = make_checker(reason)
 				await checker.check_word_count()
@@ -449,6 +523,58 @@ class RunIntegration(unittest.IsolatedAsyncioTestCase) :
 		# A one-word blocked slur must be HIDE (flagged terms run before the short-reason check).
 		checker = await self._run("slur", terms={"block": ("block", "block", ["slur"])})
 		self.assertEqual(checker.status, HIDE)
+
+	# ============================================================
+	async def test_silent_cross_ban_is_hidden(self) :
+		# Long enough to pass every other rule, so before the fix this reached PROMPT and was
+		# broadcast as soon as a moderator clicked Broadcast.
+		checker = await self._run("[silent]Cross-ban from X with ban id: 1 with reason: raiding the server")
+		self.assertEqual(checker.status, HIDE)
+		self.assertEqual(checker.reason, "Cross ban")
+
+
+# --------------------------------------------------------------------------------------
+# normalise_reason / split_reason / auto_hide_verdict
+# --------------------------------------------------------------------------------------
+class ReasonNormalisation(unittest.IsolatedAsyncioTestCase) :
+	def test_normalise(self) :
+		cases = [
+			(None, ""),
+			("  Raiding\tThe   Server ", "raiding the server"),
+			("Cross\u2013ban", "cross-ban"),
+			("\uff32\uff41\uff49\uff44", "raid"),
+			("n\u200b/a\ufeff", "n/a"),
+		]
+		for reason, expected in cases :
+			with self.subTest(reason=reason) :
+				self.assertEqual(BanChecker.normalise_reason(reason), expected)
+
+	# ============================================================
+	def test_split_reason_peels_leading_tags_only(self) :
+		cases = [
+			("[silent]raiding", ({"silent"}, "raiding")),
+			("[Silent] [HIDDEN] raiding", ({"silent", "hidden"}, "raiding")),
+			("(silent) raiding", ({"silent"}, "raiding")),
+			("raiding [silent]", (set(), "raiding [silent]")),
+			("[migrated] raiding", (set(), "[migrated] raiding")),
+		]
+		for reason, expected in cases :
+			with self.subTest(reason=reason) :
+				self.assertEqual(BanChecker.split_reason(reason), expected)
+
+	# ============================================================
+	async def test_auto_hide_verdict(self) :
+		cases = [
+			("[silent]Cross-ban from X: raiding", "Cross ban"),
+			("N/A.", "Low Value Ban"),
+			("[migrated] old", "Migrated ban"),
+			(None, "Low Value Ban"),
+			("Raiding the server repeatedly", None),
+			("raiding", None),   # short, but that is a review verdict, not an auto-hide
+		]
+		for reason, expected in cases :
+			with self.subTest(reason=reason) :
+				self.assertEqual(await BanChecker.auto_hide_verdict(reason), expected)
 
 
 # --------------------------------------------------------------------------------------

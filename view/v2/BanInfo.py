@@ -103,7 +103,8 @@ class BanInfo(discord.ui.LayoutView) :
 		history = discord.ui.Button(
 			custom_id="ban_management_history",
 			label="View Ban Record",
-			style=discord.ButtonStyle.danger,
+			# Read-only, so it shouldn't look like a destructive action.
+			style=discord.ButtonStyle.secondary,
 			emoji="🗒️"
 		)
 		history.callback = self.history

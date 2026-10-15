@@ -1,7 +1,9 @@
 import logging
 import re
+import unicodedata
 from collections.abc import Coroutine
 from enum import StrEnum
+from types import SimpleNamespace
 
 import discord
 from discord import Forbidden
@@ -15,8 +17,21 @@ from classes.queue import queue
 from data.config.mappings import Channels
 from database.transactions.ServerTransactions import ServerTransactions
 
-from resources.bans.BanCheckVariables import BAN_STARTS_WITH, IGNORED_REASONS
+from resources.bans.BanCheckVariables import BAN_STARTS_WITH, IGNORED_REASONS, REASON_TAGS
 from view.v2.EvidenceSubmission import EvidenceUI
+
+# Characters that render as nothing (soft hyphen, zero-width spaces/joiners, BOM). Copy-pasted reasons
+# carry them, and "n\u200b/a" looks exactly like "n/a" while comparing unequal.
+_INVISIBLE = dict.fromkeys(map(ord, "\u00ad\u200b\u200c\u200d\u2060\ufeff"), None)
+# Hyphen lookalikes (hyphen, non-breaking hyphen, figure/en/em dash, minus) that NFKC leaves alone.
+_DASHES = re.compile("[\u2010-\u2015\u2212]")
+# A leading "[silent]" / "(hidden)" tag; /ban and /reban prepend them with no space after.
+_LEADING_TAG = re.compile(r"[\[(]\s*(" + "|".join(map(re.escape, REASON_TAGS)) + r")\s*[\])]\s*")
+# Stripped from both ends before comparing against IGNORED_REASONS, so "None.", "(n/a)" and "`test`" match.
+_EDGE_PUNCTUATION = " .,!?;:'\"`*_~()[]{}<>-"
+# "cross-ban from X", "Cross banned from X", "crossban: X", "[Cross-ban] from X", "cross-ban - X" or just
+# "cross-ban". Anchored at the start, so a reason that merely mentions a cross-ban is left alone.
+_CROSS_BAN = re.compile(r"cross[\s_-]*ban(?:ned)?[\])}>\"'`*_]*(?:\s+from\s+\S|\s*[:|-]\s*\S|$)")
 
 
 class BanCheckerStatus(StrEnum) :
@@ -32,6 +47,10 @@ class BanCheckerStatus(StrEnum) :
 # BanChecker is the single source of truth for ban vetting. All paths route through it:
 #  - live bans:  listeners/on_member_ban.py  (run() + evaluate_ban(server_only=False))
 #  - mass review: classes/bans.py, modules/Staff.py, view/buttons/banoptionbuttons.py
+#  - ban rows:   auto_hide_verdict() for hidden servers, the bulk approval and the periodic re-check
+#                (classes/ban/recheck.py)
+# Every rule judges split_reason(), never the raw reason, so case, unicode and [silent]/[hidden]
+# tags can't make one rule see a different reason than another.
 # Keep the rules (cross-ban, low-value, migrated, flagged terms, PII, short) here only - do not
 # reintroduce a copy in the listeners, or the two will drift and a ban can be hidden by one path
 # and broadcast by another.
@@ -87,6 +106,40 @@ class BanChecker() :
 		return self
 
 	# ============================================================
+	@staticmethod
+	def normalise_reason(reason) -> str :
+		"""The form every rule compares against: NFKC (full-width and styled letters become plain
+		ASCII), invisible characters removed, dash lookalikes turned into "-", case-folded and with
+		whitespace collapsed. Without this, a full-width "cross-ban", "Cross\u2013ban" (en dash) or "n\u200b/a"
+		all read as the real thing to a moderator but slip past the rules."""
+		text = unicodedata.normalize("NFKC", str(reason or ""))
+		text = _DASHES.sub("-", text.translate(_INVISIBLE))
+		return " ".join(text.casefold().split())
+
+	# ============================================================
+	@classmethod
+	def split_reason(cls, reason) -> tuple[set[str], str] :
+		"""Normalises the reason and peels the leading [silent]/[hidden] tags off it. Returns the tags
+		found and the rest of the reason, which is what the rules judge."""
+		text = cls.normalise_reason(reason)
+		tags = set()
+		while match := _LEADING_TAG.match(text) :
+			tags.add(match.group(1))
+			text = text[match.end():]
+		return tags, text
+
+	# ============================================================
+	@classmethod
+	async def auto_hide_verdict(cls, reason) -> str | None :
+		"""Runs the string-only auto-hide rules (the ones short_run() runs) on a bare reason, for
+		callers that hold a ban ROW rather than a discord.BanEntry: the bulk approval and the
+		periodic re-check. Returns why the reason should be hidden ("Cross ban", "Low Value Ban",
+		"Migrated ban"), or None when it passes."""
+		checker = cls(None, SimpleNamespace(reason=reason, user=None))
+		await checker.short_run()
+		return checker.reason if checker.status == BanCheckerStatus.HIDE else None
+
+	# ============================================================
 	async def perform_action(self, action: Coroutine) :
 		"""Performs actions, if the status is incorrect it'll skip the action to prevent overriding the current action."""
 		if self.status != BanCheckerStatus.PROMPT :
@@ -103,7 +156,8 @@ class BanChecker() :
 	# ============================================================
 	async def migrated_ban(self) :
 		"""Checks if the ban is a migrated ban, and if it is, approves it without prompting."""
-		if str(self.ban.reason).lower().startswith('[migrated') :
+		_, body = self.split_reason(self.ban.reason)
+		if body.startswith('[migrated') :
 			logging.info("Migrated ban, not prompting")
 			self.status = BanCheckerStatus.HIDE
 			self.reason = "Migrated ban"
@@ -117,15 +171,12 @@ class BanChecker() :
 		#   - "Cross-ban from <server> with ban id: <n>"                    (auto: on_member_ban / selectban / baninform)
 		#   - "Cross-ban from <server> with ban id: <n> with reason: ..."   (auto, with appended reason)
 		#   - "Cross-ban from <server>: <reason>"                           (manual, per view/buttons/lookup.py:58)
-		# Match is case-insensitive, tolerates "cross ban"/"crossban", and does NOT require the
-		# "with ban id" suffix. Anchored at the start so it won't false-positive on reasons that merely
-		# mention a cross-ban. Keep this identical to listeners/on_member_ban.py.
-		reason = str(self.ban.reason).strip()
-		is_cross_ban = (
-				re.match(r"cross[-\s]?ban from\s+\S", reason, re.IGNORECASE) is not None
-				or reason.lower() in ("crossban", "cross-ban", "cross ban")
-		)
-		if is_cross_ban :
+		#   - "[silent]Cross-ban from <server>: <reason>"                   (/ban and /reban with a ban type)
+		# The reason is normalised first (case, unicode, dashes, [silent]/[hidden] tags); the match
+		# tolerates "cross ban"/"crossban"/"cross-banned" and a bracketed "[Cross-ban]", and does NOT
+		# require the "with ban id" suffix. See _CROSS_BAN.
+		_, body = self.split_reason(self.ban.reason)
+		if _CROSS_BAN.match(body.strip(_EDGE_PUNCTUATION)) :
 			logging.info("Cross-ban detected, this ban has been hidden")
 			self.status = BanCheckerStatus.HIDE
 			self.reason = "Cross ban"
@@ -134,13 +185,15 @@ class BanChecker() :
 	# ============================================================
 	async def assess_value(self) :
 		"""Checks if the ban is worth broadcasting, if the ban has no reason or a reason that doesn't provide valuable information, it'll be hidden."""
-		raw_reason = str(self.ban.reason or "").lower().strip()
-		ignored_reasons = IGNORED_REASONS
+		tags, body = self.split_reason(self.ban.reason)
+		core = body.strip(_EDGE_PUNCTUATION)
 		if (
-				not raw_reason
-				or raw_reason in ignored_reasons
-				or raw_reason.startswith(BAN_STARTS_WITH)
-				or "no reason specified" in raw_reason
+				"hidden" in tags
+				or not core
+				or core in IGNORED_REASONS
+				or body.startswith(BAN_STARTS_WITH)
+				or core.startswith(BAN_STARTS_WITH)
+				or "no reason specified" in core
 		) :
 			logging.info("Hiding ban: Reason doesn't provide valuable information or has hidden tag.")
 			self.status = BanCheckerStatus.HIDE
@@ -166,10 +219,12 @@ class BanChecker() :
 			self.status = BanCheckerStatus.SHORT
 			return
 
-		is_short = len(self.ban.reason.split()) < 4
+		# Counted without the [silent]/[hidden] tag, or "[silent] ban evasion alt" would pass as 4 words.
+		_, body = self.split_reason(self.ban.reason)
+		is_short = len(body.split()) < 4
 
 		# Checks if its a common reason such as spam or bot.
-		mentions_spam_or_bot = re.search(r"\b(?:spam|bot)\b", self.ban.reason.lower()) is not None
+		mentions_spam_or_bot = re.search(r"\b(?:spam|bot)\b", body) is not None
 		if is_short and not mentions_spam_or_bot :
 			self.reason = "Short ban reason"
 			self.status = BanCheckerStatus.SHORT

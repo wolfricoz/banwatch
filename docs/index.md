@@ -66,7 +66,7 @@ the vetting rules, broadcasting, appeals, and the data model.
 ## Support
 
 If you run into any issues or have any questions, you can join the support server by
-using the /support command. The support server is the best place to get help with the bot and to
+using the /support info command. The support server is the best place to get help with the bot and to
 report any issues you may encounter.
 
 ## Donations

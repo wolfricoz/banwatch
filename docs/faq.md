@@ -104,7 +104,7 @@ server's configuration. See the [Public privacy policy](publicprivacy.md) for
 details.
 
 **How do I contact support?**
-Run `/support` for a link to the support server and documentation, or `/config
+Run `/support info` for a link to the support server and documentation, or `/config
 help` for in-app guidance.
 
 **How can I support the project?**

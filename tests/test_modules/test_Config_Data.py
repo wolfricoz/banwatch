@@ -87,3 +87,39 @@ class TestConfigData(unittest.TestCase) :
 		self.assertEqual(self.config_controller.get_key(guild.id, "ALLOW_APPEALS"), True)
 		self.config_controller.remove_key(guild.id, "ALLOW_APPEALS")
 		self.assertEqual(self.config_controller.get_key_or_none(guild.id, "ALLOW_APPEALS"), None)
+
+
+class TestGetChannelMissing(unittest.IsolatedAsyncioTestCase) :
+	"""BANWATCH-DP: an unset channel must never raise, and must not nag on every call."""
+
+	def setUp(self) :
+		from classes.permissions_notice import PermissionNotice
+		PermissionNotice._last_sent.clear()
+
+	def _guild(self, guild_id) :
+		import discord
+		from unittest.mock import AsyncMock, MagicMock
+		guild = MagicMock()
+		guild.id = guild_id
+		guild.name = "Test Guild"
+		guild.owner = MagicMock(spec=discord.Member)
+		guild.owner.name = "owner"
+		guild.owner.send = AsyncMock(side_effect=discord.Forbidden(MagicMock(status=403), "Cannot send messages to this user"))
+		return guild
+
+	async def test_owner_dms_closed_does_not_raise_and_is_throttled(self) :
+		from unittest.mock import patch
+		guild = self._guild(9001)
+		with patch("classes.configdata.ConfigData.get_key_or_none", return_value=None), \
+			patch("classes.configdata.find_first_accessible_text_channel", return_value=None) :
+			self.assertIsNone(await ConfigData().get_channel(guild))
+			self.assertIsNone(await ConfigData().get_channel(guild))
+		self.assertEqual(guild.owner.send.await_count, 1)
+
+	async def test_optional_does_not_notify(self) :
+		from unittest.mock import patch
+		guild = self._guild(9002)
+		with patch("classes.configdata.ConfigData.get_key_or_none", return_value=None), \
+			patch("classes.configdata.find_first_accessible_text_channel", return_value=None) :
+			self.assertIsNone(await ConfigData().get_channel(guild, optional=True))
+		guild.owner.send.assert_not_awaited()

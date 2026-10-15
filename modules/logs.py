@@ -26,9 +26,16 @@ from discord import Interaction, app_commands
 from discord.app_commands import AppCommandError, CheckFailure, command
 from discord.ext import commands
 from discord_py_utilities.exceptions import NoChannelException, NoPermissionException
+from discord_py_utilities.permissions import check_missing_channel_permissions
 from dotenv import load_dotenv
 
 from classes.configdata import KeyNotFound
+from classes.permissions_notice import DEFAULT_CHANNEL_PERMS, bot_role_name, format_permissions
+from classes.replies import reply
+
+# Permissions that only exist server-wide; channel permission overrides don't offer them.
+SERVER_ONLY_PERMS = {"ban_members", "kick_members", "moderate_members", "manage_guild", "view_audit_log",
+                     "manage_nicknames", "change_nickname", "manage_expressions", "view_guild_insights", "administrator"}
 
 load_dotenv('main.env')
 
@@ -140,14 +147,54 @@ def setup_logging() -> None:
 
 # Errors that are the user's fault / expected and should NOT be reported to
 # Sentry. Each maps to a friendly message shown to the user instead.
+def _no_permission_message(exc: NoPermissionException) -> str:
+	"""Turns discord_py_utilities' raw 'Missing permission to send message: view_channel, ...' into labels."""
+	text = str(exc)
+	prefix = "Missing permission to send message: "
+	if not text.startswith(prefix):
+		return text
+	perms = [p.strip() for p in text[len(prefix):].split(",") if p.strip() and "context" not in p]
+	if not perms:
+		return ("❌ I couldn't post my reply because I'm missing permissions in the channel. "
+		        "Run `/config permissioncheck` to see what's missing.")
+	return (f"❌ I couldn't post my reply because I'm missing {format_permissions(perms)} in that channel.\n"
+	        "Open the channel → **Edit Channel → Permissions**, add my role, enable those, then try again.")
+
+
+def _forbidden_message(interaction: Optional[Interaction]) -> str:
+	"""Explains a raw 403. Discord doesn't say which permission was missing, so don't claim to know: a 403 from
+	e.g. guild.bans() in a channel the bot also can't post in used to be blamed on the channel permissions."""
+	message = ("❌ Discord blocked this action: I'm missing a permission it needs, or my role is below the role of "
+	           "the member I'm acting on.\nRun `/config permissioncheck` to see what's missing.")
+	channel = getattr(interaction, "channel", None)
+	guild = getattr(interaction, "guild", None)
+	if guild is not None and isinstance(channel, (discord.abc.GuildChannel, discord.Thread)):
+		missing = check_missing_channel_permissions(channel, DEFAULT_CHANNEL_PERMS)
+		if missing:
+			message += (f"\nIn {channel.mention} I'm also missing {format_permissions(missing)}, so commands that "
+			            "post here won't work either.")
+	return message
+
+
 def _expected_app_error_message(
-		error: AppCommandError, original: Optional[BaseException]
+		error: AppCommandError, original: Optional[BaseException], interaction: Optional[Interaction] = None
 ) -> Optional[str]:
 	"""Returns a user-facing message for expected errors, or None if unexpected."""
+	# Both permission errors subclass CheckFailure, so they must be matched before it.
+	if isinstance(error, app_commands.BotMissingPermissions):
+		role = bot_role_name(interaction.guild) if getattr(interaction, "guild", None) else "my role"
+		# Server-level permissions like Ban Members don't exist in channel overrides, so only offer that route
+		# when at least one of the missing permissions can actually be set on a channel.
+		channel_route = (" (or in this channel's permissions)"
+		                 if not set(error.missing_permissions) <= SERVER_ONLY_PERMS else "")
+		return (f"❌ I'm missing {format_permissions(error.missing_permissions)}, which this command needs.\n"
+		        f"Enable it under **Server Settings → Roles → {role}**{channel_route}, then try again.")
+	if isinstance(error, app_commands.MissingPermissions):
+		return f"❌ You need {format_permissions(error.missing_permissions)} to use this command."
 	if isinstance(error, CheckFailure):
-		return "You do not have permission."
+		return "❌ You do not have permission to use this command."
 	if isinstance(original, NoPermissionException):
-		return str(original)
+		return _no_permission_message(original)
 	if isinstance(original, KeyNotFound):
 		return str(original)
 	if isinstance(original, NoChannelException):
@@ -159,10 +206,7 @@ def _expected_app_error_message(
 	if isinstance(error, commands.MemberNotFound):
 		return "Member not found."
 	if isinstance(original, discord.Forbidden):
-		return ("The bot does not have sufficient permission to run this command. "
-		        "Please check: \n* if the bot has permission to post in the channel "
-		        "\n* if the bot is above the role its trying to assign\n* If trying to "
-		        "ban, ensure the bot has the ban permission")
+		return _forbidden_message(interaction)
 	return None
 
 
@@ -251,14 +295,9 @@ class Logging(commands.Cog):
 
 	# ============================================================
 	async def on_fail_message(self, interaction: Interaction, message: str):
-		"""sends a message to the user if the command fails."""
-		try:
-			await interaction.channel.send(message)
-		except discord.Forbidden as e:
-			# The command ran in a channel the bot can't post in; nothing to fix on our side (BANWATCH-17).
-			logging.info(f"Could not send the failure message in {interaction.channel_id}: {e}")
-		except Exception as e:
-			logging.warning(f"Could not send the failure message in {interaction.channel_id}: {e}", exc_info=True)
+		"""Tells the user the command failed, privately and without needing channel permissions."""
+		if not await reply(interaction, message):
+			logging.warning(f"Could not tell {interaction.user} that their command failed: {message}")
 
 	# ============================================================
 	async def on_app_command_error(self, interaction: Interaction, error: AppCommandError):
@@ -267,7 +306,7 @@ class Logging(commands.Cog):
 		arguments = self._format_options(interaction)
 
 		# Expected / user-facing errors: tell the user, don't bother Sentry.
-		user_message = _expected_app_error_message(error, original)
+		user_message = _expected_app_error_message(error, original, interaction)
 		if user_message is not None:
 			return await self.on_fail_message(interaction, user_message)
 
@@ -285,9 +324,10 @@ class Logging(commands.Cog):
 		          f"with arguments {arguments}")
 		await self._notify_dev(header, event_id, traceback.format_exc())
 
-		notice = f"Command failed: {error} \nreport this to Rico"
-		if event_id:
-			notice += f"\n(ref: `{event_id}`)"
+		# The developers already have the traceback (Sentry / DEV channel), so keep internals out of the user's view.
+		notice = ("❌ Something went wrong while running this command. The developers have been notified "
+		          "automatically.\nIf it keeps happening, report it with `/support bug`")
+		notice += f" and include this reference: `{event_id}`" if event_id else "."
 		await self.on_fail_message(interaction, notice)
 
 	# ============================================================

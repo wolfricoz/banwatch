@@ -97,3 +97,14 @@ class ApproveBan(unittest.IsolatedAsyncioTestCase) :
 		self.bot.fetch_user = AsyncMock(side_effect=discord.NotFound(MagicMock(status=404), "gone"))
 		self.assertFalse(await Bans().approve_ban(self.bot, self.ban))
 		self.check_guilds.assert_not_awaited()
+
+	# ============================================================
+	async def test_reason_failing_the_rules_is_skipped(self) :
+		# Pending rows are not all vetted (hidden-server bans, ban_member's pre-ban row), and a bulk
+		# approval matches on a word - "raiding" would have broadcast these along with the rest.
+		for reason in ("[silent]Cross-ban from X: raiding", "Cross-banned from X for raiding", "[silent]test") :
+			with self.subTest(reason=reason) :
+				self.ban.reason = reason
+				self.assertFalse(await Bans().approve_ban(self.bot, self.ban))
+				self.check_guilds.assert_not_awaited()
+				Bans().notify_origin_server.assert_not_called()

@@ -49,7 +49,7 @@ Please select one of the setup methods below to begin.
 	@actions.button(label="Automatic Setup", style=discord.ButtonStyle.primary, custom_id="onboarding_automatic_setup")
 	async def onboarding_automatic_setup(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		if not interaction.user.guild_permissions.manage_guild:
-			await send_response(interaction, "You need to be an manage_guild to use automatic setup.", ephemeral=True)
+			await send_response(interaction, "You need the **Manage Server** permission to run setup.", ephemeral=True)
 			return
 		await ConfigSetup().automated_setup(interaction)
 
@@ -57,7 +57,7 @@ Please select one of the setup methods below to begin.
 	@actions.button(label="Manual Setup", style=discord.ButtonStyle.primary, custom_id="onboarding_manual_setup")
 	async def onboarding_manual_setup(self, interaction: discord.Interaction, button: discord.ui.Button) :
 		if not interaction.user.guild_permissions.manage_guild:
-			await send_response(interaction, "You need to be an manage_guild to use manual setup.", ephemeral=True)
+			await send_response(interaction, "You need the **Manage Server** permission to run setup.", ephemeral=True)
 			return
 
 		await ConfigSetup().manual_setup(interaction)

@@ -1,14 +1,17 @@
 import asyncio
 import logging
+from datetime import datetime, time, timezone
 
 import discord
 from discord.ext import commands, tasks
 
 from classes.access import AccessControl
+from classes.ban import recheck
 from classes.blacklist import blacklist_check
 from classes.configdata import ConfigData
 from classes.dashboard.Servers import Servers
 from classes.queue import queue
+from classes.support import quickleaves, weeklyreport
 from classes.tasks import pending_bans
 from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ServerTransactions import ServerTransactions
@@ -22,6 +25,8 @@ class Tasks(commands.Cog) :
 		self.check_pending_bans.start()
 		self.purge_bot_roles.start()
 		self.clean_convict_bans.start()
+		self.weekly_report.start()
+		self.recheck_bans.start()
 
 	# ============================================================
 	def cog_unload(self) :
@@ -30,6 +35,8 @@ class Tasks(commands.Cog) :
 		self.check_pending_bans.cancel()
 		self.purge_bot_roles.cancel()
 		self.clean_convict_bans.cancel()
+		self.weekly_report.cancel()
+		self.recheck_bans.cancel()
 
 
 	# ============================================================
@@ -138,6 +145,42 @@ class Tasks(commands.Cog) :
 			current += 1
 		logging.info(f"Cleaned up {current}/{total_bans} criminal bans from servers")
 
+
+	# ============================================================
+	@tasks.loop(time=time(hour=12, tzinfo=timezone.utc))
+	async def weekly_report(self) :
+		"""Clears out expired join-leaver files daily, and posts the weekly stats report to the DEV channel on Sundays."""
+		try :
+			removed = await asyncio.to_thread(quickleaves.prune)
+			logging.info(f"Deleted {removed} expired join-leaver files")
+			if datetime.now(tz=timezone.utc).weekday() == 6 :
+				await weeklyreport.send(self.bot)
+		except Exception as e :
+			# A failing run must not stop the loop; tomorrow's run tries again.
+			logging.error(f"Weekly report task failed: {e}", exc_info=True)
+
+	# ============================================================
+	@tasks.loop(time=time(hour=13, tzinfo=timezone.utc))
+	async def recheck_bans(self) :
+		"""Every Monday, re-checks the shared bans against the current ban rules and reports the ones
+		that fail them to the DEV channel. Report only: staff decide what gets hidden."""
+		if datetime.now(tz=timezone.utc).weekday() != 0 :
+			return
+		try :
+			await recheck.send(self.bot)
+		except Exception as e :
+			# A failing run must not stop the loop; next week's run tries again.
+			logging.error(f"Ban re-check task failed: {e}", exc_info=True)
+
+	# ============================================================
+	@recheck_bans.before_loop
+	async def before_recheck_bans(self) :
+		await self.bot.wait_until_ready()
+
+	# ============================================================
+	@weekly_report.before_loop
+	async def before_weekly_report(self) :
+		await self.bot.wait_until_ready()
 
 	# ============================================================
 	@check_active_servers.before_loop

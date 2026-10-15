@@ -23,6 +23,31 @@ from data.config.mappings import Channels
 # "on" here or nobody would ever see one of these. Turning it off writes an explicit DISABLED.
 LOG_CHANGES_KEY = "log_config_changes"
 
+# Names admins recognise from the commands, for keys whose stored name isn't readable as-is.
+CONFIG_LABELS = {
+	Channels.MOD_CHANNEL : "Mod channel",
+	Channels.INVITE : "Invite channel",
+	Channels.WARNING_LOG : "Warning log channel",
+	Channels.WARNING_EVIDENCE_ARCHIVE : "Warning evidence archive",
+	"allow_appeals" : "Ban appeals",
+	"invite" : "Invite link",
+	LOG_CHANGES_KEY : "Log config changes",
+}
+CHANNEL_KEYS = {str(c) for c in Channels}
+
+
+def format_change(key, value) -> str :
+	"""One readable line per change. Plain text rather than a code block, so channel and role mentions render."""
+	label = CONFIG_LABELS.get(key) or str(key).replace("_", " ").capitalize()
+	if value is None or value == "" :
+		shown = "*removed*"
+	elif str(key) in CHANNEL_KEYS and str(value).isdigit() :
+		# The dashboard sends raw channel ids; the slash commands already send mentions.
+		shown = f"<#{value}>"
+	else :
+		shown = str(value)
+	return f"• **{label}** → {shown}"
+
 
 class ConfigUtils(ABC) :
 
@@ -42,11 +67,10 @@ class ConfigUtils(ABC) :
 		if channel is None :
 			logging.info("No mod channel found for logging configuration changes.")
 			return
-		body = '\n'.join(
-			f"{key}: {value if value else 'This key was removed'}" for key, value in changes.items())
+		body = '\n'.join(format_change(key, value) for key, value in changes.items())
 		await send_message(channel,
-		                   f"[CONFIG CHANGE] {user_name} changed the configuration:\n"
-		                   f"```{body}```\n"
-		                   f"-# this setting can be turned off with `/config toggles key:{LOG_CHANGES_KEY} action:disabled`",
+		                   f"⚙️ **Configuration changed** by {user_name}:\n"
+		                   f"{body}\n"
+		                   f"-# Turn these notices off with `/config toggles key:{LOG_CHANGES_KEY} action:disabled`",
 		                   error_mode='ignore'
 		                   )

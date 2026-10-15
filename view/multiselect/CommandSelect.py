@@ -2,10 +2,10 @@ import discord
 
 
 class CommandSelect(discord.ui.Select) :
-	def __init__(self, reasons, view) :
+	def __init__(self, reasons, view, placeholder="Select the command you want to know more about!") :
 		options = reasons
 		super().__init__(
-			placeholder="Select the command you want to know more about!",
+			placeholder=placeholder,
 			options=options,
 			min_values=1,
 			max_values=1

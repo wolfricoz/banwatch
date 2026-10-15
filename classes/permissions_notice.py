@@ -44,6 +44,23 @@ def humanize_permission(perm: str) -> str:
 	return label
 
 
+def format_permissions(perms: list[str]) -> str :
+	"""Render permission keys as a bold, comma-separated list of Discord-facing labels."""
+	return ", ".join(f"**{humanize_permission(p)}**" for p in perms)
+
+
+def bot_role_name(guild: discord.Guild) -> str :
+	"""The name admins will see for the bot's role in Server Settings → Roles.
+
+	The bot's own integration role is what the invite created; it is often renamed or named after
+	the application, so a hardcoded "Banwatch" can send admins looking for a role that doesn't exist.
+	"""
+	role = guild.self_role or (guild.me.top_role if guild.me else None)
+	if role is None or role.is_default() :
+		return guild.me.display_name if guild.me else "Banwatch"
+	return role.name
+
+
 class PermissionNotice :
 	"""Builds and delivers actionable permission notices, with per-problem rate limiting."""
 
@@ -100,19 +117,20 @@ class PermissionNotice :
 
 		# Tailor the fix steps to whether this is a channel-level or hierarchy-level problem.
 		needs_hierarchy = any(p in ("ban_members", "kick_members") for p in missing)
+		role = bot_role_name(guild)
 		steps = []
 		if is_channel :
 			steps.append(
-				f"Open **{channel.name}** → **Edit Channel → Permissions**, add the **Banwatch** role "
+				f"Open **{channel.name}** → **Edit Channel → Permissions**, add the **{role}** role "
 				"(or the bot itself), and enable the permissions listed above."
 			)
 		steps.append(
-			"Or grant them server-wide: **Server Settings → Roles → Banwatch**, then toggle the "
+			f"Or grant them server-wide: **Server Settings → Roles → {role}**, then toggle the "
 			"permissions above **on**."
 		)
 		if needs_hierarchy :
 			steps.append(
-				"To ban or kick members, drag the **Banwatch** role **above** the members it needs to act on "
+				f"To ban or kick members, drag the **{role}** role **above** the members it needs to act on "
 				"(**Server Settings → Roles**) — a bot can only ban/kick users whose highest role sits below its own."
 			)
 		steps.append("When you're done, trigger the action again (or re-run setup) — this notice will clear on its own.")
@@ -203,7 +221,7 @@ class PermissionNotice :
 				f"⚠️ **Banwatch is missing permissions in {location_text}**\n"
 				f"Missing: {perms_text}"
 				+ (f" — needed so I can {purpose}" if purpose else "") + "\n"
-				f"How to fix: enable these for the **Banwatch** role (**Server Settings → Roles**, "
+				f"How to fix: enable these for the **{bot_role_name(guild)}** role (**Server Settings → Roles**, "
 				f"or the channel's permissions), then trigger the action again.\n"
 				f"Guide: <{BANWATCH_PERMISSIONS_DOCS}>"
 			)
