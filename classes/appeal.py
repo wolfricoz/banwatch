@@ -20,6 +20,6 @@ async def inform_user(guild: discord.Guild, user: discord.User):
 	try:
 		await send_message(user, reminder)
 	except (discord.errors.Forbidden, NoPermissionException):
-		logging.error(f"Failed to send reminder to {user.name}")
+		logging.warning(f"Failed to send reminder to {user.name}")
 	except Exception as e:
 		logging.warning(f"Failed to send reminder to {user.name} because {e}")
