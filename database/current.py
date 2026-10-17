@@ -7,7 +7,6 @@ import pymysql
 from dotenv import load_dotenv
 from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, String, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Relationship, mapped_column, relationship, sessionmaker
-from sqlalchemy.pool import NullPool
 from sqlalchemy.sql import func
 from sqlalchemy_utils import create_database, database_exists
 
@@ -17,11 +16,22 @@ if os.path.exists("main.env") is False :
 	load_dotenv("tests/main.env")
 DB = os.getenv('DB')
 
-engine = create_engine(f"{DB}", poolclass=NullPool, echo=False, isolation_level="READ COMMITTED")
+# Opening a connection per session blocked the bot, since most DB calls run on the event loop.
+# pool_timeout is short so an exhausted pool fails fast instead of freezing the loop; pre_ping and recycle replace
+# connections the server or a firewall closed while they sat idle.
+pool_options = {"pool_size" : 32, "max_overflow" : 8, "pool_timeout" : 5, "pool_pre_ping" : True, "pool_recycle" : 1800}
+engine = create_engine(f"{DB}", echo=False, isolation_level="READ COMMITTED", **pool_options)
 if not database_exists(engine.url) :
 	create_database(engine.url)
 
-conn = engine.connect()
+
+def _reset_pool_after_fork() :
+	"""A forked worker (gunicorn --preload) must not reuse the parent's pooled sockets; close=False leaves them to the parent."""
+	engine.dispose(close=False)
+
+
+if hasattr(os, "register_at_fork") :  # POSIX only; Windows has no fork
+	os.register_at_fork(after_in_child=_reset_pool_after_fork)
 
 
 class Base(DeclarativeBase) :
