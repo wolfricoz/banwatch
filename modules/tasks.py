@@ -149,7 +149,7 @@ class Tasks(commands.Cog) :
 	# ============================================================
 	@tasks.loop(time=time(hour=12, tzinfo=timezone.utc))
 	async def weekly_report(self) :
-		"""Clears out expired join-leaver files daily, and posts the weekly stats report to the DEV channel on Sundays."""
+		"""Clears out expired join-leaver files daily, and posts the weekly stats report to the stats channel on Sundays."""
 		try :
 			removed = await asyncio.to_thread(quickleaves.prune)
 			logging.info(f"Deleted {removed} expired join-leaver files")

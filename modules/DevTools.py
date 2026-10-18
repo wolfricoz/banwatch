@@ -406,7 +406,7 @@ class DevTools(commands.GroupCog, name="dev") :
 
 	# ============================================================
 	@app_commands.command(name="stats_report",
-	                      description="[DEV] Posts the weekly stats report for the last 7 days to the dev channel now.")
+	                      description="[DEV] Posts the weekly stats report for the last 7 days to the stats channel now.")
 	@AccessControl().check_access("dev")
 	async def stats_report(self, interaction: discord.Interaction) :
 		"""
@@ -417,7 +417,7 @@ class DevTools(commands.GroupCog, name="dev") :
 		"""
 		await send_response(interaction, "Building the weekly stats report.", ephemeral=True)
 		sent = await weeklyreport.send(self.bot)
-		await interaction.followup.send("Report posted to the dev channel." if sent else
+		await interaction.followup.send(f"Report posted to <#{self.bot.STATSCHANNEL}>." if sent else
 		                                "The report could not be posted, check the logs.", ephemeral=True)
 
 	# ============================================================

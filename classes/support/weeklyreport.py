@@ -1,4 +1,4 @@
-"""The weekly developer stats report, posted to the DEV channel on Sundays by modules.tasks.
+"""The weekly developer stats report, posted to the stats channel (STATS_CHANNEL env) on Sundays by modules.tasks.
 
 Everything here comes from data Banwatch already keeps: the database (database.transactions.StatsTransactions),
 the log files (classes.support.logreader) and the join-leaver files (classes.support.quickleaves). collect()
@@ -229,11 +229,14 @@ def build_embeds(report: WeeklyReport) -> list[discord.Embed] :
 
 # ============================================================
 async def send(bot, now: datetime = None) -> bool :
-	"""Posts the report to the DEV channel. Returns False when it could not be posted."""
-	channel = bot.get_channel(bot.DEV)
+	"""Posts the report to the stats channel. Returns False when it could not be posted."""
+	channel = bot.get_channel(bot.STATSCHANNEL)
 	if channel is None :
-		logging.warning("Weekly report skipped: the DEV channel could not be found.")
-		return False
+		try :
+			channel = await bot.fetch_channel(bot.STATSCHANNEL)
+		except discord.HTTPException as e :
+			logging.warning(f"Weekly report skipped: the stats channel {bot.STATSCHANNEL} could not be found: {e}")
+			return False
 	try :
 		report = await collect(bot, now)
 		await channel.send(embeds=build_embeds(report))
