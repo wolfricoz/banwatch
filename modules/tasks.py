@@ -163,7 +163,7 @@ class Tasks(commands.Cog) :
 	@tasks.loop(time=time(hour=13, tzinfo=timezone.utc))
 	async def recheck_bans(self) :
 		"""Every Monday, re-checks the shared bans against the current ban rules and reports the ones
-		that fail them to the DEV channel. Report only: staff decide what gets hidden."""
+		that fail them to the stats channel. Report only: staff decide what gets hidden."""
 		if datetime.now(tz=timezone.utc).weekday() != 0 :
 			return
 		try :

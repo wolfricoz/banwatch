@@ -1,11 +1,14 @@
 """Unit tests for classes/ban/recheck.py, the weekly re-check of shared bans against the ban rules.
 
 The re-check is report-only: it must find approved, visible bans whose reason fails the current
-auto-hide rules, tell staff in the DEV channel, and never change a ban itself.
+auto-hide rules, tell staff in the stats channel, and never change a ban itself. Hiding them is
+/staff hide_flagged's job, through select() and hide().
 """
 import logging
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import discord
 
 from classes.ban import recheck
 
@@ -53,6 +56,8 @@ class BuildReport(unittest.TestCase) :
 		self.assertIn("Cross ban: 20", message)
 		self.assertIn("Low Value Ban: 20", message)
 		self.assertIn("30 more", message)
+		self.assertIn("/staff hide_flagged", message)
+		self.assertIn("2 of them were verified or edited", message)
 		# Backticks in a reason would close the code block early.
 		self.assertNotIn("`1`", message)
 
@@ -96,10 +101,52 @@ class Send(unittest.IsolatedAsyncioTestCase) :
 		self.channel.send.assert_not_awaited()
 
 	# ============================================================
-	async def test_missing_dev_channel_does_not_raise(self) :
+	async def test_posts_to_the_stats_channel(self) :
+		await self._send([ban_row(1, "test")])
+		self.bot.get_channel.assert_called_once_with(self.bot.STATSCHANNEL)
+
+	# ============================================================
+	async def test_fetches_the_stats_channel_when_not_cached(self) :
 		self.bot.get_channel.return_value = None
+		self.bot.fetch_channel = AsyncMock(return_value=self.channel)
+		await self._send([ban_row(1, "test")])
+		self.bot.fetch_channel.assert_awaited_once_with(self.bot.STATSCHANNEL)
+		self.channel.send.assert_awaited_once()
+
+	# ============================================================
+	async def test_missing_stats_channel_does_not_raise(self) :
+		self.bot.get_channel.return_value = None
+		self.bot.fetch_channel = AsyncMock(side_effect=discord.NotFound(MagicMock(status=404), "Unknown Channel"))
 		_, flagged = await self._send([ban_row(1, "test")])
 		self.assertEqual(len(flagged), 1)
+		self.channel.send.assert_not_awaited()
+
+
+class SelectAndHide(unittest.TestCase) :
+	def setUp(self) :
+		self.flagged = [recheck.FlaggedBan(1, "Guild", "Cross ban", "r", verified=False, edited_by=None, uid=10),
+		                recheck.FlaggedBan(2, "Guild", "Low Value Ban", "r", verified=True, edited_by=None, uid=20),
+		                recheck.FlaggedBan(3, "Guild", "Low Value Ban", "r", verified=False, edited_by="staffer", uid=30)]
+
+	# ============================================================
+	def test_reviewed_bans_are_left_alone_by_default(self) :
+		targets, skipped = recheck.select(self.flagged)
+		self.assertEqual([b.ban_id for b in targets], [1])
+		self.assertEqual([b.ban_id for b in skipped], [2, 3])
+
+	# ============================================================
+	def test_include_reviewed_selects_everything(self) :
+		targets, skipped = recheck.select(self.flagged, include_reviewed=True)
+		self.assertEqual([b.ban_id for b in targets], [1, 2, 3])
+		self.assertEqual(skipped, [])
+
+	# ============================================================
+	def test_hide_writes_and_drops_from_cache(self) :
+		with patch("classes.ban.recheck.BanTransactions") as transactions :
+			transactions.return_value.hide_bulk.return_value = 3
+			self.assertEqual(recheck.hide(self.flagged), 3)
+		transactions.return_value.hide_bulk.assert_called_once_with([1, 2, 3])
+		self.assertEqual(transactions.return_value.drop_from_cache.call_count, 3)
 
 
 if __name__ == "__main__" :

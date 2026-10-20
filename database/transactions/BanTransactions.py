@@ -233,6 +233,32 @@ class BanTransactions(DatabaseTransactions, metaclass=Singleton) :
 		return removed
 
 	# ============================================================
+	def hide_bulk(self, ban_ids: list[int], chunk_size: int = 500) -> int :
+		"""Hides many bans in one statement per chunk instead of one update() round-trip each.
+
+		Used by /staff hide_flagged, which can hide thousands of bans at once. Unlike update(hidden=True)
+		this does not touch the lookup cache: the caller has the uids and drops them with drop_from_cache().
+
+		:return: number of rows actually updated (bans that were already hidden are not counted).
+		"""
+		if not ban_ids :
+			return 0
+		hidden = 0
+		for start in range(0, len(ban_ids), chunk_size) :
+			chunk = ban_ids[start :start + chunk_size]
+			with self.createsession() as session :
+				result = session.execute(
+					update(Bans)
+					.where(and_(Bans.ban_id.in_(chunk), Bans.hidden.is_(False)))
+					.values(hidden=True, updated_at=datetime.now())
+				)
+				# Read rowcount before commit() - it closes the session in its finally block.
+				hidden += result.rowcount
+				self.commit(session)
+		logging.info(f"Bulk hid {hidden}/{len(ban_ids)} bans.")
+		return hidden
+
+	# ============================================================
 	def delete_permanent(self, ban: int | Type[Bans]) -> bool :
 		with self.createsession() as session :
 
