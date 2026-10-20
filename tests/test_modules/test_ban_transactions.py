@@ -200,6 +200,18 @@ class TestBanDatabaseOperations(unittest.TestCase):
         self.assertFalse(self.ban_controller.get(ban.ban_id, override=True).hidden)
 
     # ============================================================
+    # hide_bulk: /staff hide_flagged hides the re-check list in one go
+    def test_hide_bulk_hides_only_the_given_visible_bans(self):
+        guild = ServerFactory().create()
+        bans = [self.ban_controller.add(self.user_id + i, guild.id, "r", "s", approved=True) for i in range(3)]
+        self.ban_controller.update(bans[0].ban_id, hidden=True)
+        # the already hidden ban is not counted, the untouched one stays visible
+        self.assertEqual(self.ban_controller.hide_bulk([bans[0].ban_id, bans[1].ban_id], chunk_size=1), 1)
+        self.assertTrue(self.ban_controller.get(bans[1].ban_id, override=True).hidden)
+        self.assertFalse(self.ban_controller.get(bans[2].ban_id, override=True).hidden)
+        self.assertEqual(self.ban_controller.hide_bulk([]), 0)
+
+    # ============================================================
     # get guild status from ban: positive and when guild deleted (negative)
     def test_get_guild_status_from_ban_positive_and_negative(self):
         guild = ServerFactory().create()

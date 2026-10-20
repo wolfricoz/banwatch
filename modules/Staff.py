@@ -1,4 +1,5 @@
 import asyncio
+import io
 import logging
 import os
 
@@ -9,6 +10,7 @@ from discord_py_utilities.messages import send_message, send_response
 
 from classes.access import AccessControl
 from classes.autocorrect import autocomplete_guild
+from classes.ban import recheck
 from classes.ban.BanChecker import BanChecker
 from classes.bans import Bans
 from classes.config.utils import ConfigUtils
@@ -174,6 +176,47 @@ class Staff(commands.GroupCog, name="staff", description="Commands for BanWatch 
 			return await send_response(interaction, f"Ban not found.")
 		BanTransactions().update(ban, hidden=hide)
 		await send_response(interaction, f"{ban_id} hidden status changed to {hide} by {interaction.user.mention}")
+
+	# ============================================================
+	@app_commands.command(name="hide_flagged",
+	                      description="[staff] Hide every shared ban that fails the current ban rules (the ban re-check list).")
+	@AccessControl().check_access()
+	@app_commands.guilds(GUILD)
+	async def hide_flagged(self, interaction: discord.Interaction, include_reviewed: bool = False) :
+		"""
+		Re-runs the weekly ban re-check and hides every shared ban that fails the current ban rules, the same as /staff banvisibility hide:True on each of them. Bans that staff verified or edited are left alone unless include_reviewed is set. The list is previewed and has to be confirmed before anything is hidden.
+
+		**Permissions:**
+		- Requires BanWatch Staff access.
+		"""
+		# The scan reads every shared ban and takes longer than the 3 seconds Discord allows before
+		# the first response, so defer and send the confirmation as a follow-up instead of using
+		# Confirm.send_confirm(), which needs the initial response.
+		await interaction.response.defer(ephemeral=True, thinking=True)
+		flagged, scanned = await recheck.scan()
+		targets, skipped = recheck.select(flagged, include_reviewed)
+		skipped_note = (f"\n{len(skipped)} verified or edited ban(s) are left alone; run with "
+		                f"`include_reviewed: True` to hide those too." if skipped else "")
+		if not targets :
+			return await interaction.followup.send(f"No shared bans to hide: {len(flagged)} of {scanned} fail the "
+			                                       f"current ban rules.{skipped_note}", ephemeral=True)
+
+		message = (f"**{len(targets)}** of {scanned} shared bans fail the current ban rules and would be hidden "
+		           f"({recheck.count_by_rule(targets)}).{skipped_note}\n{recheck.preview(targets)}\n"
+		           f"Hidden bans stop showing in lookups and checks. Continue?")
+		_, content = recheck.build_report(targets, scanned)
+		view = Confirm(timeout=120)
+		await interaction.followup.send(message[:2000], view=view, ephemeral=True,
+		                                file=discord.File(io.BytesIO(content.encode("utf-8")), "hide-flagged.txt"))
+		await view.wait()
+		if not view.value :
+			return await interaction.followup.send("Hiding the flagged bans cancelled.", ephemeral=True)
+
+		hidden = await asyncio.to_thread(recheck.hide, targets)
+		logging.info(f"[hide flagged] {interaction.user} hid {hidden}/{len(targets)} flagged bans.")
+		await send_message(interaction.channel,
+		                   f"Hid {hidden} shared bans that fail the current ban rules "
+		                   f"({recheck.count_by_rule(targets)}), requested by {interaction.user.mention}.")
 
 	# ============================================================
 	@app_commands.command(name="rpsecsearch",
