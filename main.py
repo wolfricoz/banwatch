@@ -105,6 +105,9 @@ bot.APPROVALCHANNEL = int(os.getenv('APPROVED'))
 bot.DEV = DEV
 bot.STATSCHANNEL = int(os.getenv('STATS_CHANNEL','1561375724965728408'))
 
+# The guild list holds server and owner names, so it goes to a debug file instead of the logs.
+GUILD_LIST_FILE = os.path.join("debug", "guilds.txt")
+
 
 # EVENT LISTENER FOR WHEN THE BOT HAS SWITCHED FROM OFFLINE TO ONLINE.
 
@@ -134,8 +137,13 @@ async def on_ready() :
 		# INCREMENTS THE GUILD COUNTER.
 		guild_count += 1
 
-	formguilds = "\n".join(guilds)
-	logging.info(f"Bot is in {guild_count} guilds:\n{formguilds}")
+	try :
+		os.makedirs(os.path.dirname(GUILD_LIST_FILE), exist_ok=True)
+		with open(GUILD_LIST_FILE, "w", encoding="utf-8") as file :
+			file.write("\n".join(guilds) + "\n")
+		logging.info(f"Bot is in {guild_count} guilds, guild list written to {GUILD_LIST_FILE}")
+	except OSError as e :
+		logging.warning(f"Bot is in {guild_count} guilds, failed to write the guild list to {GUILD_LIST_FILE}: {e}")
 	queue().add(send_message(devroom, f"Banwatch is in {guild_count} guilds. Version {VERSION}"), priority=2)
 	# Adding views
 	try :
