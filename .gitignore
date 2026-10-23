@@ -21,3 +21,4 @@ countbans.txt
 /compliance/
 __pycache__/
 *.pyc
+/debug/

@@ -693,4 +693,5 @@ class DevTools(commands.GroupCog, name="dev") :
 
 
 async def setup(bot: commands.Bot) :
-	await bot.add_cog(DevTools(bot))
+	# Registered as guild commands so /dev only shows up in the support server.
+	await bot.add_cog(DevTools(bot), guilds=[SUPPORT_GUILD])

@@ -199,7 +199,8 @@ class LookupTests(Quiet) :
 		await self.run_lookup([make_ban(99)], perms=dict(ALL_CHANNEL, attach_files=False))
 		self.send.assert_awaited()
 
-	def test_select_ban_excludes_own_server(self) :
+	# discord.py views need a running event loop, so the view tests are async.
+	async def test_select_ban_excludes_own_server(self) :
 		with patch("view.multiselect.selectban.BanTransactions") as bans :
 			own, other = make_ban(1), make_ban(99, 2)
 			other.guild.name = "Other server"
@@ -209,8 +210,8 @@ class LookupTests(Quiet) :
 		self.assertEqual(view.bans, [other])
 
 
-class HelpPagerTests(unittest.TestCase) :
-	def test_pager_names_the_command_range(self) :
+class HelpPagerTests(Quiet) :
+	async def test_pager_names_the_command_range(self) :
 		with patch("view.v2.HelpLayout.ServerTransactions"), patch.dict(os.environ, {"GUILD" : "1"}) :
 			from view.v2.HelpLayout import HelpLayout
 			layout = HelpLayout()
