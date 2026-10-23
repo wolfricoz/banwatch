@@ -127,7 +127,9 @@ async def on_ready() :
 		guilds.append(f"- {guild.id} (name: {guild.name}, owner: {guild.owner}({guild.owner.id}))")
 		if await blacklist_check(guild, devroom) :
 			continue
-		bot.tree.clear_commands(guild=guild)
+		# The support guild keeps its guild-only commands (/dev).
+		if guild.id != bot.SUPPORTGUILD :
+			bot.tree.clear_commands(guild=guild)
 
 		# INCREMENTS THE GUILD COUNTER.
 		guild_count += 1
@@ -149,6 +151,7 @@ async def on_ready() :
 		logging.error(f"Failed to load views: {e}")
 	# Syncing commands
 	queue().add(bot.tree.sync())
+	queue().add(bot.tree.sync(guild=discord.Object(bot.SUPPORTGUILD)))
 	logging.info(f"Commands synced, start up done! Connected to {guild_count} guilds and {bot.shard_count} shards.")
 	# Checking if theres bans that aren't approved yet.
 	queue().add(pending_bans(bot, limit=50), priority=0)
