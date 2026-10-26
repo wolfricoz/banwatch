@@ -5,6 +5,7 @@ import discord
 from discord_py_utilities.messages import send_message, send_response
 
 from classes.appeal import inform_user
+from classes.ban.ban_channel import UNSET, resolve_ban_channel, warn_missing_ban_channel
 from classes.bans import Bans
 from classes.configdata import ConfigData
 from classes.evidence import EvidenceController
@@ -13,6 +14,7 @@ from database.transactions.BanTransactions import BanTransactions
 from database.transactions.ProofTransactions import ProofTransactions
 from view.base.secureview import SecureView
 from view.modals.inputmodal import send_modal
+from view.multiselect.selectinform import SelectInform
 from view.multiselect.selectreason import SelectReason
 from view.v2.EvidenceSubmission import EvidenceUI
 
@@ -81,24 +83,61 @@ class BanApproval(SecureView) :
 	# ============================================================
 	@discord.ui.button(label="Inform Server", style=discord.ButtonStyle.primary, custom_id="request_evidence")
 	async def request_evidence(self, interaction: discord.Interaction, button: discord.ui.Button) :
-		reason = await send_modal(interaction, confirmation="Thank you for providing a reason",
-		                          title="What evidence do we require?")
-		if not reason :
-			return None
+		"""Hides the ban until the server provides evidence and tells them why, using a preset or custom message.
+
+		Evidence submitted through the request puts the ban back in this queue (see EvidenceController.add_evidence).
+		"""
+		if self.bot is None or self.wait_id is None :
+			await send_response(interaction, "Error: The bot has restarted, the data of this button was lost", ephemeral=True)
+			return
 		ban_entry = BanTransactions().get(self.wait_id, override=True)
 		if ban_entry is None :
-			return await send_response(interaction, "Ban not found")
-		guild: discord.Guild = interaction.client.get_guild(ban_entry.gid)
-		user: discord.User = await interaction.client.fetch_user(ban_entry.uid)
-		modchannel = await ConfigData().get_channel(guild)
+			await send_response(interaction, "Ban not found", ephemeral=True)
+			return
+		if ban_entry.approved :
+			await send_response(interaction, "This ban has already been handled and is no longer pending.",
+			                    ephemeral=True)
+			return
 
-		content = f"The banwatch team requests that you add more evidence to user {user}({user.id}), you can do this by joining our support guild or by using `/evidence add user:{user.id}`."
-		embed = discord.Embed(title=f"Evidence request for ban {ban_entry.ban_id}", description=content)
-		embed.add_field(name=f"Request reason", value=reason)
-		ui = EvidenceUI(user, guild, ban_entry.ban_id, ban_entry.reason, staff_reason=reason)
-		await ui.send_embed(modchannel)
-		await send_response(interaction, f"{guild.name} has been notified with reason:\n{reason}")
-		return None
+		view = SelectInform()
+		await send_response(interaction, "Select the message to send to the server.", view=view, ephemeral=True)
+		if await view.wait() or view.interaction is None :
+			# Timed out without a selection.
+			return
+		message = view.get_message()
+		# The select interaction is the only fresh token at this point, so the custom modal has to open on it.
+		if message == "custom" :
+			message = await send_modal(view.interaction, confirmation="Thank you for providing a reason",
+			                           title="What evidence do we require?")
+		else :
+			await view.interaction.response.defer()
+		if not message :
+			await self.reply(interaction, "No message was provided, the server was not informed.")
+			return
+
+		guild, user, reason = await self.get_ban_data(ban_entry)
+		owner = guild.owner
+		BanTransactions().update(self.wait_id, approved=True, hidden=True)
+		await self.update_embed(interaction, "inform")
+		await send_response(interaction,
+		                    f"Hidden `{interaction.message.embeds[0].title}` until evidence is provided, informed by {interaction.user.mention} with:\n{message}",
+		                    ephemeral=False)
+
+		banembed = discord.Embed(title=f"{user} ({user.id}) was banned in {guild}({owner})",
+		                         description=f"{reason}")
+		banembed.set_footer(text=f"Ban hidden until evidence is provided: {message}"[:2048])
+		denial_channel = self.bot.get_channel(self.bot.DENIALCHANNEL)
+		if denial_channel :
+			await denial_channel.send(embed=banembed)
+
+		mod_channel = await resolve_ban_channel(guild)
+		if mod_channel is None :
+			await warn_missing_ban_channel(guild, problem=UNSET, source="evidence")
+			await self.reply(interaction,
+			                 f"{guild.name} has no usable mod channel, so the evidence request could not be delivered. The ban is still hidden.")
+			return
+		ui = EvidenceUI(user, guild, ban_entry.ban_id, reason, staff_reason=message, review=True)
+		await ui.send_embed(mod_channel)
 
 	# ============================================================
 	@discord.ui.button(label="Alter Ban Reason", style=discord.ButtonStyle.primary, custom_id="change_reason")
@@ -293,6 +332,8 @@ class BanApproval(SecureView) :
 				self.hide.style = discord.ButtonStyle.success
 			case "hidesilent" :
 				self.hidesilent.style = discord.ButtonStyle.success
+			case "inform" :
+				self.request_evidence.style = discord.ButtonStyle.success
 			case "approve" :
 				self.approve_no_proof.style = discord.ButtonStyle.success
 			case "verify" :
