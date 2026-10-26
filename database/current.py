@@ -6,7 +6,7 @@ from typing import List
 import pymysql
 from dotenv import load_dotenv
 from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, String, create_engine
-from sqlalchemy.orm import DeclarativeBase, Mapped, Relationship, mapped_column, relationship, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Mapped, Relationship, close_all_sessions, mapped_column, relationship
 from sqlalchemy.sql import func
 from sqlalchemy_utils import create_database, database_exists
 
@@ -219,7 +219,5 @@ def create_bot_database() :
 def drop_bot_database() :
 	if os.getenv('DISCORD_TOKEN') is not None :
 		raise Exception("You cannot drop the database while the bot is in production")
-	Session = sessionmaker(bind=engine)
-	session = Session()
-	session.close_all()
+	close_all_sessions()
 	Base.metadata.drop_all(engine)
