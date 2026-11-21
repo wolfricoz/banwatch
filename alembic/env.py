@@ -3,11 +3,19 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from database.current import Base
+from database.current import Base, engine
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+# Take the database from the same place the bot's engine does (DB in main.env), rather than from alembic.ini, so the
+# CLI and the bot can never disagree about which database is being migrated. Only fills in a url that nothing else
+# supplied, so a caller that deliberately points at another database still wins.
+# The '%' escape is for ConfigParser, which treats a bare '%' in a value as interpolation (passwords are url-encoded,
+# so a real one can contain them).
+if not config.get_main_option("sqlalchemy.url", None) :
+    config.set_main_option("sqlalchemy.url", engine.url.render_as_string(hide_password=False).replace("%", "%%"))
 
 # Interpret the Config file for Python logging.
 # This line sets up loggers basically.
